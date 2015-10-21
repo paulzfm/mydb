@@ -18,6 +18,11 @@
 * +0    char[32]    freemap
 * +32B  ...         records
 
+每条record的前4字节为rid，以后为数据。
+
+* +0    int         rid
+* +4B   ...         data
+
 写入记录只关心将字符流（`char*`)写入相应位置，不关心内容。
 修改时先查询并读取相应记录，修改后写入。
 查询时上层传入函数`bool match(char*)，`，将其作用于每条记录并判断是否符合要求。
@@ -28,9 +33,9 @@
 支持约束：NOT NULL, UNIQUE, PRIMARY KEY, DEFAULT, FOREIGN KEY*, CHECK*
 *:计划支持
 
-系统表不做序列化，直接将struct的binary representation存入文件中。
+系统表不做序列化，直接将struct的binary representation存入文件中。每个用户表的字段和约束单独存放在独立的文件中。
 
-#### a) 字段表
+#### a) 字段
 
 * int       cid
 * char[16]  name
@@ -38,8 +43,22 @@
 
 24 bytes
 
-#### b) 约束表
+#### b) 约束
 
 * int       cid
 * int       type
 * int       data
+
+### c. 内存中的数据库对象（记录）
+
+    Record:
+        int rid;
+        map<cid, Object> attr;
+        
+Record中的属性顺序按字段定义（即系统表）顺序存放。
+
+    Object:
+        DType type;
+        char* data;
+        
+type表示该Object的类型，data即其实际数据。
