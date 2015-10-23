@@ -47,13 +47,15 @@
 
 * int       cid
 * int       type
-* int       data
+* int64_t   data
+
+16 bytes
 
 ### c. 内存中的数据库对象（记录）
 
     Record:
         int rid;
-        map<cid, Object> attr;
+        map<int, Object> attr;
         
 Record中的属性顺序按字段定义（即系统表）顺序存放。
 
