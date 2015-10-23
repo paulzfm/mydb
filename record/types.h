@@ -1,5 +1,5 @@
 // Data types for mydb.
-// type DType = Short | Int | Long | Float | Double | Bool | String <bytes>
+// type DType = Short | Int | Long | Float | Double | Bool | Char | String <bytes>
 
 #ifndef RECORD_TYPES_H_
 #define RECORD_TYPES_H_
@@ -19,6 +19,7 @@ public:
             case LONG:      bytes = 8; break;
             case FLOAT:     bytes = 4; break;
             case DOUBLE:    bytes = 8; break;
+            case CHAR:      bytes = 1; break;
             case STRING:    bytes = 256; break;
             default: ; // error
         }
@@ -40,7 +41,8 @@ public:
     const static int LONG = 103;
     const static int FLOAT = 104;
     const static int DOUBLE = 105;
-    const static int STRING = 106;
+    const static int CHAR = 106;
+    const static int STRING = 107;
 
     // length of current type in bytes
     int bytes;
@@ -98,6 +100,14 @@ public:
 
     void serialize(char *dst, double val) const;
     double unserialize(char *buf) const;
+};
+
+class Char : public DType
+{
+    Char() : DType(DType::CHAR) {}
+
+    void serialize(char *dst, char val) const;
+    char unserialize(char *buf) const;
 };
 
 class String : public DType

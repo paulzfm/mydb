@@ -72,6 +72,16 @@ double Double::unserialize(char *buf) const
     return *ptr;
 }
 
+void Char::serialize(char *dst, char val) const
+{
+    *dst = val;
+}
+
+char Char::unserialize(char *buf) const
+{
+    return *buf;
+}
+
 void String::serialize(char *dst, const std::string& val) const
 {
     strcpy(dst, val.c_str());
