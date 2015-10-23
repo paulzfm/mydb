@@ -5,6 +5,9 @@
 
 #include "type.h"
 
+#include <map>
+#include <vector>
+
 struct Object
 {
     DType type; // data type
@@ -37,8 +40,11 @@ public:
     // query a record
     Record& query(int rid) const;
 
-    // query records
+    // query some records
     std::vector<Record>& querySome(const std::vector<int>& rids) const;
+
+    // query all records
+    std::vector<Record>& queryAll() const;
 
     // the id of the last record
     int last() const;
