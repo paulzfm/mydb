@@ -1,29 +1,35 @@
-// Record manager associated with a file (table).
-
 #ifndef RECORD_RECORD_MANAGER_H_
 #define RECORD_RECORD_MANAGER_H_
 
 #include "type.h"
+#include "../lib/fs/fileio/FileManager.h"
+#include "../lib/fs/bufmanager/BufPageManager.h"
 
+#include <string>
 #include <map>
 #include <vector>
 
+// Object (a cell in table)
 struct Object
 {
     DType type; // data type
     char* data; // binary data
 };
 
+// Record (a row in table)
 struct Record
 {
     int rid; // record id
     std::map<int, Object> attr; // key-value pairs (cid, obj)
 };
 
+// Record manager associated with a file (table).
 class RecordManager
 {
 public:
-    RecordManager(const std::string& db, const std::string& table);
+    RecordManager(const std::string& path);
+
+    ~RecordManager();
 
     // insert a record
     //   returns the id of the last inserted record
@@ -33,24 +39,29 @@ public:
     //   returns false if no such record
     bool remove(int rid);
 
-    // update a record
+    // replace a record
     //   returns false if no such record
-    bool update(int rid, const Record& rec);
+    bool replace(int rid, const Record& rec);
 
-    // query a record
-    Record& query(int rid) const;
+    // load some records
+    std::vector<Record>& load(const std::vector<int>& rids) const;
 
-    // query some records
-    std::vector<Record>& querySome(const std::vector<int>& rids) const;
+    // load a record
+    Record& loadOne(int rid) const;
 
-    // query all records
-    std::vector<Record>& queryAll() const;
+    // load all records
+    std::vector<Record>& loadAll() const;
 
     // the id of the last record
     int last() const;
 
     // total number of records
     int size() const;
+
+private:
+    FileManager *fm;
+    BufPageManager *bpm;
+    int fid; // file id
 };
 
 #endif // RECORD_RECORD_MANAGER_H_
