@@ -1,5 +1,9 @@
 #ifndef FILE_MANAGER
 #define FILE_MANAGER
+
+#include "../utils/MyBitMap.h"
+#include "../utils/pagedef.h"
+
 #include <string>
 #include <stdio.h>
 #include <iostream>
