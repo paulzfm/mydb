@@ -42,7 +42,7 @@ RecordManager::RecordManager(const std::string& path, int length)
     b[1] = size;
     b[2] = rid;
     b[3] = pid;
-    for (int i = FREE_MAP_OFFSET / 4; i < (FREE_MAP_OFFSET + FREE_MAP_MAX_SIZE) / 4; i++) { // all offsets: free
+    for (int i = FREE_MAP_OFFSET; i < (FREE_MAP_OFFSET + FREE_MAP_MAX_SIZE); i++) { // all offsets: free
         b[i] = -1;
     }
     BitMap::reset(b + FREE_MAP_OFFSET, 0); // freemap[0] = 0
