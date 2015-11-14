@@ -1,7 +1,9 @@
 #ifndef COLUMN_H_
 #define COLUMN_H_
 
+#include <stdint.h>
 #include <string>
+#include <vector>
 
 struct ColumnDef {
 	static const int bytes = 24;
@@ -15,6 +17,14 @@ struct ColumnConstraint {
 	static const int bytes = 16;
 
 	int cid;
+	/*
+		0 - primary key
+		1 - not null
+		2 - unique
+		3 - foreign key
+		4 - default
+		5 - check
+	*/
 	int type;
 	int64_t data;
 };
@@ -25,11 +35,11 @@ class Column {
 		std::vector<ColumnConstraint> constraints;
 
 		Column();
-		Column(ColumnDef &def);
+		Column(const ColumnDef &def);
 		bool addConstraint(ColumnConstraint c);
 		bool check(const char* data) const;
 };
 
-static const Column InvalidColumn = Column(ColumnDef{-1, "", 0});
+extern Column NullColumn;
 
 #endif // COLUMN_H_

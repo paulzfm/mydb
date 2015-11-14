@@ -37,9 +37,27 @@
 支持约束：NOT NULL, UNIQUE, PRIMARY KEY, DEFAULT, FOREIGN KEY*, CHECK*
 *:计划支持
 
-系统表不做序列化，直接将struct的binary representation存入文件中。每个用户表的字段和约束单独存放在独立的文件中。
 
-#### a) 字段
+系统表不做序列化，直接将struct的binary representation存入文件中。
+
+系统数据库列表为dblist.dat，存放在根目录下。
+第一行为n，为database的数量。
+接下来每行一个字符串，为数据库名。
+
+
+数据库的表列表文件为tablelist.dat，存放在数据库的目录下。
+每部分起始为表描述，接下来若干个字段描述，最后若干个约束描述。
+每个表最多支持255个字段和255个约束。
+
+#### a) 表
+
+* char[16]  name
+* char      column_num;
+* char      constraint_num;
+
+18 bytes
+
+#### b) 字段
 
 * int       cid
 * char[16]  name
@@ -47,7 +65,7 @@
 
 24 bytes
 
-#### b) 约束
+#### c) 约束
 
 * int       cid
 * int       type
@@ -68,3 +86,26 @@ Record中的属性顺序按字段定义（即系统表）顺序存放。
         char* data;
 
 type表示该Object的类型，data即其实际数据。
+
+
+## 2. 目录结构
+
+---- /
+   |---- EXECUTABLE ELF 
+   |---- mydb.conf      // system configuration file
+   |---- dblist.dat     // list of all existing databases
+   |---- databases
+   |   |---- DBNAME1
+   |   |   |---- tablelist.dat      // list of all tables in DBNAME1
+   |   |   |---- TABLENAME1.dat     // data stored in TABLENAME1
+   |   |   |---- TABLENAME1.idx     // indexes of TABLENAME1
+   |   |   |---- TABLENAME2.dat
+   |   |   |---- TABLENAME2.idx
+   |   |   |---- ...
+   |   |
+   |   |---- DBNAME2
+   |   |   |---- tablelist.dat
+   |   |   |---- TABLENAME1.dat
+   |   |   |---- TABLENAME2.dat
+   |   |   |---- ...
+

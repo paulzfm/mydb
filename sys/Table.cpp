@@ -1,73 +1,95 @@
 #include "Table.h"
 #include "config.h"
 #include <cstring>
+#include <iostream>
+
+Table NullTable = Table();
+
+Table::Table() {
+	pk = -1;
+}
+
+Table::Table(const std::string& name) {
+	this->name = name;
+	this->pk = -1;
+}
 
 Column& Table::getColumnById(int cid) {
 	for (auto &col : columns)
 		if (col.def.cid == cid) return col;
-	return InvalidColumn;
+	return NullColumn;
 }
 
 Column& Table::getColumnByIndex(int index) {
-	if (columns.size() <= index) return InvalidColumn;
+	if ((int)columns.size() <= index) return NullColumn;
 	return columns[index];
 }
 
 Column& Table::getColumnByName(std::string name) {
 	for (auto &col : columns)
 		if (name == std::string(col.def.name)) return col;
-	return InvalidColumn;
+	return NullColumn;
 }
 
-bool Table::open(std::string name) {
-	std::string file = Configuration::conf()->basepath + name;
-	std::ifstream fin;
-	char buf[256];
+void Table::addColumn(Column col) {
+	col.def.cid = ++maxcid;
+	this->columns.push_back(col);
+}
 
+// TODO: rearrange data store in this table
+void Table::removeColumn(int cid) {
+	for (unsigned i = 0; i < this->columns.size(); ++i)
+		if (columns[i].def.cid == cid) {
+			columns.erase(columns.begin() + i);
+			break;
+		}
+}
+
+bool Table::open(std::ifstream& fin, const TableDef& def) {
 	// read columns
-	fin.open(file + ".col", std::fstream::in | std::fstream::binary);
 	maxcid = 0;
-	for (ColumnDef col; ;) {
-		fin.read(buf, ColumnDef::bytes);
-		if (fin.gcount() != ColumnDef::bytes) break;
-		memcpy(&col, buf, ColumnDef::bytes);
+	ColumnDef col;
+	for (int i = 0; i < def.column_num; ++i) {
+		fin.read((char*) &col, ColumnDef::bytes);
 		this->columns.push_back(Column(col));
 		if (col.cid > maxcid) maxcid = col.cid;
 	}
-	fin.close();
 
 	// read constraints
-	fin.open(file + ".cons", std::fstream::in | std::fstream::binary);
-	for (ColumnConstraint cc; ;) {
-		fin.read(buf, ColumnConstraint::bytes);
-		if (fin.gcount() != ColumnConstraint::bytes) break;
-		memcpy(&cc, buf, ColumnConstraint::bytes);
+	ColumnConstraint cc;
+	for (int i = 0; i < def.constraint_num; ++i) {
+		fin.read((char*) &cc, ColumnConstraint::bytes);
 		Column &col = getColumnById(cc.cid);
+
+		if (cc.type == 0) {
+			// TODO: error handling
+			if (pk != -1) {
+				std::cerr << "[ERROR] multiple primary presented in table " << this->name << std::endl;
+				return false;
+			}
+			pk = col.def.cid;
+		}
+
 		if (col.def.cid < 0) {
-			std::cerr << "[Error] Column " << cc.cid << " not found" << std::endl;
+			std::cerr << "[ERROR] Column " << cc.cid << " not found, skipping..." << std::endl;
 			continue;
 		}
 		col.constraints.push_back(cc);
 	}
-	fin.close();
+
+	if (pk == -1) return false;
+	return true;
 }
 
-bool Table::close() {
-	std::string file = Configuration::conf()->basepath + name;
-	std::ofstream colfile, consfile;
-	char buf[256];
+bool Table::close(std::ofstream& fout) const {
+	// write column
+	for (auto &col : columns)
+		fout.write((char*) &col.def, ColumnDef::bytes);
 
-	// write columns and constraints
-	colfile.open(file + ".col", std::fstream::out | std::fstream::binary);
-	consfile.open(file + ".cons", std::fstream::out | std::fstream::binary);
-	for (auto &col : columns) {
-		// write column
-		colfile.write((char*) &col.def, ColumnDef::bytes);
+	// write constraints
+	for (auto &col : columns)
+		for (auto &cons : col.constraints)
+			fout.write((char*) &cons, ColumnConstraint::bytes);
 
-		for (auto &cons : col.constraints) {
-			consfile.write((char*) &cons, ColumnConstraint::bytes);
-		}
-	}
-	colfile.close();
-	consfile.close();
+	return true;
 }

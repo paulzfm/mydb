@@ -3,12 +3,13 @@
 
 #include <string>
 
+#define CONFFILE "mydb.conf"
+
 class Configuration {
 	private:
-		static const char CONFFILE[] = "db.conf";
-
-		static Configuration *config = NULL;
+		static Configuration *config;
 		Configuration();
+		Configuration& operator = (const Configuration&);
 
 	public:
 		std::string basepath;	// with trailing slash

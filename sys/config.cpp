@@ -1,10 +1,12 @@
 #include "config.h"
-#include "lib/rapidjson/document.h"
-#include "lib/rapidjson/writer.h"
-#include "lib/rapidjson/stringbuffer.h"
+#include "../lib/rapidjson/document.h"
+#include "../lib/rapidjson/writer.h"
+#include "../lib/rapidjson/stringbuffer.h"
 #include <fstream>
 #include <iostream>
 #include <cstdlib>
+
+Configuration* Configuration::config = NULL;
 
 Configuration::Configuration() {
 	std::ifstream fin(CONFFILE);
@@ -24,7 +26,7 @@ Configuration::Configuration() {
 		}
 		
 	} else {
-		std::cerr << "[FATAL] config file " CONFFILE " not found, exiting..." << std::endl;
+		std::cerr << "[FATAL] config file " << CONFFILE << " not found, exiting..." << std::endl;
 		exit(1);
 	}
 }
