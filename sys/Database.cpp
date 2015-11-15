@@ -6,6 +6,13 @@
 
 Database NullDatabase = Database();
 
+int Database::getTableByName(const std::string& name) const {
+	for (unsigned i = 0; i < tables.size(); ++i)
+		if (tables[i].name == name)
+			return i;
+	return -1;
+}
+
 Database::Database() {
 }
 
@@ -25,7 +32,7 @@ Database::Database(const std::string& name) {
 
 		fin.close();
 	} else {
-		std::cerr << "[ERROR] table list of database " << name << " file not found, empty list created." << std::endl;
+		std::cerr << "[WARNING] table list of database " << name << " file not found, empty list created." << std::endl;
 	}
 }
 
@@ -51,11 +58,35 @@ void Database::showTables() const {
 	}
 }
 
+void Database::descTable(const std::string& name) const {
+	int tid = getTableByName(name);
+	if (tid == -1) {
+		std::cerr << "[ERROR] Table " << name << " not exists." << std::endl;
+		return;
+	}
+	
+	tables[tid].desc();
+}
+
 Table& Database::createTable(const std::string& name) {
+	// check if name is unique
+	int tid = getTableByName(name);
+	if (tid != -1) {
+		std::cerr << "[ERROR] Table " << name << " already exist." << std::endl;
+		return NullTable;
+	}
+
 	Table table(name);
 	tables.push_back(std::move(table));
 	return tables.back();
 }
 
 void Database::dropTable(const std::string& name) {
+	int tid = getTableByName(name);
+	if (tid == -1) {
+		std::cerr<< "[ERROR] Table " << name << " not exists." << std::endl;
+		return;
+	}
+
+	tables.erase(tables.begin() + tid);
 }

@@ -77,6 +77,8 @@ Database& SystemManager::createDatabase(const std::string& name) {
 	dbs.push_back(db);
 
 	mkdir(name.c_str(), 0755);
+	std::ofstream fout((name + "/" + TABLELIST_FILE).c_str());
+	fout.close();
 	return dbs.back();
 }
 
@@ -101,6 +103,14 @@ void SystemManager::showTables() const {
 		return;
 	}
 	dbs[dbid].showTables();
+}
+
+void SystemManager::descTable(const std::string& name) const {
+	if (dbid == -1) {
+		std::cerr << "[ERROR] no database selected." << std::endl;
+		return;
+	}
+	dbs[dbid].descTable(name);
 }
 
 Table& SystemManager::createTable(const std::string& name) {

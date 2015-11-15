@@ -8,6 +8,8 @@
 #define TABLELIST_FILE	"tablelist.dat"
 
 class Database {
+	private:
+		int getTableByName(const std::string& name) const;
 	public:
 		std::string name;
 		std::vector<Table> tables;
@@ -17,6 +19,7 @@ class Database {
 		~Database();
 
 		void showTables() const;
+		void descTable(const std::string& name) const;
 		Table& createTable(const std::string& name);
 		void dropTable(const std::string& name);
 };

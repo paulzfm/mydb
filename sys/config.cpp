@@ -12,7 +12,8 @@ Configuration::Configuration() {
 	std::ifstream fin(CONFFILE);
 	if (fin.is_open()) {
 		std::string strbuf;
-		fin >> strbuf;
+		getline(fin, strbuf);
+		std::cout << strbuf << std::endl;
 		fin.close();
 
 		rapidjson::Document doc;

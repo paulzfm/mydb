@@ -35,6 +35,7 @@ class Table {
 
 		bool open(std::ifstream& fin, const TableDef& def);
 		bool close(std::ofstream& fout) const;
+		void desc() const;
 };
 
 extern Table NullTable;

@@ -32,6 +32,13 @@ Column& Table::getColumnByName(std::string name) {
 }
 
 void Table::addColumn(Column col) {
+	// check if column name is unique
+	for (auto& c : columns)
+		if (c.def.name == col.def.name) {
+			std::cerr << "[ERROR] Column " << name << " already exist." << std::endl;
+			return;
+		}
+
 	col.def.cid = ++maxcid;
 	this->columns.push_back(col);
 }
@@ -92,4 +99,34 @@ bool Table::close(std::ofstream& fout) const {
 			fout.write((char*) &cons, ColumnConstraint::bytes);
 
 	return true;
+}
+
+void Table::desc() const {
+	std::cout << "------ Columns of Table " << name << " ------" << std::endl;
+	for (auto& col : columns) {
+		std::cout << "| " << col.def.name << " of type " << col.def.type << "\t";
+		for (auto& cons : col.constraints) {
+			switch (cons.type) {
+				case 0:
+					std::cout << " Primary Key\t";
+					break;
+				case 1:
+					std::cout << " Not Null\t";
+					break;
+				case 2:
+					std::cout << " Unique\t";
+					break;
+				case 3:
+					std::cout << " Foreign Key\t";
+					break;
+				case 4:
+					std::cout << " Default\t";
+					break;
+				case 5:
+					std::cout << " Check\t";
+					break;
+			}
+		}
+		std::cout << std::endl;
+	}
 }

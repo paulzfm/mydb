@@ -24,6 +24,7 @@ class SystemManager {
 		void dropDatabase(const std::string& name);
 
 		void showTables() const;
+		void descTable(const std::string& name) const;
 		Table& createTable(const std::string& name);
 		void dropTable(const std::string& name);
 };
