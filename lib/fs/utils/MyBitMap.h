@@ -18,8 +18,9 @@ typedef unsigned int uint;
 #define MAX_INNER_NUM 67
 //#define MOD 61
 #define BIAS 5
-unsigned char h[61];
 
+// NOTE: never define global variables in header
+// unsigned char h[61];
 
 class MyBitMap {
 protected:
@@ -28,6 +29,9 @@ protected:
 //	static const int MAX_INNER_NUM = 10;
 //	static const int MOD = 61;
 //	static unsigned char h[MOD];
+
+    unsigned char h[61];
+
 	static uint getMask(int k) {
 		uint s = 0;
 		for (int i = 0; i < k; ++ i) {
@@ -165,13 +169,15 @@ public:
 	static int _hash(uint i) {
 		return i % 61;
 	}
-	static void initConst() {
+	// static
+    void initConst() {
 		for (int i = 0; i < 32; ++ i) {
 			unsigned int k = (1 << i);
 			h[_hash(k)] = i;
 		}
 	}
-	static int getIndex(uint k)
+	// static 
+    int getIndex(uint k)
 	{
 		return h[_hash(k)];
 	}
