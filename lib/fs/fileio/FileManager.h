@@ -1,9 +1,5 @@
 #ifndef FILE_MANAGER
 #define FILE_MANAGER
-
-#include "../utils/MyBitMap.h"
-#include "../utils/pagedef.h"
-
 #include <string>
 #include <stdio.h>
 #include <iostream>
@@ -11,8 +7,14 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <fcntl.h>
-//#include "../MyLinkList.h"
-using namespace std;
+
+// NOTE: missing these headers
+#include "../utils/MyBitMap.h"
+#include "../utils/pagedef.h"
+
+// NOTE: never open namespace std
+// using namespace std;
+
 class FileManager {
 private:
 	//FileTable* ftable;
@@ -22,7 +24,7 @@ private:
 	int _createFile(const char* name) {
 		FILE* f = fopen(name, "a+");
 		if (f == NULL) {
-			cout << "fail" << endl;
+			std::cout << "fail" << std::endl;
 			return -1;
 		}
 		fclose(f);

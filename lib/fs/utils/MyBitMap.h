@@ -7,8 +7,11 @@ typedef unsigned int uint;
 #define MAX_INNER_NUM 67
 #define MOD 61
 #define BIAS 5*/
-#include <iostream>
-using namespace std;
+
+// #include <iostream>
+
+// NOTE: never open namespace std
+// using namespace std;
 
 #define LEAF_BIT 32
 #define MAX_LEVEL 5

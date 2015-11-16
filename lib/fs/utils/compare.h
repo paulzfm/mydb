@@ -10,8 +10,10 @@
 
 #include "../bplustree/BPlusTree.h"
 #include "pagedef.h"
-#include <cstring>
-using namespace std;
+#include <string.h>
+
+// using namespace std;
+
 #define LL_TYPE 0
 #define DB_TYPE 1
 #define ST_TYPE 2

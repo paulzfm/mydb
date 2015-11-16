@@ -28,10 +28,10 @@ struct Record
 };
 
 // NOTE: the number is measured in every 4 bytes, say, an integer
-#define FREE_MAP_OFFSET 256
-#define FREE_MAP_MAX_SIZE 1792
-#define PAGE_FREE_MAP_SIZE 8
-#define WORD_SIZE 8
+#define RM_FREE_MAP_OFFSET 256
+#define RM_FREE_MAP_MAX_SIZE 1792
+#define RM_PAGE_FREE_MAP_SIZE 8
+#define RM_WORD_SIZE 8
 
 // Record manager associated with a file (table).
 class RecordManager
