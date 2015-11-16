@@ -42,8 +42,8 @@ RecordManager::RecordManager(const std::string& path, int length)
     b[1] = size;
     b[2] = rid;
     b[3] = pid;
-    for (int i = RM_FREE_MAP_OFFSET; i < (RM_FREE_MAP_OFFSET + RM_FREE_MAP_MAX_SIZE); i++) { // all offsets: free
-        b[i] = -1;
+    for (int i = RM_FREE_MAP_OFFSET; i < (RM_FREE_MAP_OFFSET + RM_FREE_MAP_MAX_SIZE); i++) { // all offsets: 1
+        b[i] = -1; // 1111...1111
     }
     BitMap::reset(b + RM_FREE_MAP_OFFSET, 0); // freemap[0] = 0
     bpm->markDirty(index);
@@ -63,10 +63,11 @@ bool RecordManager::insert(char *data)
     int pageId = BitMap::findOne(b0 + RM_FREE_MAP_OFFSET, pid + 1);
     if (pageId == -1) { // no empty page: create a new one
         pid++;
+        pageId = pid;
         int index;
-        int *b = (int*)(bpm->allocPage(fid, pid, index, false));
-        for (int i = 0; i < RM_PAGE_FREE_MAP_SIZE; i++) { // all offsets: free
-            b[i] = -1;
+        int *b = (int*)(bpm->allocPage(fid, pageId, index, false));
+        for (int i = 0; i < RM_PAGE_FREE_MAP_SIZE; i++) { // all offsets: 1
+            b[i] = -1; // 1111...1111
         }
         BitMap::reset(b, 0); // freemap[0] = 0
         bpm->markDirty(index);
@@ -87,7 +88,6 @@ bool RecordManager::insert(char *data)
     b1[offset * RM_WORD_SIZE] = rid;
     memcpy(b1 + offset * RM_WORD_SIZE + 1, data, length);
     bpm->markDirty(index1);
-
     if (BitMap::findOne(b1, RM_PAGE_FREE_MAP_SIZE << 5) == -1) { // current page is full
         BitMap::reset(b0 + RM_FREE_MAP_OFFSET, pageId);
     }
@@ -127,7 +127,7 @@ bool RecordManager::replace(int page, int offset, char *data)
 {
     int index;
     int *b = (int*)(bpm->getPage(fid, page, index));
-    if (BitMap::test(b, offset)) { // free space cannot be removed
+    if (BitMap::test(b, offset)) { // free space cannot be replaced
         return false;
     }
 
@@ -141,7 +141,7 @@ bool RecordManager::load(int page, int offset, Record& rec)
 {
     int index;
     int *b = (int*)(bpm->getPage(fid, page, index));
-    if (BitMap::test(b, offset)) { // free space cannot be removed
+    if (BitMap::test(b, offset)) { // free space cannot be loaded
         return false;
     }
 
@@ -154,17 +154,12 @@ bool RecordManager::load(int page, int offset, Record& rec)
 
 void RecordManager::loadAll(std::vector<Record>& records)
 {
-    int index0;
-    int *b0 = (int*)(bpm->getPage(fid, 0, index0));
-    std::vector<int> pages;
-    BitMap::findZeros(b0 + RM_FREE_MAP_OFFSET, pid + 1, pages);
-    bpm->access(index0);
-
-    for (int page: pages) {
+    for (int page = 1; page <= pid; page++) {
         int index;
         int *b = (int*)(bpm->getPage(fid, page, index));
         std::vector<int> offsets;
         BitMap::findZeros(b, RM_PAGE_FREE_MAP_SIZE << 5, offsets);
+        offsets.erase(offsets.begin());
         for (int offset: offsets) {
             if ((offset - 1) % words == 0) {
                 int *start = b + offset * RM_WORD_SIZE;
@@ -177,16 +172,12 @@ void RecordManager::loadAll(std::vector<Record>& records)
 
 void RecordManager::query(const std::function<bool(const Record&)>& filter, std::vector<Record>& records)
 {
-    int index0;
-    int *b0 = (int*)(bpm->getPage(fid, 0, index0));
-    std::vector<int> pages;
-    BitMap::findZeros(b0 + RM_FREE_MAP_OFFSET, pid + 1, pages);
-
-    for (int page: pages) {
+    for (int page = 1; page <= pid; page++) {
         int index;
         int *b = (int*)(bpm->getPage(fid, page, index));
         std::vector<int> offsets;
         BitMap::findZeros(b, RM_PAGE_FREE_MAP_SIZE << 5, offsets);
+        offsets.erase(offsets.begin());
         for (int offset: offsets) {
             if ((offset - 1) % words == 0) {
                 int *start = b + offset * RM_WORD_SIZE;

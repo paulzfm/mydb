@@ -13,12 +13,19 @@
 struct Record
 {
     int rid; // record id
+    int len; // data length
     char *data; // binary data
 
-    Record(int rid, int *buf, int length) : rid(rid)
+    Record(int rid, int *buf, int length) : rid(rid), len(length)
     {
-        data = new char[length];
-        memcpy(data, buf, length);
+        data = new char[len];
+        memcpy(data, buf, len);
+    }
+
+    Record(const Record& rec) : rid(rec.rid), len(rec.len)
+    {
+        data = new char[len];
+        memcpy(data, rec.data, len);
     }
 
     ~Record()

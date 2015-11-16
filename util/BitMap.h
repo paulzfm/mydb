@@ -51,6 +51,20 @@ public:
             }
         }
     }
+
+    // print out the map
+    static void print(int *bits, int max)
+    {
+        printf("Map [");
+        for (int i = 0; i < max; i++) {
+            if (test(bits, i)) {
+                printf("1");
+            } else {
+                printf("0");
+            }
+        }
+        printf("]\n");
+    }
 };
 
 #endif // UTIL_BIT_MAP_H_
