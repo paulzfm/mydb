@@ -1,0 +1,114 @@
+\documentclass{article}
+\usepackage{syntax}
+
+\renewcommand{\t}[1]{\texttt{\textbf{#1}}}
+
+\title{\texttt{mydb} SQL Support}
+
+\begin{document}
+
+\maketitle
+
+\section{Keywords}
+
+\begin{center}
+\begin{tabular}{llllll}
+    \t{DATABASE} &\t{DATABASES} &\t{TABLE} &\t{TABLES} &\t{SHOW} &\t{CREATE} \\
+    \t{DROP} &\t{USE} &\t{CHECK} &\t{PRIMARY} &\t{KEY} &\t{UNIQUE} \\
+    \t{NOT} &\t{NULL} &\t{AUTO_INCREMENT} &\t{INSERT} &\t{INTO} &\t{VALUES} \\
+    \t{DELETE} &\t{FROM} &\t{WHERE} &\t{UPDATE} &\t{SET} &\t{SELECT} \\
+    \t{GROUP} &\t{BY} &\t{IS} &\t{IN} &\t{BETWEEN} &\t{LIKE} \\
+    \t{AND} &\t{OR} &\t{SUM} &\t{AVG} &\t{MAX} &\t{MIN} \\
+    \t{INT} &\t{SMALLINT} &\t{BIGINT} &\t{FLOAT} & \t{REAL} &\t{DOUBLE} \\
+    \t{VARCHAR} &\t{STRING} &\t{CHAR} &\t{BOOLEAN} &\t{DATETIME} \\
+\end{tabular}
+\end{center}
+
+These keywords are \textbf{NOT} case-sensetive.
+
+\section{Syntax}
+\setlength{\grammarindent}{10em}
+\begin{grammar}
+
+<program> ::= <stmt> [<stmt>]*
+
+<ident> ::= [\t{A-Za-z_}][\t{A-Za-z0-9_}]*
+
+<integer> ::= \t{0} | [\t{1-9}][\t{0-9}]*
+
+<stmt> ::= <sysStmt> \t{;} \alt <dbStmt> \t{;} \alt <tbStmt> \t{;}
+
+<sysStmt> ::= \t{SHOW} \t{DATABASES}
+
+<dbStmt> ::= \t{CREATE} \t{DATABASE} <dbName>
+\alt \t{DROP} \t{DATABASE} <dbName>
+\alt \t{USE} <dbName>
+\alt \t{SHOW} \t{TABLES}
+
+<tbStmt> ::= \t{CREATE} \t{TABLE} <tbName> \t{(} <field> [\t{,} <field>]* [\t{,} \t{CHECK} \t{(} <constraints> \t{)}]  [\t{,} \t{PRIMARY} \t{KEY} \t{(} <colName> \t{)}] \t{)}
+\alt \t{DROP} \t{TABLE} <tbName>
+\alt \t{SHOW} \t{TABLE} <tbName>
+\alt \t{INSERT} \t{INTO} <tbName> [\t{(} <colName> [\t{,} <colName>]* \t{)}] \t{VALUES} \t{(} <value> [\t{,} <value>]* \t{)}
+\alt \t{DELETE} \t{FROM} <tbName> \t{WHERE} <whereClause>
+\alt \t{UPDATE} <tbName> \t{SET} <colName> \t{=} <value> [\t{,} <colName> \t{=} <value>]* \t{WHERE} <whereClause>
+\alt \t{SELECT} <columns> \t{FROM} <tbName> [\t{WHERE} <whereClause>] [\t{GROUP} \t{BY} <colName>]
+
+<tbName> ::= <ident>
+
+<colName> ::= <ident>
+
+<value> ::= <ident>
+
+<field> ::= <colName> <type> [<attr>]*
+
+<type> ::= \t{INT} [\t{(} <integer> \t{)}]
+\alt \t{SMALLINT}
+\alt \t{BIGINT}
+\alt \t{FLOAT} | \t{REAL}
+\alt \t{DOUBLE}
+\alt \t{VARCHAR} \t{(} <integer> \t{)}
+\alt \t{STRING}
+\alt \t{CHAR}
+\alt \t{BOOLEAN}
+\alt \t{DATETIME}
+
+<attr> ::= \t{NOT} \t{NULL} | \t{UNIQUE} | \t{AUTO_INCREMENT}
+
+<atomExpr> ::= <colName> <op> <value>
+\alt <colName> \t{IS} [\t{NOT}] \t{NULL}
+\alt <colName> [\t{NOT}] \t{IN} \t{(} <value> [\t{,} <value>]* \t{)}
+\alt <colName> [\t{NOT}] \t{BETWEEN} <value> \t{AND} <value>
+
+<op> ::= `=' | `<>' | `<=' | `>=' | `<' | `>'
+
+<constraint> ::= <atomExpr>
+\alt \t{(} <constraint> \t{)}
+\alt <constraint> \t{AND} <constraint>
+\alt <constraint> \t{OR} <constraint>
+
+<whereClause> ::= <atomExpr>
+\alt <colName> [\t{NOT}] \t{LIKE} <pattern>
+\alt \t{(} <whereClause> \t{)}
+\alt <whereClause> \t{AND} <whereClause>
+\alt <whereClause> \t{OR} <whereClause>
+
+<columns> ::= \t{*} | <column> [\t{,} <column>]*
+
+<column> ::= [<tbName> \t{.}] <colName>
+\alt \t{SUM} \t{(} <colName> \t{)}
+\alt \t{AVG} \t{(} <colName> \t{)}
+\alt \t{MAX} \t{(} <colName> \t{)}
+\alt \t{MIN} \t{(} <colName> \t{)}
+
+\end{grammar}
+
+\section{Priority}
+
+\begin{itemize}
+    \item \t{()} \textit{prior to} \t{AND} \textit{prior to} \t{OR}
+    \item \textbf{left} association
+\end{itemize}
+
+\section{Semantics}
+
+\end{document}
