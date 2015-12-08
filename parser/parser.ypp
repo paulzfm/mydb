@@ -1,0 +1,109 @@
+%{
+#include <iostream>
+#include <string>
+#include <map>
+#include <vector>
+#include <cstdlib> //-- I need this for atoi
+
+#include "SemValue.h"
+#include "Tree.h" // abstract syntax tree
+
+//-- Lexer prototype required by bison, aka getNextToken()
+int yylex();
+int yyerror(const char *p) { std::cerr << "Error!" << std::endl; }
+%}
+
+//-- SYMBOL SEMANTIC VALUES -----------------------------
+%token <sym> DATABASE DATABASES TABLE TABLES SHOW CREATE
+%token <sym> DROP USE CHECK PRIMARY KEY UNIQUE
+%token <sym> NOT NIL AUTO_INCREMENT INSERT INTO VALUES
+%token <sym> DELETE FROM WHERE UPDATE SET SELECT
+%token <sym> GROUP BY IS IN BETWEEN LIKE
+%token <sym> AND OR SUM AVG MAX MIN
+%token <sym> INT SMALLINT BIGINT FLOAT REAL DOUBLE
+%token <sym> VARCHAR STRING CHAR BOOLEAN DATETIME
+%token <sym> EQ NE LE GE LT GT
+%token <sym> LP RP COMMA STOP
+%token <val> INTEGER
+%token <ident> IDENT
+
+%type <tree> stmt sysStmt dbStmt tbStmt program
+%type <tlist> stmts
+
+//-- GRAMMAR RULES ---------------------------------------
+%%
+program     :   stmts
+                {
+                    $$ = new TopLevel($1);
+                    PrintWriter pw;
+                    $$->printTo(pw);
+                }
+
+stmts       :   /* empty */
+                {
+                    $$ = new std::vector<Tree*>;
+                }
+            |   stmts stmt
+                {
+                    $$ = $1;
+                    $$->push_back($2);
+                }
+            ;
+
+stmt        :   sysStmt STOP
+            |   dbStmt STOP
+            |   tbStmt STOP
+            ;
+
+sysStmt     :   SHOW DATABASES
+                {
+                    $$ = new ListDB;
+                }
+            ;
+
+dbStmt      :   CREATE DATABASE IDENT
+                {
+                    $$ = new CreateDBStmt($3);
+                }
+            |   DROP DATABASE IDENT
+                {
+                    $$ = new DropDBStmt($3);
+                }
+            |   USE IDENT
+                {
+                    $$ = new UseDBStmt($2);
+                }
+            |   SHOW DATABASE IDENT
+                {
+                    $$ = new ShowDBStmt($3);
+                }
+            |   SHOW TABLES
+                {
+                    $$ = new ListTB;
+                }
+            ;
+
+tbStmt      :   CREATE TABLE IDENT
+                {
+                    $$ = new CreateTBStmt($3);
+                }
+            |   DROP TABLE IDENT
+                {
+                    $$ = new DropTBStmt($3);
+                }
+            |   SHOW TABLE IDENT
+                {
+                    $$ = new ShowTBStmt($3);
+                }
+            |   
+            ;
+
+%%
+//-- FUNCTION DEFINITIONS ---------------------------------
+int main()
+{
+    yyparse();
+    printf("exit!\n");
+
+    return 0;
+}
