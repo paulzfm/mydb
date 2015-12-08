@@ -9,14 +9,14 @@
 #define DBLIST_FILE		"dblist.dat"
 
 class SystemManager {
-	private:
-		int getDBIdByName(const std::string& name) const;
 	public:
 		std::vector<Database> dbs;
 		int dbid;	// currently opened db
 
 		SystemManager();
 		~SystemManager();
+
+		int getDBIdByName(const std::string& name) const;
 
 		Database& useDatabase(const std::string& name);
 		void showDatabases() const;

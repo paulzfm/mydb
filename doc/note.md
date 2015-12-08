@@ -22,10 +22,11 @@
 * +0    byte[32]    freemap
 * +32   ...         records
 
-每条record的前4字节为rid，以后为数据。
+每条record的前4字节为rid，接下来若干字节为Nullbits，以后为数据。
 
 * +0    int         rid
-* +4    ...         data
+* +4    byte[n]     nullbits
+* +4+n  ...         data
 
 写入记录只关心将字符流（`char*`)写入相应位置，不关心内容。
 修改时先查询并读取相应记录，修改后写入。
@@ -54,16 +55,19 @@
 * char[16]  name
 * char      column_num;
 * char      constraint_num;
+* int       length
 
-18 bytes
+22 bytes
 
 #### b) 字段
 
 * int       cid
 * char[16]  name
 * int       type
+* int       size
+* int       offset
 
-24 bytes
+32 bytes
 
 #### c) 约束
 
@@ -108,4 +112,7 @@ type表示该Object的类型，data即其实际数据。
    |   |   |---- TABLENAME1.dat
    |   |   |---- TABLENAME2.dat
    |   |   |---- ...
+
+   
+## 3. 结构
 

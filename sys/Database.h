@@ -8,8 +8,6 @@
 #define TABLELIST_FILE	"tablelist.dat"
 
 class Database {
-	private:
-		int getTableByName(const std::string& name) const;
 	public:
 		std::string name;
 		std::vector<Table> tables;
@@ -17,6 +15,9 @@ class Database {
 		Database();
 		Database(const std::string& name);
 		~Database();
+
+		// returns -1 when not found
+		int getTableByName(const std::string& name) const;
 
 		void showTables() const;
 		void descTable(const std::string& name) const;
