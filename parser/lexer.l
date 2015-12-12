@@ -19,6 +19,9 @@
 "<"      { return LT; }
 ">"      { return GT; }
 
+"*"      { return ALL; }
+"."      { return DOT; }
+
 "DATABASE"  { return DATABASE;  }
 "DATABASES" { return DATABASES; }
 "TABLE"     { return TABLE;     }
@@ -67,7 +70,7 @@
 "BOOLEAN"   { return BOOLEAN;   }
 "DATETIME"  { return DATETIME;  }
 
-[0-9]+   { yylval.val = atoi(yytext); return INTEGER; }
+[0-9]+   { yylval.value = new Value(Value::VALUE_INT, yytext); return VALUE; }
 [A-Za-z_][A-Za-z0-9_]* { strncpy(yylval.ident, yytext, 1024); return IDENT; }
 
 [ \t\n]+ { }
