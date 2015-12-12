@@ -6,12 +6,14 @@
 Table NullTable = Table();
 
 Table::Table() {
-	pk = -1;
+	this->pk = -1;
+	this->length = 0;
 }
 
-Table::Table(const std::string& name) {
+Table::Table(const std::string& name, int count) {
 	this->name = name;
 	this->pk = -1;
+	this->length = (count - 1) / 8 + 1;
 }
 
 Column& Table::getColumnById(int cid) {
@@ -40,7 +42,11 @@ void Table::addColumn(Column col) {
 		}
 
 	col.def.cid = ++maxcid;
-	this->columns.push_back(col);
+	col.def.offset = this->length;
+	this->length += col.def.size;
+	for (auto& c : col.constraints)
+		c.cid = maxcid;
+	this->columns.push_back(std::move(col));
 }
 
 // TODO: rearrange data store in this table
@@ -71,7 +77,7 @@ bool Table::open(std::ifstream& fin, const TableDef& def) {
 		if (cc.type == 0) {
 			// TODO: error handling
 			if (pk != -1) {
-				std::cerr << "[ERROR] multiple primary presented in table " << this->name << std::endl;
+				std::cerr << "[ERROR] multiple primary key presented in table " << this->name << std::endl;
 				return false;
 			}
 			pk = col.def.cid;

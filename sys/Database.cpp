@@ -43,6 +43,7 @@ Database::~Database() {
 		strcpy(def.name, table.name.c_str());
 		def.column_num = table.columns.size();
 		def.constraint_num = 0;
+		def.length = table.length;
 		for (auto& col : table.columns)
 			def.constraint_num += col.constraints.size();
 		fout.write((char*) &def, TableDef::bytes);

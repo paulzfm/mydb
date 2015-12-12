@@ -6,11 +6,13 @@
 #include <vector>
 
 struct ColumnDef {
-	static const int bytes = 24;
+	static const int bytes = 28;
 
 	int cid;	// internal unique id starts from 0
 	char name[16];
 	int type;	// data type, use type id from DType
+	int size;	// column size
+	int offset; // offset in record
 };
 
 struct ColumnConstraint {

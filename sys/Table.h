@@ -7,24 +7,26 @@
 #include "Column.h"
 
 struct TableDef {
-	static const int bytes = 18;
+	static const int bytes = 22;
 
 	char name[16];
 	char column_num;
 	char constraint_num;
+	int length;
 };
 
 class Table {
 	private:
 		int maxcid;
 		int pk;		// cid
+		int length;
 
 	public:
 		std::string name;	// name of table
 		std::vector<Column> columns;
 
 		Table();
-		Table(const std::string& name);
+		Table(const std::string& name, int count);
 
 		Column& getColumnById(int cid);
 		Column& getColumnByIndex(int index);
