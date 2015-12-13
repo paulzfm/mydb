@@ -16,6 +16,9 @@ struct Record
     int len; // data length
     char *data; // binary data
 
+    int page;   // useful when calling query
+    int offset; // useful when calling query
+
     Record(int rid, int *buf, int length) : rid(rid), len(length)
     {
         data = new char[len];
