@@ -2,6 +2,7 @@
 
 void Value::printTo(PrintWriter &pw)
 {
+    pw.printIndent();
     pw.print(val);
     pw.print(" ");
     switch (kind) {
@@ -9,6 +10,40 @@ void Value::printTo(PrintWriter &pw)
         case VALUE_REAL: pw.print("real");
         case VALUE_STRING: pw.print("string");
     }
+    pw.println("");
+}
+
+void Variable::printTo(PrintWriter &pw)
+{
+    pw.println(var);
+}
+
+void UnonExpr::printTo(PrintWriter &pw)
+{
+    switch (op) {
+        case OP_POS: pw.println("+");
+        case OP_NEG: pw.println("-");
+    }
+
+    pw.incIndent();
+    expr->printTo(pw);
+    pw.decIndent();
+}
+
+void BinExpr::printTo(PrintWriter &pw)
+{
+    switch (op) {
+        case OP_ADD: pw.println("+");
+        case OP_SUB: pw.println("-");
+        case OP_MUL: pw.println("*");
+        case OP_DIV: pw.println("/");
+        case OP_MOD: pw.println("mod");
+    }
+
+    pw.incIndent();
+    left->printTo(pw);
+    right->printTo(pw);
+    pw.decIndent();
 }
 
 void TopLevel::printTo(PrintWriter& pw)
@@ -89,7 +124,7 @@ void Field::printTo(PrintWriter &pw)
     pw.println("");
 }
 
-void UnonExpr::printTo(PrintWriter &pw)
+void NullExpr::printTo(PrintWriter &pw)
 {
     switch (op) {
         case OP_IS_NULL: pw.println("is null"); break;
@@ -101,7 +136,7 @@ void UnonExpr::printTo(PrintWriter &pw)
     pw.decIndent();
 }
 
-void BinExpr::printTo(PrintWriter &pw)
+void CompareExpr::printTo(PrintWriter &pw)
 {
     switch (op) {
         case OP_EQ: pw.println("="); break;
@@ -156,7 +191,7 @@ void BetweenExpr::printTo(PrintWriter &pw)
     pw.decIndent();
 }
 
-void ComExpr::printTo(PrintWriter &pw)
+void ComplexExpr::printTo(PrintWriter &pw)
 {
     switch (op) {
         case OP_AND: pw.println("and"); break;
@@ -269,11 +304,10 @@ void DeleteStmt::printTo(PrintWriter &pw)
 
 void Eq::printTo(PrintWriter &pw)
 {
-    pw.printIndent();
-    pw.print(colName);
-    pw.print(" ");
-    value->printTo(pw);
-    pw.println("");
+    pw.print(colName + " =");
+    pw.incIndent();
+    expr->printTo(pw);
+    pw.decIndent();
 }
 
 void UpdateStmt::printTo(PrintWriter &pw)
@@ -351,4 +385,185 @@ void SelectStmt::printTo(PrintWriter &pw)
         pw.println(gb->colName);
         pw.decIndent();
     }
+}
+
+
+void Tree::accept(Visitor &v)
+{
+    v.visitTree(this);
+}
+
+void Expr::accept(Visitor &v)
+{
+    v.visitExpr(this);
+}
+
+void Value::accept(Visitor &v)
+{
+    v.visitValue(this);
+}
+
+void Variable::accept(Visitor &v)
+{
+    v.visitVariable(this);
+}
+
+void UnonExpr::accept(Visitor &v)
+{
+    v.visitUnonExpr(this);
+}
+
+void BinExpr::accept(Visitor &v)
+{
+    v.visitBinExpr(this);
+}
+
+void TopLevel::accept(Visitor &v)
+{
+    v.visitTopLevel(this);
+}
+
+void Stmt::accept(Visitor &v)
+{
+    v.visitStmt(this);
+}
+
+void ListDB::accept(Visitor &v)
+{
+    v.visitListDB(this);
+}
+
+void CreateDBStmt::accept(Visitor &v)
+{
+    v.visitCreateDBStmt(this);
+}
+
+void DropDBStmt::accept(Visitor &v)
+{
+    v.visitDropDBStmt(this);
+}
+
+void UseDBStmt::accept(Visitor &v)
+{
+    v.visitUseDBStmt(this);
+}
+
+void ListTB::accept(Visitor &v)
+{
+    v.visitListTB(this);
+}
+
+void Type::accept(Visitor &v)
+{
+    v.visitType(this);
+}
+
+void Field::accept(Visitor &v)
+{
+    v.visitField(this);
+}
+
+void BoolExpr::accept(Visitor &v)
+{
+    v.visitBoolExpr(this);
+}
+
+void NullExpr::accept(Visitor &v)
+{
+    v.visitNullExpr(this);
+}
+
+void CompareExpr::accept(Visitor &v)
+{
+    v.visitCompareExpr(this);
+}
+
+void InExpr::accept(Visitor &v)
+{
+    v.visitInExpr(this);
+}
+
+void BetweenExpr::accept(Visitor &v)
+{
+    v.visitBetweenExpr(this);
+}
+
+void ComplexExpr::accept(Visitor &v)
+{
+    v.visitComplexExpr(this);
+}
+
+void Check::accept(Visitor &v)
+{
+    v.visitCheck(this);
+}
+
+void PrimaryKey::accept(Visitor &v)
+{
+    v.visitPrimaryKey(this);
+}
+
+void CreateTBStmt::accept(Visitor &v)
+{
+    v.visitCreateTBStmt(this);
+}
+
+void DropTBStmt::accept(Visitor &v)
+{
+    v.visitDropTBStmt(this);
+}
+
+void ShowTBStmt::accept(Visitor &v)
+{
+    v.visitShowTBStmt(this);
+}
+
+void Columns::accept(Visitor &v)
+{
+    v.visitColumns(this);
+}
+
+void InsertStmt::accept(Visitor &v)
+{
+    v.visitInsertStmt(this);
+}
+
+void DeleteStmt::accept(Visitor &v)
+{
+    v.visitDeleteStmt(this);
+}
+
+void Eq::accept(Visitor &v)
+{
+    v.visitEq(this);
+}
+
+void UpdateStmt::accept(Visitor &v)
+{
+    v.visitUpdateStmt(this);
+}
+
+void Selector::accept(Visitor &v)
+{
+    v.visitSelector(this);
+}
+
+void Selectors::accept(Visitor &v)
+{
+    v.visitSelectors(this);
+}
+
+void Where::accept(Visitor &v)
+{
+    v.visitWhere(this);
+}
+
+void GroupBy::accept(Visitor &v)
+{
+    v.visitGroupBy(this);
+}
+
+void SelectStmt::accept(Visitor &v)
+{
+    v.visitSelectStmt(this);
 }
