@@ -30,17 +30,17 @@ public:
 	// tableName, [<attrName, data>]
 	void Insert(const string& table, vector<pair<string, char*>> data);
 	// tableName, condition expr
-	void Delete(const string& table, CondExpr expr);
+	void Delete(const string& table, Expr* expr);
 	// tableName, [<attrName, expr>], condition expr
-	void Update(const string& table, vector<pair<string, ValueExpr>>, CondExpr expr);
+	void Update(const string& table, vector<pair<string, Expr*>>, Expr* expr);
 	// tableName, [attrName], condition expr
-	vector<int> Select(const string& table, vector<string> attrs, CondExpr expr);
+	vector<Record>* Select(const string& table, vector<string> attrs, Expr* expr);
 	// tableName
-	// * caller should build up all Columns
+	// * caller should build up all Columns with constraints
 	void CreateTable(const string& name, vector<Column> cols);
 
 	// wrapper
-	void Use(const string& name);
+	void UseDatabase(const string& name);
 	void ShowDatabase();
 	void CreateDatabase(const string& name);
 	void DropDatabase(const string& name);

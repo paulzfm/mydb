@@ -47,7 +47,7 @@ void QueryManager::Insert(const string& table, vector<pair<string, char*>> data)
 	delete [] data;
 }
 
-void QueryManager::Delete(const string& table, CondExpr expr) {
+void QueryManager::Delete(const string& table, Expr* expr) {
 	Container& rm = getContainer(table);
 	if (rm == NULL) return;
 
@@ -55,9 +55,12 @@ void QueryManager::Delete(const string& table, CondExpr expr) {
 	std::function<bool(const Record&)> filter = expr.getFilter(rm.first);
 	vector<Record> results;
 	rm.second->query(filter, results);
+
+	for (auto& rec : results)
+		rm.second->remove(rec);
 }
 
-void QueryManager::Update(const string& table, vector<pair<string, ValueExpr>>, CondExpr expr) {
+void QueryManager::Update(const string& table, vector<pair<string, Expr*>>, Expr* expr) {
 	Container& rm = getContainer(table);
 	if (rm == NULL) return;
 
@@ -65,19 +68,25 @@ void QueryManager::Update(const string& table, vector<pair<string, ValueExpr>>, 
 	std::function<bool(const Record&)> filter = expr.getFilter(rm.first);
 	vector<Record> results;
 	rm.second->query(filter, results);
+
+	// TODO: update
+
+	for (auto& rec : results)
+		rm.second->replace(rec);
 }
 
-vector<int> QueryManager::Select(const string& table, vector<string> attrs, CondExpr expr) {
+vector<Record>* QueryManager::Select(const string& table, vector<string> attrs, Expr* expr) {
 	Container& rm = getContainer(table);
 	if (rm == NULL) return;
 
 	// query
 	std::function<bool(const Record&)> filter = expr.getFilter(rm.first);
-	vector<Record> results;
-	rm.second->query(filter, results);
+	vector<Record>* results = new vector<Record>();
+	rm.second->query(filter, *results);
+	return results;
 }
 
-void QueryManager::Use(const string& name) {
+void QueryManager::UseDatabase(const string& name) {
 	sysmgr->useDatabase(name);
 }
 
