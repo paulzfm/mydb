@@ -4,6 +4,7 @@
 %}
 
 %option noyywrap
+%option caseless
 
 %% /* tokens */
 
@@ -74,8 +75,25 @@
 "BOOLEAN"   { return BOOLEAN;   }
 "DATETIME"  { return DATETIME;  }
 
-[0-9]+   { yylval.value = new Value(Value::VALUE_INT, yytext); return VALUE; }
-[A-Za-z_][A-Za-z0-9_]* { strncpy(yylval.ident, yytext, 1024); return IDENT; }
+[0-9]+ {
+    yylval.value = new Value(Value::VALUE_INT, yytext);
+    return VALUE;
+}
+
+[0-9]+(.)[0-9]+ {
+    yylval.value = new Value(Value::VALUE_REAL, yytext);
+    return VALUE;
+}
+
+'[^']*' {
+    yylval.value = new Value(Value::VALUE_STRING, yytext);
+    return VALUE;
+}
+
+[A-Za-z_][A-Za-z0-9_]* {
+    strncpy(yylval.ident, yytext, 1024);
+    return IDENT;
+}
 
 [ \t\n]+ { }
 <<EOF>>  { return 0; }

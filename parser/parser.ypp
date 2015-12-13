@@ -35,6 +35,11 @@ int yyerror(const char *p) { std::cerr << "Error!" << std::endl; }
 %type <ilist> attrs
 %type <slist> idents
 
+%left OR
+%left AND
+%left ADD SUB
+%left MUL DIV MOD
+
 //-- GRAMMAR RULES ---------------------------------------
 %%
 program     :   stmts

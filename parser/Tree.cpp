@@ -152,7 +152,6 @@ void CompareExpr::printTo(PrintWriter &pw)
     pw.incIndent();
     pw.println(left);
     right->printTo(pw);
-    pw.println("");
     pw.decIndent();
 }
 
@@ -165,12 +164,12 @@ void InExpr::printTo(PrintWriter &pw)
 
     pw.incIndent();
     pw.println(left);
-    pw.print("{ ");
+    pw.println("set of");
+    pw.incIndent();
     for (auto& val : *right) {
         val->printTo(pw);
-        pw.print(" ");
     }
-    pw.println("}");
+    pw.decIndent();
     pw.decIndent();
 }
 
@@ -183,11 +182,11 @@ void BetweenExpr::printTo(PrintWriter &pw)
 
     pw.incIndent();
     pw.println(left);
-    pw.print("(");
+    pw.println("range within");
+    pw.incIndent();
     rightL->printTo(pw);
-    pw.print(", ");
     rightR->printTo(pw);
-    pw.println(")");
+    pw.decIndent();
     pw.decIndent();
 }
 
@@ -241,6 +240,7 @@ void CreateTBStmt::printTo(PrintWriter &pw)
     pw.decIndent();
     check->printTo(pw);
     pkey->printTo(pw);
+    pw.decIndent();
 }
 
 void DropTBStmt::printTo(PrintWriter &pw)
@@ -282,9 +282,7 @@ void InsertStmt::printTo(PrintWriter &pw)
     pw.println("values");
     pw.incIndent();
     for (auto& val : *values) {
-        pw.printIndent();
         val->printTo(pw);
-        pw.println("");
     }
     pw.decIndent();
     pw.decIndent();
@@ -304,7 +302,7 @@ void DeleteStmt::printTo(PrintWriter &pw)
 
 void Eq::printTo(PrintWriter &pw)
 {
-    pw.print(colName + " =");
+    pw.println(colName + " =");
     pw.incIndent();
     expr->printTo(pw);
     pw.decIndent();
@@ -349,16 +347,16 @@ void Selector::printTo(PrintWriter &pw)
                 pw.println(colName);
                 break;
             case FUNC_SUM:  // SUM ( <colName> )
-                pw.println("SUM(" + colName + ")");
+                pw.println("sum(" + colName + ")");
                 break;
             case FUNC_AVG:  // AVG ( <colName> )
-                pw.println("AVG(" + colName + ")");
+                pw.println("average(" + colName + ")");
                 break;
             case FUNC_MAX:  // MAX ( <colName> )
-                pw.println("MAX(" + colName + ")");
+                pw.println("max(" + colName + ")");
                 break;
             case FUNC_MIN:  // MIN ( <colName> )
-                pw.println("MIN(" + colName + ")");
+                pw.println("min(" + colName + ")");
                 break;
         }
     }
@@ -385,6 +383,7 @@ void SelectStmt::printTo(PrintWriter &pw)
         pw.println(gb->colName);
         pw.decIndent();
     }
+    pw.decIndent();
 }
 
 
