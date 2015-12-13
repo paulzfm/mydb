@@ -19,7 +19,11 @@
 "<"      { return LT; }
 ">"      { return GT; }
 
-"*"      { return ALL; }
+"+"      { return PLUS; }
+"-"      { return MINUS; }
+"*"      { return MUL; }
+"/"      { return DIV; }
+"%"      { return MOD; }
 "."      { return DOT; }
 
 "DATABASE"  { return DATABASE;  }

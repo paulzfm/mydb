@@ -6,9 +6,9 @@ void Value::printTo(PrintWriter &pw)
     pw.print(val);
     pw.print(" ");
     switch (kind) {
-        case VALUE_INT: pw.print("integer");
-        case VALUE_REAL: pw.print("real");
-        case VALUE_STRING: pw.print("string");
+        case VALUE_INT: pw.print("integer"); break;
+        case VALUE_REAL: pw.print("real"); break;
+        case VALUE_STRING: pw.print("string"); break;
     }
     pw.println("");
 }
@@ -21,8 +21,8 @@ void Variable::printTo(PrintWriter &pw)
 void UnonExpr::printTo(PrintWriter &pw)
 {
     switch (op) {
-        case OP_POS: pw.println("+");
-        case OP_NEG: pw.println("-");
+        case OP_POS: pw.println("pos"); break;
+        case OP_NEG: pw.println("neg"); break;
     }
 
     pw.incIndent();
@@ -33,11 +33,11 @@ void UnonExpr::printTo(PrintWriter &pw)
 void BinExpr::printTo(PrintWriter &pw)
 {
     switch (op) {
-        case OP_ADD: pw.println("+");
-        case OP_SUB: pw.println("-");
-        case OP_MUL: pw.println("*");
-        case OP_DIV: pw.println("/");
-        case OP_MOD: pw.println("mod");
+        case OP_ADD: pw.println("add"); break;
+        case OP_SUB: pw.println("sub"); break;
+        case OP_MUL: pw.println("mul"); break;
+        case OP_DIV: pw.println("div"); break;
+        case OP_MOD: pw.println("mod"); break;
     }
 
     pw.incIndent();
