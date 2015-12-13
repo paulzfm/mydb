@@ -28,11 +28,11 @@ public:
 	~QueryManager();
 
 	// tableName, [<attrName, data>]
-	void Insert(const string& table, vector<pair<string, char*>> data);
+	void Insert(const string& table, unordered_map<string, char*> data);
 	// tableName, condition expr
 	void Delete(const string& table, Expr* expr);
-	// tableName, [<attrName, expr>], condition expr
-	void Update(const string& table, vector<pair<string, Expr*>>, Expr* expr);
+	// tableName, <attrName -> expr>, condition expr
+	void Update(const string& table, unordered_map<string, Expr*> data, Expr* expr);
 	// tableName, [attrName], condition expr
 	vector<Record>* Select(const string& table, vector<string> attrs, Expr* expr);
 	// tableName

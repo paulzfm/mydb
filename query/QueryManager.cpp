@@ -32,14 +32,19 @@ QueryManager::~QueryManager() {
 	tb.clear();
 }
 
-void QueryManager::Insert(const string& table, vector<pair<string, char*>> data) {
+void QueryManager::Insert(const string& table, unordered_map<string, char*> data) {
 	Container& c = getContainer(table);
 	if (rm == NULL) return;
 	
-	char* data = new char[rm.second->width()];
-	memset(data, 0, sizeof(char) * rm.second->width());
-	// TODO: fill data
-	for (auto& col : c.first->columns) {
+	char* buf = new char[rm.second->width()];
+	memset(buf, 0, sizeof(char) * rm.second->width());
+	// fill data
+	for (auto& col : rm.first->columns) {
+		// TODO: fill default values
+		// TODO: check
+		auto iter = data.find(col.def.name);
+		if (iter != data.end())
+			memcpy(buf + col.def.offset, iter->second, col.def.size);
 	}
 
 	rm.second->insert(data);
