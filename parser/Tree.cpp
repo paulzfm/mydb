@@ -277,7 +277,7 @@ void InsertStmt::printTo(PrintWriter &pw)
 {
     pw.println("insert");
     pw.incIndent();
-    pw.println(tbName);
+    pw.println(tb);
     cols->printTo(pw);
     pw.println("values");
     pw.incIndent();
@@ -292,7 +292,7 @@ void DeleteStmt::printTo(PrintWriter &pw)
 {
     pw.println("delete");
     pw.incIndent();
-    pw.println(tbName);
+    pw.println(tb);
     pw.println("where");
     pw.incIndent();
     where->printTo(pw);
@@ -312,7 +312,7 @@ void UpdateStmt::printTo(PrintWriter &pw)
 {
     pw.println("update");
     pw.incIndent();
-    pw.println(tbName);
+    pw.println(tb);
     pw.println("set");
     pw.incIndent();
     for (auto& eq : *eqs) {
@@ -366,7 +366,7 @@ void SelectStmt::printTo(PrintWriter &pw)
 {
     pw.println("select");
     pw.incIndent();
-    pw.println(tbName);
+    pw.println(tb);
     pw.println("selectors");
     pw.incIndent();
     sel->printTo(pw);
@@ -386,183 +386,142 @@ void SelectStmt::printTo(PrintWriter &pw)
     pw.decIndent();
 }
 
-
-void Tree::accept(Visitor &v)
+void Value::accept(Visitor *v)
 {
-    v.visitTree(this);
+    v->visitValue(this);
 }
 
-void Expr::accept(Visitor &v)
+void Variable::accept(Visitor *v)
 {
-    v.visitExpr(this);
+    v->visitVariable(this);
 }
 
-void Value::accept(Visitor &v)
+void UnonExpr::accept(Visitor *v)
 {
-    v.visitValue(this);
+    v->visitUnonExpr(this);
 }
 
-void Variable::accept(Visitor &v)
+void BinExpr::accept(Visitor *v)
 {
-    v.visitVariable(this);
+    v->visitBinExpr(this);
 }
 
-void UnonExpr::accept(Visitor &v)
+void TopLevel::accept(Visitor *v)
 {
-    v.visitUnonExpr(this);
+    v->visitTopLevel(this);
 }
 
-void BinExpr::accept(Visitor &v)
+void ListDB::accept(Visitor *v)
 {
-    v.visitBinExpr(this);
+    v->visitListDB(this);
 }
 
-void TopLevel::accept(Visitor &v)
+void CreateDBStmt::accept(Visitor *v)
 {
-    v.visitTopLevel(this);
+    v->visitCreateDBStmt(this);
 }
 
-void Stmt::accept(Visitor &v)
+void DropDBStmt::accept(Visitor *v)
 {
-    v.visitStmt(this);
+    v->visitDropDBStmt(this);
 }
 
-void ListDB::accept(Visitor &v)
+void UseDBStmt::accept(Visitor *v)
 {
-    v.visitListDB(this);
+    v->visitUseDBStmt(this);
 }
 
-void CreateDBStmt::accept(Visitor &v)
+void ListTB::accept(Visitor *v)
 {
-    v.visitCreateDBStmt(this);
+    v->visitListTB(this);
 }
 
-void DropDBStmt::accept(Visitor &v)
+void Type::accept(Visitor *v)
 {
-    v.visitDropDBStmt(this);
+    v->visitType(this);
 }
 
-void UseDBStmt::accept(Visitor &v)
+void Field::accept(Visitor *v)
 {
-    v.visitUseDBStmt(this);
+    v->visitField(this);
 }
 
-void ListTB::accept(Visitor &v)
+void NullExpr::accept(Visitor *v)
 {
-    v.visitListTB(this);
+    v->visitNullExpr(this);
 }
 
-void Type::accept(Visitor &v)
+void CompareExpr::accept(Visitor *v)
 {
-    v.visitType(this);
+    v->visitCompareExpr(this);
 }
 
-void Field::accept(Visitor &v)
+void InExpr::accept(Visitor *v)
 {
-    v.visitField(this);
+    v->visitInExpr(this);
 }
 
-void BoolExpr::accept(Visitor &v)
+void BetweenExpr::accept(Visitor *v)
 {
-    v.visitBoolExpr(this);
+    v->visitBetweenExpr(this);
 }
 
-void NullExpr::accept(Visitor &v)
+void ComplexExpr::accept(Visitor *v)
 {
-    v.visitNullExpr(this);
+    v->visitComplexExpr(this);
 }
 
-void CompareExpr::accept(Visitor &v)
+void CreateTBStmt::accept(Visitor *v)
 {
-    v.visitCompareExpr(this);
+    v->visitCreateTBStmt(this);
 }
 
-void InExpr::accept(Visitor &v)
+void DropTBStmt::accept(Visitor *v)
 {
-    v.visitInExpr(this);
+    v->visitDropTBStmt(this);
 }
 
-void BetweenExpr::accept(Visitor &v)
+void ShowTBStmt::accept(Visitor *v)
 {
-    v.visitBetweenExpr(this);
+    v->visitShowTBStmt(this);
 }
 
-void ComplexExpr::accept(Visitor &v)
+void Columns::accept(Visitor *v)
 {
-    v.visitComplexExpr(this);
+    v->visitColumns(this);
 }
 
-void Check::accept(Visitor &v)
+void InsertStmt::accept(Visitor *v)
 {
-    v.visitCheck(this);
+    v->visitInsertStmt(this);
 }
 
-void PrimaryKey::accept(Visitor &v)
+void DeleteStmt::accept(Visitor *v)
 {
-    v.visitPrimaryKey(this);
+    v->visitDeleteStmt(this);
 }
 
-void CreateTBStmt::accept(Visitor &v)
+void Eq::accept(Visitor *v)
 {
-    v.visitCreateTBStmt(this);
+    v->visitEq(this);
 }
 
-void DropTBStmt::accept(Visitor &v)
+void UpdateStmt::accept(Visitor *v)
 {
-    v.visitDropTBStmt(this);
+    v->visitUpdateStmt(this);
 }
 
-void ShowTBStmt::accept(Visitor &v)
+void Selector::accept(Visitor *v)
 {
-    v.visitShowTBStmt(this);
+    v->visitSelector(this);
 }
 
-void Columns::accept(Visitor &v)
+void Selectors::accept(Visitor *v)
 {
-    v.visitColumns(this);
+    v->visitSelectors(this);
 }
 
-void InsertStmt::accept(Visitor &v)
+void SelectStmt::accept(Visitor *v)
 {
-    v.visitInsertStmt(this);
-}
-
-void DeleteStmt::accept(Visitor &v)
-{
-    v.visitDeleteStmt(this);
-}
-
-void Eq::accept(Visitor &v)
-{
-    v.visitEq(this);
-}
-
-void UpdateStmt::accept(Visitor &v)
-{
-    v.visitUpdateStmt(this);
-}
-
-void Selector::accept(Visitor &v)
-{
-    v.visitSelector(this);
-}
-
-void Selectors::accept(Visitor &v)
-{
-    v.visitSelectors(this);
-}
-
-void Where::accept(Visitor &v)
-{
-    v.visitWhere(this);
-}
-
-void GroupBy::accept(Visitor &v)
-{
-    v.visitGroupBy(this);
-}
-
-void SelectStmt::accept(Visitor &v)
-{
-    v.visitSelectStmt(this);
+    v->visitSelectStmt(this);
 }
