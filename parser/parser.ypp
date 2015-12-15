@@ -23,9 +23,9 @@ int yyerror(const char *p) { std::cerr << "Error!" << std::endl; }
 %token <sym> INT SMALLINT BIGINT FLOAT REAL DOUBLE
 %token <sym> VARCHAR STRING CHAR BOOLEAN DATETIME
 %token <sym> EQ NE LE GE LT GT
-%token <sym> LP RP COMMA STOP
-%token <sym> DOT
+%token <sym> LP RP COMMA STOP DOT
 %token <sym> PLUS MINUS MUL DIV MOD
+%token <sym> DESC FOREIGN REFERENCES
 %token <value> VALUE
 %token <ident> IDENT
 

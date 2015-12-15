@@ -74,7 +74,10 @@
 "CHAR"      { return CHAR;      }
 "BOOLEAN"   { return BOOLEAN;   }
 "DATETIME"  { return DATETIME;  }
-"DESC"      { return SHOW;      }
+"DESC"      { return DESC;      }
+"FOREIGN"   { return FOREIGN;   }
+"REFERENCES"    { return REFERENCES;}
+
 
 [0-9]+ {
     yylval.value = new Value(Value::VALUE_INT, yytext);
