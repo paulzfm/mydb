@@ -20,11 +20,12 @@
     \t{GROUP} &\t{BY} &\t{IS} &\t{IN} &\t{BETWEEN} &\t{LIKE} \\
     \t{AND} &\t{OR} &\t{SUM} &\t{AVG} &\t{MAX} &\t{MIN} \\
     \t{INT} &\t{SMALLINT} &\t{BIGINT} &\t{FLOAT} & \t{REAL} &\t{DOUBLE} \\
-    \t{VARCHAR} &\t{STRING} &\t{CHAR} &\t{BOOLEAN} &\t{DATETIME} \\
+    \t{VARCHAR} &\t{STRING} &\t{CHAR} &\t{BOOLEAN} &\t{DATETIME} &\t{DESC}\\
+    \t{FOREIGN} &\t{REFERENCES} \\
 \end{tabular}
 \end{center}
 
-These keywords are \textbf{NOT} case-sensetive.
+These keywords are \textbf{NOT} case-sensitive.
 
 \section{Syntax}
 \setlength{\grammarindent}{10em}
@@ -32,11 +33,19 @@ These keywords are \textbf{NOT} case-sensetive.
 
 <program> ::= <stmt> [<stmt>]*
 
-<ident> ::= [\t{A-Za-z_}][\t{A-Za-z0-9_}]*
+<ident> ::= \texttt{[A-Za-z_][A-Za-z0-9_]*}
 
-<integer> ::= \t{0} | [\t{1-9}][\t{0-9}]*
+<integer> ::= \texttt{[0-9]+}
 
-<stmt> ::= <sysStmt> \t{;} \alt <dbStmt> \t{;} \alt <tbStmt> \t{;}
+<real> ::= \texttt{[0-9]+.[0-9]+}
+
+<string> ::= \texttt{'.*'}
+
+<value> ::= <integer> | <real> | <string>
+
+<stmt> ::= <sysStmt> \t{;}
+\alt <dbStmt> \t{;}
+\alt <tbStmt> \t{;}
 
 <sysStmt> ::= \t{SHOW} \t{DATABASES}
 
@@ -45,19 +54,21 @@ These keywords are \textbf{NOT} case-sensetive.
 \alt \t{USE} <dbName>
 \alt \t{SHOW} \t{TABLES}
 
-<tbStmt> ::= \t{CREATE} \t{TABLE} <tbName> \t{(} <field> [\t{,} <field>]* [\t{,} \t{CHECK} \t{(} <constraints> \t{)}]  [\t{,} \t{PRIMARY} \t{KEY} \t{(} <colName> \t{)}] \t{)}
+<tbStmt> ::= \t{CREATE} \t{TABLE} <tbName> \t{(}
+    <field> [\t{,} <field>]*
+    [\t{,} \t{CHECK} \t{(} <boolExpr> \t{)}]
+    [\t{,} \t{PRIMARY} \t{KEY} \t{(} <colName> \t{)}]
+    [\t{,} \t{FOREIGN} \t{KEY} \t{(} <colName> \t{)} \t{REFERENCES} <tbName> \t{(} <colName> \t{)}]* \t{)}
 \alt \t{DROP} \t{TABLE} <tbName>
-\alt \t{SHOW} \t{TABLE} <tbName>
+\alt \t{DESC} <tbName> | \t{SHOW} \t{TABLE} <tbName>
 \alt \t{INSERT} \t{INTO} <tbName> [\t{(} <colName> [\t{,} <colName>]* \t{)}] \t{VALUES} \t{(} <value> [\t{,} <value>]* \t{)}
-\alt \t{DELETE} \t{FROM} <tbName> \t{WHERE} <whereClause>
-\alt \t{UPDATE} <tbName> \t{SET} <colName> \t{=} <value> [\t{,} <colName> \t{=} <value>]* \t{WHERE} <whereClause>
-\alt \t{SELECT} <columns> \t{FROM} <tbName> [\t{WHERE} <whereClause>] [\t{GROUP} \t{BY} <colName>]
+\alt \t{DELETE} \t{FROM} <tbName> \t{WHERE} <boolExpr>
+\alt \t{UPDATE} <tbName> \t{SET} <colName> \t{=} <expr> [\t{,} <colName> \t{=} <expr>]* \t{WHERE} <boolExpr>
+\alt \t{SELECT} <selectors> \t{FROM} <tbName> [\t{,} <tbName>]* [\t{WHERE} <boolExpr>] [\t{GROUP} \t{BY} <colName>]
 
 <tbName> ::= <ident>
 
 <colName> ::= <ident>
-
-<value> ::= <ident>
 
 <field> ::= <colName> <type> [<attr>]*
 
@@ -74,31 +85,32 @@ These keywords are \textbf{NOT} case-sensetive.
 
 <attr> ::= \t{NOT} \t{NULL} | \t{UNIQUE} | \t{AUTO_INCREMENT}
 
-<atomExpr> ::= <colName> <op> <value>
-\alt <colName> \t{IS} [\t{NOT}] \t{NULL}
-\alt <colName> [\t{NOT}] \t{IN} \t{(} <value> [\t{,} <value>]* \t{)}
-\alt <colName> [\t{NOT}] \t{BETWEEN} <value> \t{AND} <value>
+<boolExpr> ::= <col> <boolOp> <expr>
+\alt <col> \t{IS} [\t{NOT}] \t{NULL}
+\alt <col> [\t{NOT}] \t{IN} \t{(} <value> [\t{,} <value>]* \t{)}
+\alt <col> [\t{NOT}] \t{BETWEEN} <value> \t{AND} <value>
+\alt <col> [\t{NOT}] \t{LIKE} <string>
+\alt \t{(} <boolExpr> \t{)}
+\alt <boolExpr> \t{AND} <boolExpr>
+\alt <boolExpr> \t{OR} <boolExpr>
 
-<op> ::= `=' | `<>' | `<=' | `>=' | `<' | `>'
+<col> ::= [<tbName> \t{.}] <colName>
 
-<constraint> ::= <atomExpr>
-\alt \t{(} <constraint> \t{)}
-\alt <constraint> \t{AND} <constraint>
-\alt <constraint> \t{OR} <constraint>
+<boolOp> ::= `=' | `<>' | `<=' | `>=' | `<' | `>'
 
-<whereClause> ::= <atomExpr>
-\alt <colName> [\t{NOT}] \t{LIKE} <pattern>
-\alt \t{(} <whereClause> \t{)}
-\alt <whereClause> \t{AND} <whereClause>
-\alt <whereClause> \t{OR} <whereClause>
+<expr> ::= <value>
+\alt <col>
+\alt <expr> <op> <expr>
+\alt \t{(} <expr> \t{)}
 
-<columns> ::= \t{*} | <column> [\t{,} <column>]*
+<op> ::= `+' | `-' | `*' | `/' | `\%'
 
-<column> ::= [<tbName> \t{.}] <colName>
-\alt \t{SUM} \t{(} <colName> \t{)}
-\alt \t{AVG} \t{(} <colName> \t{)}
-\alt \t{MAX} \t{(} <colName> \t{)}
-\alt \t{MIN} \t{(} <colName> \t{)}
+<selectors> ::= \t{*} | <selector> [\t{,} <selector>]*
+
+<selector> ::= <col>
+\alt <func> \t{(} <col> \t{)}
+
+<func> ::= \t{SUM} | \t{AVG} | \t{MAX} | \t{MIN}
 
 \end{grammar}
 
