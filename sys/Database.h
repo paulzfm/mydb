@@ -1,28 +1,33 @@
 #ifndef DATABASE_H_
 #define DATABASE_H_
 
-#include <vector>
-#include <string>
+#include "../util/common.h"
 #include "Table.h"
 
 #define TABLELIST_FILE	"tablelist.dat"
 
 class Database {
-	public:
-		std::string name;
-		std::vector<Table> tables;
+private:
+	int maxtid;
 
-		Database();
-		Database(const std::string& name);
-		~Database();
+public:
+	string name;
+	vector<Table> tables;
 
-		// returns -1 when not found
-		int getTableByName(const std::string& name) const;
+	Database();
+	Database(const string& name);
 
-		void showTables() const;
-		void descTable(const std::string& name) const;
-		Table& createTable(const std::string& name);
-		void dropTable(const std::string& name);
+	bool open(const string& name);
+	bool close() const;
+
+	// returns NullTable when not found
+	int getTableByName(const string& name) const;
+	Table& getTable(int index);
+
+	void showTables() const;
+	void descTable(const string& name) const;
+	Table& createTable(const string& name, int count);
+	void dropTable(const string& name);
 };
 
 extern Database NullDatabase;

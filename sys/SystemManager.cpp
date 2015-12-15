@@ -50,6 +50,11 @@ int SystemManager::getDBIdByName(const std::string& name) const {
 	return dbid;
 }
 
+Database& SystemManager::getDB(int index) {
+	assert(index >= 0 && index < dbs.size());
+	return dbs[index];
+}
+
 Database& SystemManager::useDatabase(const std::string& name) {
 	for (unsigned i = 0; i < dbs.size(); ++i)
 		if (dbs[i].name == name) {
@@ -60,7 +65,7 @@ Database& SystemManager::useDatabase(const std::string& name) {
 }
 
 void SystemManager::showDatabases() const {
-	std::cout << "-- LIST OF DATABASES" << std::endl;
+	cout << "-- LIST OF DATABASES, TOTAL " << dbs.size() << " --" << endl;
 	for (auto& db : dbs) {
 		std::cout << ">> " << db.name << std::endl;
 	}
@@ -73,12 +78,14 @@ Database& SystemManager::createDatabase(const std::string& name) {
 			return NullDatabase;
 		}
 
-	Database db(name);
-	dbs.push_back(db);
-
 	mkdir(name.c_str(), 0755);
 	std::ofstream fout((name + "/" + TABLELIST_FILE).c_str());
+	fout << "{\"table_num\":0, \"name\":\"" + name + "\"}" << endl;
 	fout.close();
+
+	Database db(name);
+	dbs.push_back(std::move(db));
+
 	return dbs.back();
 }
 
@@ -113,12 +120,12 @@ void SystemManager::descTable(const std::string& name) const {
 	dbs[dbid].descTable(name);
 }
 
-Table& SystemManager::createTable(const std::string& name) {
+Table& SystemManager::createTable(const std::string& name, int count) {
 	if (dbid == -1) {
 		std::cerr << "[ERROR] no database selected." << std::endl;
 		return NullTable;
 	}
-	return dbs[dbid].createTable(name);
+	return dbs[dbid].createTable(name, count);
 }
 
 void SystemManager::dropTable(const std::string& name) {

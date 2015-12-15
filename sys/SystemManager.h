@@ -1,8 +1,7 @@
 #ifndef SYSTEM_MANAGER_H_
 #define SYSTEM_MANAGER_H_
 
-#include <vector>
-#include <string>
+#include "../util/common.h"
 #include "Database.h"
 #include "config.h"
 
@@ -16,17 +15,18 @@ class SystemManager {
 		SystemManager();
 		~SystemManager();
 
-		int getDBIdByName(const std::string& name) const;
+		int getDBIdByName(const string& name) const;
+		Database& getDB(int index);
 
-		Database& useDatabase(const std::string& name);
+		Database& useDatabase(const string& name);
 		void showDatabases() const;
-		Database& createDatabase(const std::string& name);
-		void dropDatabase(const std::string& name);
+		Database& createDatabase(const string& name);
+		void dropDatabase(const string& name);
 
 		void showTables() const;
-		void descTable(const std::string& name) const;
-		Table& createTable(const std::string& name);
-		void dropTable(const std::string& name);
+		void descTable(const string& name) const;
+		Table& createTable(const string& name, int count);
+		void dropTable(const string& name);
 };
 
 #endif // SYSTEM_MANAGER_H_

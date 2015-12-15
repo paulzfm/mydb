@@ -1,138 +1,178 @@
 #include "Table.h"
-#include "config.h"
-#include <cstring>
-#include <iostream>
 
 Table NullTable = Table();
 
 Table::Table() {
-	this->pk = -1;
-	this->length = 0;
+	this->width = 0;
+	this->maxcid = 0;
 }
 
-Table::Table(const std::string& name, int count) {
+Table::Table(int tid, const std::string& name, int count) {
+	this->tid = tid;
 	this->name = name;
-	this->pk = -1;
-	this->length = (count - 1) / 8 + 1;
+	// allocation for Nulls
+	this->width = (count - 1) / 8 + 1;
+	this->maxcid = 0;
 }
 
-Column& Table::getColumnById(int cid) {
-	for (auto &col : columns)
-		if (col.def.cid == cid) return col;
-	return NullColumn;
+int Table::getTid() const {
+	return tid;
 }
 
-Column& Table::getColumnByIndex(int index) {
-	if ((int)columns.size() <= index) return NullColumn;
+int Table::getWidth() const {
+	return width;
+}
+
+string Table::getName() const {
+	return name;
+}
+
+int Table::getColumnById(int cid) {
+	for (unsigned i = 0; i < columns.size(); ++i)
+		if (columns[i].cid == cid) return i;
+	return -1;
+}
+
+int Table::getColumnByName(std::string name) {
+	for (unsigned i = 0; i < columns.size(); ++i)
+		if (name == std::string(columns[i].name)) return i;
+	return -1;
+}
+
+Column& Table::getColumn(int index) {
+	assert(index >= 0 && index < columns.size());
 	return columns[index];
 }
 
-Column& Table::getColumnByName(std::string name) {
-	for (auto &col : columns)
-		if (name == std::string(col.def.name)) return col;
-	return NullColumn;
-}
-
-void Table::addColumn(Column col) {
+bool Table::addColumn(Column& col) {
 	// check if column name is unique
 	for (auto& c : columns)
-		if (c.def.name == col.def.name) {
-			std::cerr << "[ERROR] Column " << name << " already exist." << std::endl;
-			return;
+		if (c.name == col.name) {
+			cerr << "[ERROR] Column " << name << " already exist." << endl;
+			return false;
 		}
 
-	col.def.cid = ++maxcid;
-	col.def.offset = this->length;
-	this->length += col.def.size;
-	for (auto& c : col.constraints)
-		c.cid = maxcid;
+	col.cid = ++maxcid;
+	col.offset = this->width;
+	this->width += col.size;
 	this->columns.push_back(std::move(col));
+	return true;
 }
 
 // TODO: rearrange data store in this table
-void Table::removeColumn(int cid) {
+bool Table::removeColumn(int cid) {
 	for (unsigned i = 0; i < this->columns.size(); ++i)
-		if (columns[i].def.cid == cid) {
+		if (columns[i].cid == cid) {
 			columns.erase(columns.begin() + i);
-			break;
+			return true;
 		}
+	cerr << "[ERROR] Column not found!" << endl;
+	return false;
 }
 
-bool Table::open(std::ifstream& fin, const TableDef& def) {
-	// read columns
+bool Table::addConstraint(Constraint& c) {
+	// TODO: check
+	constraints.push_back(std::move(c));
+}
+
+bool Table::open(std::ifstream& fin) {
 	maxcid = 0;
-	ColumnDef col;
-	for (int i = 0; i < def.column_num; ++i) {
-		fin.read((char*) &col, ColumnDef::bytes);
-		this->columns.push_back(Column(col));
-		if (col.cid > maxcid) maxcid = col.cid;
+
+	string str;
+	std::getline(fin, str);
+	Document doc;
+	doc.Parse(str.c_str());
+
+	// metadatas
+	assert(doc.HasMember("name") && doc["name"].IsString());
+	name = doc["name"].GetString();
+	assert(doc.HasMember("width") && doc["width"].IsInt());
+	width = doc["width"].GetInt();
+
+	// read columns
+	assert(doc.HasMember("columns") && doc["columns"].IsArray());
+	const Value& Cs = doc["columns"];
+	for (auto iter = Cs.Begin(); iter != Cs.End(); ++iter) {
+		Column column;
+		column.unserialize(*iter);
+		if (column.cid > maxcid) maxcid = column.cid;
+		columns.push_back(std::move(column));
 	}
 
 	// read constraints
-	ColumnConstraint cc;
-	for (int i = 0; i < def.constraint_num; ++i) {
-		fin.read((char*) &cc, ColumnConstraint::bytes);
-		Column &col = getColumnById(cc.cid);
-
-		if (cc.type == 0) {
-			// TODO: error handling
-			if (pk != -1) {
-				std::cerr << "[ERROR] multiple primary key presented in table " << this->name << std::endl;
-				return false;
-			}
-			pk = col.def.cid;
-		}
-
-		if (col.def.cid < 0) {
-			std::cerr << "[ERROR] Column " << cc.cid << " not found, skipping..." << std::endl;
-			continue;
-		}
-		col.constraints.push_back(cc);
+	assert(doc.HasMember("constraints") && doc["constraints"].IsArray());
+	const Value& Ct = doc["constraints"];
+	for (auto iter = Ct.Begin(); iter != Ct.End(); ++iter) {
+		Constraint constraint;
+		constraint.unserialize(Value(*iter, doc.GetAllocator()));
+		constraints.push_back(std::move(constraint));
 	}
 
-	if (pk == -1) return false;
 	return true;
 }
 
 bool Table::close(std::ofstream& fout) const {
-	// write column
-	for (auto &col : columns)
-		fout.write((char*) &col.def, ColumnDef::bytes);
+	Document doc(kObjectType);
+	Document::AllocatorType& alloc = doc.GetAllocator();
+
+	// write metadatas
+	Value vName;
+	vName.SetString(name.c_str(), alloc);
+	doc.AddMember("name", vName, alloc);
+
+	// write columns
+	Value vCol(kArrayType);
+	for (auto& col : columns) {
+		Value val = col.serialize(doc);
+		vCol.PushBack(val, alloc);
+	}
+	doc.AddMember("columns", vCol, alloc);
 
 	// write constraints
-	for (auto &col : columns)
-		for (auto &cons : col.constraints)
-			fout.write((char*) &cons, ColumnConstraint::bytes);
+	Value vCon(kArrayType);
+	for (auto& con : constraints) {
+		Value val = con.serialize(doc);
+		vCon.PushBack(val, alloc);
+	}
+	doc.AddMember("constraints", vCon, alloc);
+
+	StringBuffer buf;
+	Writer<StringBuffer> writer(buf);
+	doc.Accept(writer);
+	string str = buf.GetString();
+	fout << str << endl;
 
 	return true;
 }
 
 void Table::desc() const {
-	std::cout << "------ Columns of Table " << name << " ------" << std::endl;
+	cout << "------ Columns of Table " << name << " ------" << endl;
 	for (auto& col : columns) {
-		std::cout << "| " << col.def.name << " of type " << col.def.type << "\t";
-		for (auto& cons : col.constraints) {
+		cout << "| " << col.name << " of type " << col.type << "\t";
+		for (auto& cons : constraints) {
+			if (cons.cid != col.cid) continue;
 			switch (cons.type) {
 				case 0:
-					std::cout << " Primary Key\t";
+					cout << " Not Null\t";
 					break;
 				case 1:
-					std::cout << " Not Null\t";
+					cout << " Unique\t";
 					break;
 				case 2:
-					std::cout << " Unique\t";
+					cout << " Primary Key\t";
 					break;
 				case 3:
-					std::cout << " Foreign Key\t";
+					cout << " Foreign Key\t";
 					break;
 				case 4:
-					std::cout << " Default\t";
+					cout << " Check\t";
 					break;
 				case 5:
-					std::cout << " Check\t";
+					cout << " Default\t";
 					break;
 			}
 		}
-		std::cout << std::endl;
+		cout << endl;
 	}
+	cout << endl;
 }

@@ -1,7 +1,7 @@
 #ifndef CONFIG_H_
 #define CONFIG_H_
 
-#include <string>
+#include "../util/common.h"
 
 #define CONFFILE "mydb.conf"
 
