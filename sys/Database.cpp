@@ -1,12 +1,9 @@
 #include "Database.h"
 #include "unistd.h"
-#include <cstring>
-#include <fstream>
-#include <iostream>
 
 Database NullDatabase = Database();
 
-int Database::getTableByName(const std::string& name) const {
+int Database::getTableByName(const string& name) const {
 	for (unsigned i = 0; i < tables.size(); ++i)
 		if (tables[i].name == name)
 			return i;
@@ -14,47 +11,67 @@ int Database::getTableByName(const std::string& name) const {
 }
 
 Database::Database() {
+	maxtid = 0;
 }
 
 Database::Database(const std::string& name) {
 	this->name = name;
+	maxtid = 0;
+}
+
+bool Database::open(const string& name) {
+	this->name = name;
+	this->maxtid = 0;
 
 	std::ifstream fin((name + "/" + TABLELIST_FILE).c_str());
 	if (fin.is_open()) {
-		TableDef def;
-		for (;;) {
-			fin.read((char*)&def, TableDef::bytes);
-			if (fin.gcount() != TableDef::bytes) break;
-			Table table(def.name);
-			table.open(fin, def);
+		string str;
+		std::getline(fin, str);
+
+		Document doc;
+		doc.Parse(str.c_str());
+
+		assert(doc.HasMember("name") && doc["name"].IsString());
+		this->name = doc["name"].GetString();
+
+		assert(doc.HasMember("table_num") && doc["table_num"].IsInt());
+		int nTb = doc["table_num"].GetInt();
+		for (int i = 0; i < nTb; ++i) {
+			Table table;
+			table.open(fin);
+			if (table.getTid() > maxtid) maxtid = table.getTid();
 			tables.push_back(std::move(table));
 		}
 
 		fin.close();
+		return true;
 	} else {
-		std::cerr << "[WARNING] table list of database " << name << " file not found, empty list created." << std::endl;
+		std::cerr << "[ERROR] table list of database " << name << " file not found." << std::endl;
+		return false;
 	}
 }
 
-Database::~Database() {
+bool Database::close() const {
 	std::ofstream fout((name + "/" + TABLELIST_FILE).c_str());
-	for (auto& table : tables) {
-		TableDef def;
-		strcpy(def.name, table.name.c_str());
-		def.column_num = table.columns.size();
-		def.constraint_num = 0;
-		def.length = table.length;
-		for (auto& col : table.columns)
-			def.constraint_num += col.constraints.size();
-		fout.write((char*) &def, TableDef::bytes);
+	if (!fout.is_open()) return false;
+	Document doc(kObjectType);
+	Document::AllocatorType& alloc = doc.GetAllocator();
 
+	Value vName;
+	vName.SetString(name.c_str(), alloc);
+	doc.AddMember("name", vName, alloc);
+	doc.AddMember("table_num", tables.size(), alloc);
+
+	for (const auto& table : tables) {
 		table.close(fout);
 	}
+	fout.close();
+	return true;
 }
 
 void Database::showTables() const {
 	std::cout << "-- LIST OF TABLES" << std::endl;
-	for (auto& table : tables) {
+	for (const auto& table : tables) {
 		std::cout << ">> " << table.name << std::endl;
 	}
 }
@@ -69,7 +86,7 @@ void Database::descTable(const std::string& name) const {
 	tables[tid].desc();
 }
 
-Table& Database::createTable(const std::string& name) {
+Table& Database::createTable(const string& name, int count) {
 	// check if name is unique
 	int tid = getTableByName(name);
 	if (tid != -1) {
@@ -77,7 +94,7 @@ Table& Database::createTable(const std::string& name) {
 		return NullTable;
 	}
 
-	Table table(name);
+	Table table(++maxtid, name, count);
 	tables.push_back(std::move(table));
 	return tables.back();
 }

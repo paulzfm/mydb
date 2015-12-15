@@ -1,41 +1,40 @@
 #ifndef TABLE_H_
 #define TABLE_H_
 
-#include <string>
-#include <vector>
-#include <fstream>
+#include "../util/common.h"
 #include "Column.h"
-
-struct TableDef {
-	static const int bytes = 22;
-
-	char name[16];
-	char column_num;
-	char constraint_num;
-	int length;
-};
+#include "Constraint.h"
 
 class Table {
 	private:
+		int tid;
 		int maxcid;
-		int pk;		// cid
-		int length;
+		int width;
 
 	public:
 		std::string name;	// name of table
 		std::vector<Column> columns;
+		std::vector<Constraint> constraints;
 
 		Table();
-		Table(const std::string& name, int count);
+		Table(int tid, const std::string& name, int count);
 
-		Column& getColumnById(int cid);
-		Column& getColumnByIndex(int index);
-		Column& getColumnByName(std::string name);
+		int getTid() const;
+		int getWidth() const;
+		string getName() const;
 
-		void addColumn(Column col);
-		void removeColumn(int cid);
+		int getColumnById(int cid);
+		int getColumnByName(std::string name);
 
-		bool open(std::ifstream& fin, const TableDef& def);
+		Column& getColumn(int index);
+
+		bool addColumn(Column& col);
+		bool removeColumn(int cid);
+		bool addConstraint(Constraint& c);
+
+		bool checkConstraints(const char* rec) const;
+
+		bool open(std::ifstream& fin);
 		bool close(std::ofstream& fout) const;
 		void desc() const;
 };
