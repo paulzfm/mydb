@@ -80,7 +80,7 @@ bool Table::open(std::ifstream& fin) {
 
 	string str;
 	std::getline(fin, str);
-	Document doc;
+	rapidjson::Document doc;
 	doc.Parse(str.c_str());
 
 	// metadatas
@@ -91,7 +91,7 @@ bool Table::open(std::ifstream& fin) {
 
 	// read columns
 	assert(doc.HasMember("columns") && doc["columns"].IsArray());
-	const Value& Cs = doc["columns"];
+	const rapidjson::Value& Cs = doc["columns"];
 	for (auto iter = Cs.Begin(); iter != Cs.End(); ++iter) {
 		Column column;
 		column.unserialize(*iter);
@@ -101,10 +101,10 @@ bool Table::open(std::ifstream& fin) {
 
 	// read constraints
 	assert(doc.HasMember("constraints") && doc["constraints"].IsArray());
-	const Value& Ct = doc["constraints"];
+	const rapidjson::Value& Ct = doc["constraints"];
 	for (auto iter = Ct.Begin(); iter != Ct.End(); ++iter) {
 		Constraint constraint;
-		constraint.unserialize(Value(*iter, doc.GetAllocator()));
+		constraint.unserialize(rapidjson::Value(*iter, doc.GetAllocator()));
 		constraints.push_back(std::move(constraint));
 	}
 
@@ -112,32 +112,32 @@ bool Table::open(std::ifstream& fin) {
 }
 
 bool Table::close(std::ofstream& fout) const {
-	Document doc(kObjectType);
-	Document::AllocatorType& alloc = doc.GetAllocator();
+	rapidjson::Document doc(rapidjson::kObjectType);
+	rapidjson::Document::AllocatorType& alloc = doc.GetAllocator();
 
 	// write metadatas
-	Value vName;
+	rapidjson::Value vName;
 	vName.SetString(name.c_str(), alloc);
 	doc.AddMember("name", vName, alloc);
 
 	// write columns
-	Value vCol(kArrayType);
+	rapidjson::Value vCol(rapidjson::kArrayType);
 	for (auto& col : columns) {
-		Value val = col.serialize(doc);
+		rapidjson::Value val = col.serialize(doc);
 		vCol.PushBack(val, alloc);
 	}
 	doc.AddMember("columns", vCol, alloc);
 
 	// write constraints
-	Value vCon(kArrayType);
+	rapidjson::Value vCon(rapidjson::kArrayType);
 	for (auto& con : constraints) {
-		Value val = con.serialize(doc);
+		rapidjson::Value val = con.serialize(doc);
 		vCon.PushBack(val, alloc);
 	}
 	doc.AddMember("constraints", vCon, alloc);
 
-	StringBuffer buf;
-	Writer<StringBuffer> writer(buf);
+	rapidjson::StringBuffer buf;
+	rapidjson::Writer<rapidjson::StringBuffer> writer(buf);
 	doc.Accept(writer);
 	string str = buf.GetString();
 	fout << str << endl;

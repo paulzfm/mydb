@@ -50,9 +50,18 @@ int SystemManager::getDBIdByName(const std::string& name) const {
 	return dbid;
 }
 
+int SystemManager::getCurrentDBId() const {
+	return dbid;
+}
+
 Database& SystemManager::getDB(int index) {
 	assert(index >= 0 && index < dbs.size());
 	return dbs[index];
+}
+
+Database& SystemManager::getCurrentDB() {
+	if (dbid >= 0 && dbid < dbs.size()) return dbs[dbid];
+	else return NullDatabase;
 }
 
 Database& SystemManager::useDatabase(const std::string& name) {

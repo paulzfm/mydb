@@ -15,8 +15,8 @@ public:
 	Column();
 	Column(int cid, const string& name, char type, short size, short offset);
 
-	Value serialize(Document& doc) const;
-	void unserialize(const Value& value);
+	rapidjson::Value serialize(rapidjson::Document& doc) const;
+	void unserialize(const rapidjson::Value& value);
 };
 
 extern Column NullColumn;

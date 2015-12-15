@@ -19,11 +19,14 @@
 
 using std::string;
 using std::vector;
+using std::pair;
+using std::make_pair;
+
 using std::cin;
 using std::cout;
 using std::cerr;
 using std::endl;
 
-using namespace rapidjson;
+using rapidjson::Document;
 
 #endif

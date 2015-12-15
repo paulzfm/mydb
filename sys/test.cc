@@ -11,8 +11,8 @@ int main() {
 	Column c = Column(0, "col1", 107, 4, 0);
 	table.addColumn(c);
 	Column& col = table.getColumn(table.getColumnByName("col1"));
-	Document doc;
-	Value value(0);
+	rapidjson::Document doc;
+	rapidjson::Value value(0);
 	Constraint cc = Constraint(col.cid, "PK", 2, value);
 	table.addConstraint(cc);
 	cc = Constraint(col.cid, "NN", 0, value);

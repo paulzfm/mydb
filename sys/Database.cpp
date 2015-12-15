@@ -28,7 +28,7 @@ bool Database::open(const string& name) {
 		string str;
 		std::getline(fin, str);
 
-		Document doc;
+		rapidjson::Document doc;
 		doc.Parse(str.c_str());
 
 		assert(doc.HasMember("name") && doc["name"].IsString());
@@ -54,13 +54,19 @@ bool Database::open(const string& name) {
 bool Database::close() const {
 	std::ofstream fout((name + "/" + TABLELIST_FILE).c_str());
 	if (!fout.is_open()) return false;
-	Document doc(kObjectType);
-	Document::AllocatorType& alloc = doc.GetAllocator();
+	rapidjson::Document doc(rapidjson::kObjectType);
+	rapidjson::Document::AllocatorType& alloc = doc.GetAllocator();
 
-	Value vName;
+	rapidjson::Value vName;
 	vName.SetString(name.c_str(), alloc);
 	doc.AddMember("name", vName, alloc);
 	doc.AddMember("table_num", tables.size(), alloc);
+
+	rapidjson::StringBuffer buf;
+	rapidjson::Writer<rapidjson::StringBuffer> writer(buf);
+	doc.Accept(writer);
+	string str = buf.GetString();
+	fout << str << endl;
 
 	for (const auto& table : tables) {
 		table.close(fout);
