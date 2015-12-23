@@ -322,12 +322,33 @@ public:
     bool empty;
 };
 
+class ForeignKey : public Tree
+{
+public:
+    ForeignKey(const char *dst, const char *src) : dst(std::string(dst)), src(std::string(src)) {}
+
+    void printTo(PrintWriter& pw);
+    virtual void accept(Visitor *v);
+
+    std::string src;
+    std::string dst;
+};
+
 class CreateTBStmt : public Stmt
 {
 public:
-    CreateTBStmt(const char *tbName, std::vector<Tree*> *fields, Tree *check, Tree *pkey)
+    CreateTBStmt(const char *tbName, std::vector<Tree*> *fields, Tree *check, Tree *pkey,
+          std::vector<Tree*> *keys)
         : tb(std::string(tbName)), fields((std::vector<Field*>*)fields),
-          check((Check*)check), pkey((PrimaryKey*)pkey) {}
+          check((Check*)check), pkey((PrimaryKey*)pkey)
+    {
+        fkeys = new std::vector<ForeignKey*>;
+        if (keys->size() > 0) {
+            for (auto& key : keys) {
+                fkeys->push_back((ForeignKey*)key);
+            }
+        }
+    }
 
     void printTo(PrintWriter& pw);
     virtual void accept(Visitor *v);
@@ -336,6 +357,7 @@ public:
     std::vector<Field*> *fields;
     Check *check;
     PrimaryKey *pkey;
+    std::vector<ForeignKey*> *fkeys;
 };
 
 class DropTBStmt : public Stmt

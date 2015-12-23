@@ -48,6 +48,7 @@ program     :   stmts
                     PrintWriter pw;
                     $$->printTo(pw);
                 }
+            ;
 
 stmts       :   /* empty */
                 {
@@ -89,9 +90,9 @@ dbStmt      :   CREATE DATABASE IDENT
                 }
             ;
 
-tbStmt      :   CREATE TABLE IDENT LP fields check primaryKey RP
+tbStmt      :   CREATE TABLE IDENT LP fields check primaryKey foreignKeys RP
                 {
-                    $$ = new CreateTBStmt($3, $5, $6, $7);
+                    $$ = new CreateTBStmt($3, $5, $6, $7, $8);
                 }
             |   DROP TABLE IDENT
                 {
@@ -219,6 +220,17 @@ primaryKey  :   /* empty */
             |   COMMA PRIMARY KEY LP IDENT RP
                 {
                     $$ = new PrimaryKey($5);
+                }
+            ;
+
+foreignKeys :   /* empty */
+                {
+                    $$ = new std::vector<Tree*>;
+                }
+            |   foreignKeys COMMA
+                {
+                    $$ = $1;
+                    $$->push_back(new ForeignKey());
                 }
             ;
 
