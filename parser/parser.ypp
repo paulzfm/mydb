@@ -330,12 +330,16 @@ columns     :   /* empty */
 idents      :   IDENT
                 {
                     $$ = new std::vector<const char*>;
-                    $$->push_back($1);
+                    char *tmp = new char[1024];
+                    strncpy(tmp, $1, 1024);
+                    $$->push_back(tmp);
                 }
             |   idents COMMA IDENT
                 {
                     $$ = $1;
-                    $$->push_back($3);
+                    char *tmp = new char[1024];
+                    strncpy(tmp, $3, 1024);
+                    $$->push_back(tmp);
                 }
             ;
 

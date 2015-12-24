@@ -430,8 +430,8 @@ public:
     {
         cols = new std::vector<std::string>;
         for (auto& ident : *idents) {
-            printf("%s\n", ident);
             cols->push_back(std::string(ident));
+            delete[] ident;
         }
     }
 
