@@ -54,11 +54,7 @@ These keywords are \textbf{NOT} case-sensitive.
 \alt \t{USE} <dbName>
 \alt \t{SHOW} \t{TABLES}
 
-<tbStmt> ::= \t{CREATE} \t{TABLE} <tbName> \t{(}
-    <field> [\t{,} <field>]*
-    [\t{,} \t{CHECK} \t{(} <boolExpr> \t{)}]
-    [\t{,} \t{PRIMARY} \t{KEY} \t{(} <colName> \t{)}]
-    [\t{,} \t{FOREIGN} \t{KEY} \t{(} <colName> \t{)} \t{REFERENCES} <tbName> \t{(} <colName> \t{)}]* \t{)}
+<tbStmt> ::= \t{CREATE} \t{TABLE} <tbName> \t{(} <field> [\t{,} <field>]* \t{)}
 \alt \t{DROP} \t{TABLE} <tbName>
 \alt \t{DESC} <tbName> | \t{SHOW} \t{TABLE} <tbName>
 \alt \t{INSERT} \t{INTO} <tbName> [\t{(} <colName> [\t{,} <colName>]* \t{)}] \t{VALUES} \t{(} <value> [\t{,} <value>]* \t{)}
@@ -71,6 +67,9 @@ These keywords are \textbf{NOT} case-sensitive.
 <colName> ::= <ident>
 
 <field> ::= <colName> <type> [<attr>]*
+\alt \t{CHECK} \t{(} <boolExpr> \t{)}
+\alt \t{PRIMARY} \t{KEY} \t{(} <colName> \t{)}
+\alt \t{FOREIGN} \t{KEY} \t{(} <colName> \t{)} \t{REFERENCES} <tbName> \t{(} <colName> \t{)} \t{)}
 
 <type> ::= \t{INT} [\t{(} <integer> \t{)}]
 \alt \t{SMALLINT}
