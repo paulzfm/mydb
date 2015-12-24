@@ -13,9 +13,9 @@ void Value::printTo(PrintWriter &pw)
     pw.println("");
 }
 
-void Variable::printTo(PrintWriter &pw)
+void Col::printTo(PrintWriter &pw)
 {
-    pw.println(var);
+    pw.println(tb + "." + col);
 }
 
 void UnonExpr::printTo(PrintWriter &pw)
@@ -132,7 +132,7 @@ void NullExpr::printTo(PrintWriter &pw)
     }
 
     pw.incIndent();
-    pw.println(name);
+    pw.println(name->tb + "." + name->col);
     pw.decIndent();
 }
 
@@ -150,7 +150,7 @@ void CompareExpr::printTo(PrintWriter &pw)
     }
 
     pw.incIndent();
-    pw.println(left);
+    pw.println(left->tb + "." + left->col);
     right->printTo(pw);
     pw.decIndent();
 }
@@ -163,7 +163,7 @@ void InExpr::printTo(PrintWriter &pw)
     }
 
     pw.incIndent();
-    pw.println(left);
+    pw.println(left->tb + "." + left->col);
     pw.println("set of");
     pw.incIndent();
     for (auto& val : *right) {
@@ -181,7 +181,7 @@ void BetweenExpr::printTo(PrintWriter &pw)
     }
 
     pw.incIndent();
-    pw.println(left);
+    pw.println(left->tb + "." + left->col);
     pw.println("range within");
     pw.incIndent();
     rightL->printTo(pw);
@@ -210,8 +210,6 @@ void Check::printTo(PrintWriter &pw)
         pw.incIndent();
         check->printTo(pw);
         pw.decIndent();
-    } else {
-        pw.println("no check");
     }
 }
 
@@ -222,14 +220,26 @@ void PrimaryKey::printTo(PrintWriter &pw)
         pw.incIndent();
         pw.println(key);
         pw.decIndent();
-    } else {
-        pw.println("no primary key");
     }
+}
+
+void ForeignKey::printTo(PrintWriter &pw)
+{
+    pw.println("foreign key");
+    pw.incIndent();
+    pw.println(key);
+    pw.println("references to");
+    pw.incIndent();
+    pw.println(rtb);
+    pw.println(rkey);
+    pw.decIndent();
+    pw.decIndent();
+
 }
 
 void CreateTBStmt::printTo(PrintWriter &pw)
 {
-    pw.println("Create Table");
+    pw.println("create table");
     pw.incIndent();
     pw.println(tb);
     pw.println("fields");
@@ -240,12 +250,15 @@ void CreateTBStmt::printTo(PrintWriter &pw)
     pw.decIndent();
     check->printTo(pw);
     pkey->printTo(pw);
+    for (auto& key : *fkeys) {
+        key->printTo(pw);
+    }
     pw.decIndent();
 }
 
 void DropTBStmt::printTo(PrintWriter &pw)
 {
-    pw.println("Drop Table");
+    pw.println("drop table");
     pw.incIndent();
     pw.println(tb);
     pw.decIndent();
@@ -253,7 +266,7 @@ void DropTBStmt::printTo(PrintWriter &pw)
 
 void ShowTBStmt::printTo(PrintWriter &pw)
 {
-    pw.println("Show Table");
+    pw.println("show table");
     pw.incIndent();
     pw.println(tb);
     pw.decIndent();
@@ -339,26 +352,34 @@ void Selectors::printTo(PrintWriter &pw)
 
 void Selector::printTo(PrintWriter &pw)
 {
-    if (tbName != "") { // <tbName> . <colName>
-        pw.println(tbName + "." + colName);
-    } else {
-        switch (func) {
-            case FUNC_NULL: // <colName>
-                pw.println(colName);
-                break;
-            case FUNC_SUM:  // SUM ( <colName> )
-                pw.println("sum(" + colName + ")");
-                break;
-            case FUNC_AVG:  // AVG ( <colName> )
-                pw.println("average(" + colName + ")");
-                break;
-            case FUNC_MAX:  // MAX ( <colName> )
-                pw.println("max(" + colName + ")");
-                break;
-            case FUNC_MIN:  // MIN ( <colName> )
-                pw.println("min(" + colName + ")");
-                break;
-        }
+    switch (func) {
+        case FUNC_NULL:
+            col->printTo(pw);
+            break;
+        case FUNC_SUM:
+            pw.println("sum");
+            pw.incIndent();
+            col->printTo(pw);
+            pw.decIndent();
+            break;
+        case FUNC_AVG:
+            pw.println("avg");
+            pw.incIndent();
+            col->printTo(pw);
+            pw.decIndent();
+            break;
+        case FUNC_MAX:
+            pw.println("max");
+            pw.incIndent();
+            col->printTo(pw);
+            pw.decIndent();
+            break;
+        case FUNC_MIN:
+            pw.println("min");
+            pw.incIndent();
+            col->printTo(pw);
+            pw.decIndent();
+            break;
     }
 }
 
@@ -391,9 +412,9 @@ void Value::accept(Visitor *v)
     v->visitValue(this);
 }
 
-void Variable::accept(Visitor *v)
+void Col::accept(Visitor *v)
 {
-    v->visitVariable(this);
+    v->visitCol(this);
 }
 
 void UnonExpr::accept(Visitor *v)

@@ -29,9 +29,9 @@ int yyerror(const char *p) { std::cerr << "Error!" << std::endl; }
 %token <value> VALUE
 %token <ident> IDENT
 
-%type <tree> program stmt sysStmt dbStmt tbStmt type boolExpr check primaryKey columns eq selector where groupBy selectors expr
+%type <tree> program stmt sysStmt dbStmt tbStmt type boolExpr columns eq selector where groupBy selectors expr field col
 %type <tlist> fields stmts set eqs sellist
-%type <integer> attr
+%type <integer> attr func
 %type <ilist> attrs
 %type <slist> idents
 
@@ -90,9 +90,9 @@ dbStmt      :   CREATE DATABASE IDENT
                 }
             ;
 
-tbStmt      :   CREATE TABLE IDENT LP fields check primaryKey foreignKeys RP
+tbStmt      :   CREATE TABLE IDENT LP fields RP
                 {
-                    $$ = new CreateTBStmt($3, $5, $6, $7, $8);
+                    $$ = new CreateTBStmt($3, $5);
                 }
             |   DROP TABLE IDENT
                 {
@@ -101,6 +101,10 @@ tbStmt      :   CREATE TABLE IDENT LP fields check primaryKey foreignKeys RP
             |   SHOW TABLE IDENT
                 {
                     $$ = new ShowTBStmt($3);
+                }
+            |   DESC IDENT
+                {
+                    $$ = new ShowTBStmt($2);
                 }
             |   INSERT INTO IDENT columns VALUES LP set RP
                 {
@@ -120,15 +124,33 @@ tbStmt      :   CREATE TABLE IDENT LP fields check primaryKey foreignKeys RP
                 }
             ;
 
-fields      :   IDENT type attrs
+fields      :   field
                 {
                     $$ = new std::vector<Tree*>;
-                    $$->push_back(new Field($2, $1, $3));
+                    $$->push_back($1);
                 }
-            |   fields COMMA IDENT type attrs
+            |   fields COMMA field
                 {
                     $$ = $1;
-                    $$->push_back(new Field($4, $3, $5));
+                    $$->push_back($3);
+                }
+            ;
+
+field       :   IDENT type attrs
+                {
+                    $$ = new Field($2, $1, $3);
+                }
+            |   CHECK LP boolExpr RP
+                {
+                    $$ = new Check($3);
+                }
+            |   PRIMARY KEY LP IDENT RP
+                {
+                    $$ = new PrimaryKey($4);
+                }
+            |   FOREIGN KEY LP IDENT RP REFERENCES IDENT LP IDENT RP
+                {
+                    $$ = new ForeignKey($4, $7, $9);
                 }
             ;
 
@@ -203,90 +225,69 @@ attr        :   NOT NIL
                 }
             ;
 
-check       :   /* empty */
+col         :   IDENT
                 {
-                    $$ = new Check;
+                    $$ = new Col($1);
                 }
-            |   COMMA CHECK LP boolExpr RP
+            |   IDENT DOT IDENT
                 {
-                    $$ = new Check($4);
-                }
-            ;
-
-primaryKey  :   /* empty */
-                {
-                    $$ = new PrimaryKey;
-                }
-            |   COMMA PRIMARY KEY LP IDENT RP
-                {
-                    $$ = new PrimaryKey($5);
+                    $$ = new Col($1, $3);
                 }
             ;
 
-foreignKeys :   /* empty */
-                {
-                    $$ = new std::vector<Tree*>;
-                }
-            |   foreignKeys COMMA
-                {
-                    $$ = $1;
-                    $$->push_back(new ForeignKey());
-                }
-            ;
-
-boolExpr    :   IDENT IS NIL
+boolExpr    :   col IS NIL
                 {
                     $$ = new NullExpr($1, BoolExpr::OP_IS_NULL);
                 }
-            |   IDENT IS NOT NIL
+            |   col IS NOT NIL
                 {
                     $$ = new NullExpr($1, BoolExpr::OP_IS_NOT_NULL);
                 }
-            |   IDENT IN LP set RP
+            |   col IN LP set RP
                 {
                     $$ = new InExpr($1, $4, BoolExpr::OP_IN);
                 }
-            |   IDENT NOT IN LP set RP
+            |   col NOT IN LP set RP
                 {
                     $$ = new InExpr($1, $5, BoolExpr::OP_NOT_IN);
                 }
-            |   IDENT BETWEEN VALUE AND VALUE
+            |   col BETWEEN VALUE AND VALUE
                 {
                     $$ = new BetweenExpr($1, $3, $5, BoolExpr::OP_BETWEEN);
                 }
-            |   IDENT NOT BETWEEN VALUE AND VALUE
+            |   col NOT BETWEEN VALUE AND VALUE
                 {
                     $$ = new BetweenExpr($1, $4, $6, BoolExpr::OP_NOT_BETWEEN);
                 }
-            |   IDENT LIKE VALUE
+            |   col LIKE VALUE
                 {
                     $$ = new CompareExpr($1, $3, BoolExpr::OP_LIKE);
                 }
-            |   IDENT NOT LIKE VALUE
+            |   col NOT LIKE VALUE
                 {
                     $$ = new CompareExpr($1, $4, BoolExpr::OP_NOT_LIKE);
                 }
-            |   IDENT EQ VALUE
+            |   col EQ expr
                 {
                     $$ = new CompareExpr($1, $3, BoolExpr::OP_EQ);
                 }
-            |   IDENT NE VALUE
+            |   col NE expr
                 {
                     $$ = new CompareExpr($1, $3, BoolExpr::OP_NE);
                 }
-            |   IDENT GE VALUE
+            |   col GE expr
                 {
                     $$ = new CompareExpr($1, $3, BoolExpr::OP_GE);
                 }
-            |   IDENT LE VALUE
+            |   col LE expr
                 {
                     $$ = new CompareExpr($1, $3, BoolExpr::OP_LE);
                 }
-            |   IDENT GT VALUE
+            |   col GT expr
                 {
                     $$ = new CompareExpr($1, $3, BoolExpr::OP_GT);
                 }
-            |   IDENT LT VALUE
+            |   col LT expr
                 {
                     $$ = new CompareExpr($1, $3, BoolExpr::OP_LT);
                 }
@@ -378,29 +379,31 @@ sellist     :   selector
                 }
             ;
 
-selector    :   IDENT DOT IDENT
+selector    :   col
+                {
+                    $$ = new Selector($1);
+                }
+            |   func LP col RP
                 {
                     $$ = new Selector($1, $3);
                 }
-            |   IDENT
+            ;
+
+func        :   SUM
                 {
-                    $$ = new Selector(Selector::FUNC_NULL, $1);
+                    $$ = Selector::FUNC_SUM;
                 }
-            |   SUM LP IDENT RP
+            |   AVG
                 {
-                    $$ = new Selector(Selector::FUNC_SUM, $3);
+                    $$ = Selector::FUNC_AVG;
                 }
-            |   AVG LP IDENT RP
+            |   MAX
                 {
-                    $$ = new Selector(Selector::FUNC_AVG, $3);
+                    $$ = Selector::FUNC_MAX;
                 }
-            |   MAX LP IDENT RP
+            |   MIN
                 {
-                    $$ = new Selector(Selector::FUNC_MAX, $3);
-                }
-            |   MIN LP IDENT RP
-                {
-                    $$ = new Selector(Selector::FUNC_MIN, $3);
+                    $$ = Selector::FUNC_MIN;
                 }
             ;
 
@@ -430,7 +433,11 @@ expr        :   VALUE
                 }
             |   IDENT
                 {
-                    $$ = new Variable($1);
+                    $$ = new Col($1);
+                }
+            |   IDENT DOT IDENT
+                {
+                    $$ = new Col($1, $3);
                 }
             |   PLUS expr
                 {
