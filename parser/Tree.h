@@ -52,6 +52,7 @@ public:
 class Value : public Expr
 {
 public:
+    Value() : kind(VALUE_NULL) {}
     Value(int kind, const char *val) : kind(kind), val(std::string(val)) {}
 
     void printTo(PrintWriter& pw);
@@ -63,6 +64,7 @@ public:
     static const int VALUE_INT = 0;
     static const int VALUE_REAL = 1;
     static const int VALUE_STRING = 2;
+    static const int VALUE_NULL = 3;
 };
 
 class UnonExpr : public Expr
@@ -444,15 +446,21 @@ public:
 class InsertStmt : public Stmt
 {
 public:
-    InsertStmt(const char *tbName, Tree *cols, std::vector<Tree*> *values)
-        : tb(std::string(tbName)), cols((Columns*)cols), values((std::vector<Value*>*)values) {}
+    InsertStmt(const char *tbName, Tree *cols, std::vector< std::vector<Tree*>* > *sets)
+        : tb(std::string(tbName)), cols((Columns*)cols)
+    {
+        values = new std::vector< std::vector<Value*>* >;
+        for (auto& set : *sets) {
+            values->push_back((std::vector<Value*>*)set);
+        }
+    }
 
     void printTo(PrintWriter& pw);
     virtual void accept(Visitor *v);
 
     std::string tb;
     Columns *cols;
-    std::vector<Value*> *values;
+    std::vector< std::vector<Value*>* > *values;
 };
 
 class DeleteStmt : public Stmt
@@ -591,6 +599,32 @@ public:
     GroupBy *gb;
 };
 
+class CreateIdxStmt : public Stmt
+{
+public:
+    CreateIdxStmt(const char *tbName, const char *colName)
+        : tb(std::string(tbName)), col(std::string(colName)) {}
+
+    void printTo(PrintWriter& pw);
+    virtual void accept(Visitor *v);
+
+    std::string tb;
+    std::string col;
+};
+
+class DropIdxStmt : public Stmt
+{
+public:
+    DropIdxStmt(const char *tbName, const char *colName)
+        : tb(std::string(tbName)), col(std::string(colName)) {}
+
+    void printTo(PrintWriter& pw);
+    virtual void accept(Visitor *v);
+
+    std::string tb;
+    std::string col;
+};
+
 
 // Visitor
 class Visitor
@@ -625,6 +659,8 @@ public:
     virtual void visitSelector(Selector *that) { visitTree(that); }
     virtual void visitSelectors(Selectors *that) { visitTree(that); }
     virtual void visitSelectStmt(SelectStmt *that) { visitTree(that); }
+    virtual void visitCreateIdxStmt(CreateIdxStmt *that) { visitTree(that); }
+    virtual void visitDropIdxStmt(DropIdxStmt *that) { visitTree(that); }
 };
 
 #endif // PARSER_TREE_H_

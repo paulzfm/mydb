@@ -2,15 +2,12 @@
 
 void Value::printTo(PrintWriter &pw)
 {
-    pw.printIndent();
-    pw.print(val);
-    pw.print(" ");
     switch (kind) {
-        case VALUE_INT: pw.print("integer"); break;
-        case VALUE_REAL: pw.print("real"); break;
-        case VALUE_STRING: pw.print("string"); break;
+        case VALUE_INT: pw.println(val + " integer"); break;
+        case VALUE_REAL: pw.println(val + " real"); break;
+        case VALUE_STRING: pw.println(val + " string"); break;
+        case VALUE_NULL: pw.println("value null"); break;
     }
-    pw.println("");
 }
 
 void Col::printTo(PrintWriter &pw)
@@ -48,7 +45,7 @@ void BinExpr::printTo(PrintWriter &pw)
 
 void TopLevel::printTo(PrintWriter& pw)
 {
-    pw.println("Top Level");
+    pw.println("top level");
     pw.incIndent();
     for (auto stmt : *stmts) {
         stmt->printTo(pw);
@@ -59,12 +56,12 @@ void TopLevel::printTo(PrintWriter& pw)
 
 void ListDB::printTo(PrintWriter &pw)
 {
-    pw.println("List Databases");
+    pw.println("list databases");
 }
 
 void CreateDBStmt::printTo(PrintWriter& pw)
 {
-    pw.println("Create Database");
+    pw.println("create database");
     pw.incIndent();
     pw.println(db);
     pw.decIndent();
@@ -72,7 +69,7 @@ void CreateDBStmt::printTo(PrintWriter& pw)
 
 void DropDBStmt::printTo(PrintWriter& pw)
 {
-    pw.println("Drop Database");
+    pw.println("drop database");
     pw.incIndent();
     pw.println(db);
     pw.decIndent();
@@ -80,7 +77,7 @@ void DropDBStmt::printTo(PrintWriter& pw)
 
 void UseDBStmt::printTo(PrintWriter& pw)
 {
-    pw.println("Use Database");
+    pw.println("use database");
     pw.incIndent();
     pw.println(db);
     pw.decIndent();
@@ -88,7 +85,7 @@ void UseDBStmt::printTo(PrintWriter& pw)
 
 void ListTB::printTo(PrintWriter &pw)
 {
-    pw.println("List Tables");
+    pw.println("list tables");
 }
 
 void Type::printTo(PrintWriter &pw)
@@ -292,12 +289,14 @@ void InsertStmt::printTo(PrintWriter &pw)
     pw.incIndent();
     pw.println(tb);
     cols->printTo(pw);
-    pw.println("values");
-    pw.incIndent();
-    for (auto& val : *values) {
-        val->printTo(pw);
+    for (auto& set : *values) {
+        pw.println("values");
+        pw.incIndent();
+        for (auto& val : *set) {
+            val->printTo(pw);
+        }
+        pw.decIndent();
     }
-    pw.decIndent();
     pw.decIndent();
 }
 
@@ -404,6 +403,24 @@ void SelectStmt::printTo(PrintWriter &pw)
         pw.println(gb->colName);
         pw.decIndent();
     }
+    pw.decIndent();
+}
+
+void CreateIdxStmt::printTo(PrintWriter &pw)
+{
+    pw.println("create index");
+    pw.incIndent();
+    pw.println(tb);
+    pw.println(col);
+    pw.decIndent();
+}
+
+void DropIdxStmt::printTo(PrintWriter &pw)
+{
+    pw.println("drop index");
+    pw.incIndent();
+    pw.println(tb);
+    pw.println(col);
     pw.decIndent();
 }
 
@@ -545,4 +562,14 @@ void Selectors::accept(Visitor *v)
 void SelectStmt::accept(Visitor *v)
 {
     v->visitSelectStmt(this);
+}
+
+void CreateIdxStmt::accept(Visitor *v)
+{
+    v->visitCreateIdxStmt(this);
+}
+
+void DropIdxStmt::accept(Visitor *v)
+{
+    v->visitDropIdxStmt(this);
 }
