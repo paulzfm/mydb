@@ -23,37 +23,38 @@ private:
 	// <dbid, table name> -> <Table, RecordManager>
 	std::map<pair<int, string>, Container> tables;
 
-	Container getContainer(const string& name);
+    std::function<bool(const Record&)> getFilter(BoolExpr* expr);
 
 public:
 	QueryManager(SystemManager *sysmgr_);
 	~QueryManager();
+	Container getContainer(const string& name);
 
 	// tableName, [<attrName, data>]
-	void Insert(const string& table, unordered_map<string, char*>& data);
+	bool Insert(const string& table, unordered_map<string, char*>& data, string& msg);
 
 	// tableName, condition expr
-	void Delete(const string& table, BoolExpr* expr);
+	bool Delete(const string& table, BoolExpr* where, string& msg);
 
 	// tableName, <attrName -> expr>, condition expr
-	void Update(const string& table, unordered_map<string, Expr*>& data, BoolExpr* expr);
+	bool Update(const string& table, unordered_map<string, Expr*>& data, BoolExpr* where, string& msg);
 
-	// tableName, [attrName], condition expr, group by
-	vector<Record>* Select(const string& table, vector<string>& attrs, BoolExpr* expr, string groupBy = "");
+	// [<tableName, attrName>], condition expr, group by
+	bool Select(vector<pair<string, string>>& attrs, BoolExpr* where, string groupBy = "", string& msg);
 
 	// tableName
 	// * caller should build up all Columns with constraints
-	void CreateTable(const string& name, vector<Column>& cols, vector<Constraint>& cons);
+	bool CreateTable(const string& name, vector<Column>& cols, vector<Constraint>& cons, string& msg);
 
 	// wrapper
-	void UseDatabase(const string& name);
-	void ShowDatabase();
-	void CreateDatabase(const string& name);
-	void DropDatabase(const string& name);
+	bool UseDatabase(const string& name, string& msg);
+	bool ShowDatabase(string& msg);
+	bool CreateDatabase(const string& name, string& msg);
+	bool DropDatabase(const string& name, string& msg);
 
-	void ShowTables();
-	void DescTable(const string& name);
-	void DropTable(const string& name);
+	bool ShowTables(string& msg);
+	bool DescTable(const string& name, string& msg);
+	bool DropTable(const string& name, string& msg);
 };
 
 extern Container NullContainer;
