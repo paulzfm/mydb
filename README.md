@@ -19,8 +19,8 @@ On unix-like systems, type
 
     $ ./mydb <sql input file name>
 
-    Till now, we only print out AST for debugging.
+Till now, we only print out AST for debugging.
 
 ### SQL Support
 
-    See [SQL Support Document](https://github.com/paulzfm/mydb/blob/master/doc/sql.pdf) for more information.
+See [SQL Support Document](https://github.com/paulzfm/mydb/blob/master/doc/sql.pdf) for more information.
