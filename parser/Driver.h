@@ -3,7 +3,7 @@
 
 #include <string>
 
-#include "parser.tab.hpp"
+#include "parser.hpp"
 #include "Tree.h"
 
 #define YY_DECL					\
