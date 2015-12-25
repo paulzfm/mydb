@@ -1,39 +1,62 @@
+%skeleton "lalr1.cc"
+%require "2.1a"
+%defines
+%define "parser_class_name" "SQLParser"
+
 %{
-#include <iostream>
-#include <string>
-#include <map>
+#include "Tree.h"
 #include <vector>
-#include <cstdlib> //-- I need this for atoi
 
-#include "SemValue.h"
-#include "Tree.h" // abstract syntax tree
+class Driver;
+%}
 
-//-- Lexer prototype required by bison, aka getNextToken()
-int yylex();
-int yyerror(const char *p) { std::cerr << "Error!" << std::endl; }
+%parse-param { Driver& driver }
+%lex-param   { Driver& driver }
+%locations
+%initial-action
+{
+    @$.begin.filename = @$.end.filename = &driver.file;
+};
+
+%union {
+    char ident[1024]; // identifier
+    Value *value; // Value
+    Tree *tree; // Tree
+    std::vector<Tree*> *tlist; // [Tree]
+    std::vector< std::vector<Tree*>* > *ttlist; // [[Tree]]
+    int integer;
+    std::vector<int> *ilist;
+    std::vector<const char*> *slist;
+};
+
+%{
+#include "Driver.h"
 %}
 
 //-- SYMBOL SEMANTIC VALUES -----------------------------
-%token <sym> DATABASE DATABASES TABLE TABLES SHOW CREATE
-%token <sym> DROP USE CHECK PRIMARY KEY UNIQUE
-%token <sym> NOT NIL AUTO_INCREMENT INSERT INTO VALUES
-%token <sym> DELETE FROM WHERE UPDATE SET SELECT
-%token <sym> GROUP BY IS IN BETWEEN LIKE
-%token <sym> AND OR SUM AVG MAX MIN
-%token <sym> INT SMALLINT BIGINT FLOAT REAL DOUBLE
-%token <sym> VARCHAR STRING CHAR BOOLEAN DATETIME
-%token <sym> EQ NE LE GE LT GT
-%token <sym> LP RP COMMA STOP DOT
-%token <sym> PLUS MINUS MUL DIV MOD
-%token <sym> DESC FOREIGN REFERENCES
+%token DATABASE DATABASES TABLE TABLES SHOW CREATE
+%token DROP USE CHECK PRIMARY KEY UNIQUE
+%token NOT NIL AUTO_INCREMENT INSERT INTO VALUES
+%token DELETE FROM WHERE UPDATE SET SELECT
+%token GROUP BY IS IN BETWEEN LIKE
+%token AND OR SUM AVG MAX MIN
+%token INT SMALLINT BIGINT FLOAT REAL DOUBLE
+%token VARCHAR STRING CHAR BOOLEAN DATETIME
+%token EQ NE LE GE LT GT
+%token LP RP COMMA STOP DOT
+%token PLUS MINUS MUL DIV MOD
+%token DESC FOREIGN REFERENCES
+%token END 0 "end of file"
 %token <value> VALUE
 %token <ident> IDENT
 
 %type <tree> program stmt sysStmt dbStmt tbStmt type boolExpr columns eq selector where groupBy selectors expr field col
 %type <tlist> fields stmts set eqs sellist
+%type <ttlist> sets
 %type <integer> attr func
 %type <ilist> attrs
 %type <slist> idents
+%type <value> value
 
 %left OR
 %left AND
@@ -42,11 +65,11 @@ int yyerror(const char *p) { std::cerr << "Error!" << std::endl; }
 
 //-- GRAMMAR RULES ---------------------------------------
 %%
+%start program;
+
 program     :   stmts
                 {
-                    $$ = new TopLevel($1);
-                    PrintWriter pw;
-                    $$->printTo(pw);
+                    driver.ast = new TopLevel($1);
                 }
             ;
 
@@ -106,9 +129,9 @@ tbStmt      :   CREATE TABLE IDENT LP fields RP
                 {
                     $$ = new ShowTBStmt($2);
                 }
-            |   INSERT INTO IDENT columns VALUES LP set RP
+            |   INSERT INTO IDENT columns VALUES sets
                 {
-                    $$ = new InsertStmt($3, $4, $7);
+                    $$ = new InsertStmt($3, $4, $6);
                 }
             |   DELETE FROM IDENT WHERE boolExpr
                 {
@@ -158,7 +181,7 @@ type        :   INT
                 {
                     $$ = new Type(Type::TYPE_INT);
                 }
-            |   INT LP VALUE RP
+            |   INT LP value RP
                 {
                     $$ = new Type(Type::TYPE_INT, $3);
                 }
@@ -178,7 +201,7 @@ type        :   INT
                 {
                     $$ = new Type(Type::TYPE_DOUBLE);
                 }
-            |   VARCHAR LP VALUE RP
+            |   VARCHAR LP value RP
                 {
                     $$ = new Type(Type::TYPE_STRING, $3);
                 }
@@ -197,6 +220,16 @@ type        :   INT
             |   DATETIME
                 {
                     $$ = new Type(Type::TYPE_DATETIME);
+                }
+            ;
+
+value       :   VALUE
+                {
+                    $$ = $1;
+                }
+            |   NIL
+                {
+                    $$ = new Value;
                 }
             ;
 
@@ -222,6 +255,18 @@ attr        :   NOT NIL
             |   AUTO_INCREMENT
                 {
                     $$ = Field::ATTR_AUTO_INCREMENT;
+                }
+            ;
+
+sets        :   LP set RP
+                {
+                    $$ = new std::vector< std::vector<Tree*>* >;
+                    $$->push_back($2);
+                }
+            |   sets COMMA LP set RP
+                {
+                    $$ = $1;
+                    $$->push_back($4);
                 }
             ;
 
@@ -251,19 +296,19 @@ boolExpr    :   col IS NIL
                 {
                     $$ = new InExpr($1, $5, BoolExpr::OP_NOT_IN);
                 }
-            |   col BETWEEN VALUE AND VALUE
+            |   col BETWEEN value AND value
                 {
                     $$ = new BetweenExpr($1, $3, $5, BoolExpr::OP_BETWEEN);
                 }
-            |   col NOT BETWEEN VALUE AND VALUE
+            |   col NOT BETWEEN value AND value
                 {
                     $$ = new BetweenExpr($1, $4, $6, BoolExpr::OP_NOT_BETWEEN);
                 }
-            |   col LIKE VALUE
+            |   col LIKE value
                 {
                     $$ = new CompareExpr($1, $3, BoolExpr::OP_LIKE);
                 }
-            |   col NOT LIKE VALUE
+            |   col NOT LIKE value
                 {
                     $$ = new CompareExpr($1, $4, BoolExpr::OP_NOT_LIKE);
                 }
@@ -305,12 +350,12 @@ boolExpr    :   col IS NIL
                 }
             ;
 
-set         :   VALUE
+set         :   value
                 {
                     $$ = new std::vector<Tree*>;
                     $$->push_back($1);
                 }
-            |   set COMMA VALUE
+            |   set COMMA value
                 {
                     $$ = $1;
                     $$->push_back($3);
@@ -431,7 +476,7 @@ groupBy     :   /* empty */
                 }
             ;
 
-expr        :   VALUE
+expr        :   value
                 {
                     $$ = $1;
                 }
@@ -478,11 +523,8 @@ expr        :   VALUE
             ;
 
 %%
-//-- FUNCTION DEFINITIONS ---------------------------------
-int main()
+void yy::SQLParser::error(const yy::SQLParser::location_type& l,
+    const std::string& m)
 {
-    yyparse();
-    printf("exit!\n");
-
-    return 0;
+    driver.error(l, m);
 }
