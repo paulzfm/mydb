@@ -41,7 +41,7 @@ These keywords are \textbf{NOT} case-sensitive.
 
 <string> ::= \texttt{'.*'}
 
-<value> ::= <integer> | <real> | <string>
+<value> ::= <integer> | <real> | <string> | \t{NULL}
 
 <stmt> ::= <sysStmt> \t{;}
 \alt <dbStmt> \t{;}
@@ -57,7 +57,7 @@ These keywords are \textbf{NOT} case-sensitive.
 <tbStmt> ::= \t{CREATE} \t{TABLE} <tbName> \t{(} <field> [\t{,} <field>]* \t{)}
 \alt \t{DROP} \t{TABLE} <tbName>
 \alt \t{DESC} <tbName> | \t{SHOW} \t{TABLE} <tbName>
-\alt \t{INSERT} \t{INTO} <tbName> [\t{(} <colName> [\t{,} <colName>]* \t{)}] \t{VALUES} \t{(} <value> [\t{,} <value>]* \t{)}
+\alt \t{INSERT} \t{INTO} <tbName> [\t{(} <colName> [\t{,} <colName>]* \t{)}] \t{VALUES} \t{(} <values> \t{)} [\t{,} \t{(} <values> \t{)}]*
 \alt \t{DELETE} \t{FROM} <tbName> \t{WHERE} <boolExpr>
 \alt \t{UPDATE} <tbName> \t{SET} <colName> \t{=} <expr> [\t{,} <colName> \t{=} <expr>]* \t{WHERE} <boolExpr>
 \alt \t{SELECT} <selectors> \t{FROM} <tbName> [\t{,} <tbName>]* [\t{WHERE} <boolExpr>] [\t{GROUP} \t{BY} <colName>]
@@ -83,6 +83,8 @@ These keywords are \textbf{NOT} case-sensitive.
 \alt \t{DATETIME}
 
 <attr> ::= \t{NOT} \t{NULL} | \t{UNIQUE} | \t{AUTO_INCREMENT}
+
+<values> ::= <value> [\t{,} <value>]*
 
 <boolExpr> ::= <col> <boolOp> <expr>
 \alt <col> \t{IS} [\t{NOT}] \t{NULL}
@@ -115,11 +117,15 @@ These keywords are \textbf{NOT} case-sensitive.
 
 \section{Priority}
 
-\begin{itemize}
-    \item \t{()} \textit{prior to} \t{AND} \textit{prior to} \t{OR}
-    \item \textbf{left} association
-\end{itemize}
+From lowest to highest:
 
-\section{Semantics}
+\begin{center}
+    \begin{tabular}{cl}
+        left & \t{or} \\
+        left & \t{and} \\
+        left & \t{+} \t{-} \\
+        left & \t{*} \t{/} \t{mod} \\
+    \end{tabular}
+\end{center}
 
 \end{document}
