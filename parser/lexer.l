@@ -84,7 +84,7 @@
     return VALUE;
 }
 
-[0-9]+(.)[0-9]+ {
+[0-9]+(\.)[0-9]+ {
     yylval.value = new Value(Value::VALUE_REAL, yytext);
     return VALUE;
 }

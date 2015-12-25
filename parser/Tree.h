@@ -34,6 +34,21 @@ public:
     const static int OP_MOD = 6;
 };
 
+class Col : public Expr
+{
+public:
+    Col(const char *colName)
+        : tb(""), col(std::string(colName)) {}
+    Col(const char *tbName, const char *colName)
+        : tb(std::string(tbName)), col(std::string(colName)) {}
+
+    void printTo(PrintWriter& pw);
+    virtual void accept(Visitor *v);
+
+    std::string tb;
+    std::string col;
+};
+
 class Value : public Expr
 {
 public:
@@ -48,17 +63,6 @@ public:
     static const int VALUE_INT = 0;
     static const int VALUE_REAL = 1;
     static const int VALUE_STRING = 2;
-};
-
-class Variable : public Expr
-{
-public:
-    Variable(const char *var) : var(std::string(var)) {}
-
-    void printTo(PrintWriter& pw);
-    virtual void accept(Visitor *v);
-
-    std::string var;
 };
 
 class UnonExpr : public Expr
@@ -183,24 +187,6 @@ public:
     const static int TYPE_DATETIME = 8;
 };
 
-class Field : public Tree
-{
-public:
-    Field(Tree *type, const char *name, std::vector<int> *attrs)
-        : type(type), name(std::string(name)), attrs(attrs) {}
-
-    void printTo(PrintWriter& pw);
-    virtual void accept(Visitor *v);
-
-    Tree *type;
-    std::string name;
-    std::vector<int> *attrs;
-
-    const static int ATTR_NOT_NULL = 0;
-    const static int ATTR_UNIQUE = 1;
-    const static int ATTR_AUTO_INCREMENT = 2;
-};
-
 class BoolExpr : public Tree
 {
 public:
@@ -230,39 +216,39 @@ public:
 class NullExpr : public BoolExpr
 {
 public:
-    NullExpr(const char *name, int op) : name(std::string(name)), op(op) {}
+    NullExpr(Tree *col, int op) : name((Col*)col), op(op) {}
 
     void printTo(PrintWriter& pw);
     virtual void accept(Visitor *v);
 
-    std::string name;
+    Col *name;
     int op;
 };
 
 class CompareExpr : public BoolExpr
 {
 public:
-    CompareExpr(const char *left, Tree *right, int op)
-        : left(std::string(left)), right((Value*)right), op(op) {}
+    CompareExpr(Tree *left, Tree *right, int op)
+        : left((Col*)left), right((Expr*)right), op(op) {}
 
     void printTo(PrintWriter& pw);
     virtual void accept(Visitor *v);
 
-    std::string left;
-    Value *right;
+    Col *left;
+    Expr *right;
     int op;
 };
 
 class InExpr : public BoolExpr
 {
 public:
-    InExpr(const char *left, std::vector<Tree*> *right, int op)
-        : left(std::string(left)), right((std::vector<Value*>*)right), op(op) {}
+    InExpr(Tree *left, std::vector<Tree*> *right, int op)
+        : left((Col*)left), right((std::vector<Value*>*)right), op(op) {}
 
     void printTo(PrintWriter& pw);
     virtual void accept(Visitor *v);
 
-    std::string left;
+    Col *left;
     std::vector<Value*> *right;
     int op;
 };
@@ -270,13 +256,13 @@ public:
 class BetweenExpr : public BoolExpr
 {
 public:
-    BetweenExpr(const char *left, Value *rightL, Value *rightR, int op)
-        : left(std::string(left)), rightL(rightL), rightR(rightR), op(op) {}
+    BetweenExpr(Tree *left, Value *rightL, Value *rightR, int op)
+        : left((Col*)left), rightL(rightL), rightR(rightR), op(op) {}
 
     void printTo(PrintWriter& pw);
     virtual void accept(Visitor *v);
 
-    std::string left;
+    Col *left;
     Value *rightL;
     Value *rightR;
     int op;
@@ -296,11 +282,45 @@ public:
     BoolExpr *right;
 };
 
-class Check : public Tree
+class Constraint : public Tree
 {
 public:
-    Check() : empty(true) {}
-    Check(Tree *check) : check((BoolExpr*)check), empty(false) {}
+    Constraint(int kind) : kind(kind) {}
+    virtual void printTo(PrintWriter& pw) = 0;
+    virtual void accept(Visitor *v) = 0;
+
+    const static int CONS_CHECK = 0;
+    const static int CONS_PKEY = 1;
+    const static int CONS_FKEY = 2;
+    const static int CONS_FIELD = 3;
+
+    int kind;
+};
+
+class Field : public Constraint
+{
+public:
+    Field(Tree *type, const char *name, std::vector<int> *attrs)
+        : Constraint(Constraint::CONS_FIELD), type(type), name(std::string(name)), attrs(attrs) {}
+
+    void printTo(PrintWriter& pw);
+    virtual void accept(Visitor *v);
+
+    Tree *type;
+    std::string name;
+    std::vector<int> *attrs;
+
+    const static int ATTR_NOT_NULL = 0;
+    const static int ATTR_UNIQUE = 1;
+    const static int ATTR_AUTO_INCREMENT = 2;
+};
+
+class Check : public Constraint
+{
+public:
+    Check() : Constraint(Constraint::CONS_CHECK), empty(true) {}
+    Check(Tree *check)
+        : Constraint(Constraint::CONS_CHECK), check((BoolExpr*)check), empty(false) {}
 
     void printTo(PrintWriter& pw);
     virtual void accept(Visitor *v) {}
@@ -309,11 +329,12 @@ public:
     bool empty;
 };
 
-class PrimaryKey : public Tree
+class PrimaryKey : public Constraint
 {
 public:
-    PrimaryKey() : empty(true) {}
-    PrimaryKey(const char *key) : key(std::string(key)), empty(false) {}
+    PrimaryKey() : Constraint(Constraint::CONS_PKEY), empty(true) {}
+    PrimaryKey(const char *key)
+        : Constraint(Constraint::CONS_PKEY), key(std::string(key)), empty(false) {}
 
     void printTo(PrintWriter& pw);
     virtual void accept(Visitor *v) {}
@@ -322,30 +343,49 @@ public:
     bool empty;
 };
 
-class ForeignKey : public Tree
+class ForeignKey : public Constraint
 {
 public:
-    ForeignKey(const char *dst, const char *src) : dst(std::string(dst)), src(std::string(src)) {}
+    ForeignKey(const char *key, const char *rtb, const char *rkey)
+        : Constraint(Constraint::CONS_FKEY), key(std::string(key)),
+          rtb(std::string(rtb)), rkey(std::string(rkey)) {}
 
     void printTo(PrintWriter& pw);
-    virtual void accept(Visitor *v);
+    virtual void accept(Visitor *v) {}
 
-    std::string src;
-    std::string dst;
+    std::string key;
+    std::string rtb;
+    std::string rkey;
 };
 
 class CreateTBStmt : public Stmt
 {
 public:
-    CreateTBStmt(const char *tbName, std::vector<Tree*> *fields, Tree *check, Tree *pkey,
-          std::vector<Tree*> *keys)
-        : tb(std::string(tbName)), fields((std::vector<Field*>*)fields),
-          check((Check*)check), pkey((PrimaryKey*)pkey)
+    CreateTBStmt(const char *tbName, std::vector<Tree*> *constrains)
+        : tb(std::string(tbName))
     {
+        fields = new std::vector<Field*>;
+        check = new Check;
+        pkey = new PrimaryKey;
         fkeys = new std::vector<ForeignKey*>;
-        if (keys->size() > 0) {
-            for (auto& key : keys) {
-                fkeys->push_back((ForeignKey*)key);
+
+        for (auto& con : *constrains) {
+            Constraint *c = (Constraint*)con;
+            switch (c->kind) {
+                case Constraint::CONS_FIELD:
+                    fields->push_back((Field*)c);
+                    break;
+                case Constraint::CONS_CHECK:
+                    check = (Check*)c;
+                    check->empty = false;
+                    break;
+                case Constraint::CONS_PKEY:
+                    pkey = (PrimaryKey*)c;
+                    pkey->empty = false;
+                    break;
+                case Constraint::CONS_FKEY:
+                    fkeys->push_back((ForeignKey*)c);
+                    break;
             }
         }
     }
@@ -391,6 +431,7 @@ public:
         cols = new std::vector<std::string>;
         for (auto& ident : *idents) {
             cols->push_back(std::string(ident));
+            delete[] ident;
         }
     }
 
@@ -462,16 +503,15 @@ public:
 class Selector : public Tree
 {
 public:
-    Selector(const char *tbName, const char *colName)
-        : func(FUNC_NULL), tbName(std::string(tbName)), colName(std::string(colName)) {}
-    Selector(int func, const char *colName)
-        : func(func), colName(std::string(colName)) {}
+    Selector(Tree *col)
+        : func(FUNC_NULL), col((Col*)col) {}
+    Selector(int func, Tree *col)
+        : func(func), col((Col*)col) {}
 
     void printTo(PrintWriter& pw);
     virtual void accept(Visitor *v);
 
-    std::string tbName;
-    std::string colName;
+    Col *col;
     int func;
 
     const static int FUNC_NULL = 0;
@@ -529,9 +569,18 @@ public:
 class SelectStmt : public Stmt
 {
 public:
-    SelectStmt(const char *tbName, Tree *sel, Tree *where, Tree *gb)
-        : tb(std::string(tbName)), sel((Selectors*)sel), where((Where*)where),
-          gb((GroupBy*)gb) {}
+    SelectStmt(const char *tbName, Tree *selectors, Tree *where, Tree *gb)
+        : tb(std::string(tbName)), sel((Selectors*)selectors), where((Where*)where),
+          gb((GroupBy*)gb)
+    {
+        if (!sel->all) {
+            for (auto& selector : *(sel->selectors)) {
+                if (selector->col->tb == "") {
+                    selector->col->tb = tb;
+                }
+            }
+        }
+    }
 
     void printTo(PrintWriter& pw);
     virtual void accept(Visitor *v);
@@ -549,7 +598,7 @@ class Visitor
 public:
     virtual void visitTree(Tree *that) { assert(false); }
     virtual void visitValue(Value *that) { visitTree(that); }
-    virtual void visitVariable(Variable *that) { visitTree(that); }
+    virtual void visitCol(Col *that) { visitTree(that); }
     virtual void visitUnonExpr(UnonExpr *that) { visitTree(that); }
     virtual void visitBinExpr(BinExpr *that) { visitTree(that); }
     virtual void visitTopLevel(TopLevel *that) { visitTree(that); }
