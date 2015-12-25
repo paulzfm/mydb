@@ -45,12 +45,12 @@ class Driver;
 %token EQ NE LE GE LT GT
 %token LP RP COMMA STOP DOT
 %token PLUS MINUS MUL DIV MOD
-%token DESC FOREIGN REFERENCES
+%token DESC FOREIGN REFERENCES INDEX
 %token END 0 "end of file"
 %token <value> VALUE
 %token <ident> IDENT
 
-%type <tree> program stmt sysStmt dbStmt tbStmt type boolExpr columns eq selector where groupBy selectors expr field col
+%type <tree> program stmt sysStmt dbStmt tbStmt type boolExpr columns eq selector where groupBy selectors expr field col idxStmt
 %type <tlist> fields stmts set eqs sellist
 %type <ttlist> sets
 %type <integer> attr func
@@ -87,6 +87,7 @@ stmts       :   /* empty */
 stmt        :   sysStmt STOP
             |   dbStmt STOP
             |   tbStmt STOP
+            |   idxStmt STOP
             ;
 
 sysStmt     :   SHOW DATABASES
@@ -519,6 +520,16 @@ expr        :   value
             |   LP expr RP
                 {
                     $$ = $2;
+                }
+            ;
+
+idxStmt     :   CREATE INDEX IDENT LP IDENT RP
+                {
+                    $$ = new CreateIdxStmt($3, $5);
+                }
+            |   DROP INDEX IDENT LP IDENT RP
+                {
+                    $$ = new DropIdxStmt($3, $5);
                 }
             ;
 

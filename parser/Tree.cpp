@@ -406,6 +406,24 @@ void SelectStmt::printTo(PrintWriter &pw)
     pw.decIndent();
 }
 
+void CreateIdxStmt::printTo(PrintWriter &pw)
+{
+    pw.println("create index");
+    pw.incIndent();
+    pw.println(tb);
+    pw.println(col);
+    pw.decIndent();
+}
+
+void DropIdxStmt::printTo(PrintWriter &pw)
+{
+    pw.println("drop index");
+    pw.incIndent();
+    pw.println(tb);
+    pw.println(col);
+    pw.decIndent();
+}
+
 void Value::accept(Visitor *v)
 {
     v->visitValue(this);
@@ -544,4 +562,14 @@ void Selectors::accept(Visitor *v)
 void SelectStmt::accept(Visitor *v)
 {
     v->visitSelectStmt(this);
+}
+
+void CreateIdxStmt::accept(Visitor *v)
+{
+    v->visitCreateIdxStmt(this);
+}
+
+void DropIdxStmt::accept(Visitor *v)
+{
+    v->visitDropIdxStmt(this);
 }

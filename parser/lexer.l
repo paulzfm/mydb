@@ -90,7 +90,8 @@
 "DATETIME"  { return token::DATETIME;  }
 "DESC"      { return token::DESC;      }
 "FOREIGN"   { return token::FOREIGN;   }
-"REFERENCES"    { return token::REFERENCES;}
+"REFERENCES"        { return token::REFERENCES;     }
+"INDEX"     { return token::INDEX;     }
 
 
 [0-9]+ {

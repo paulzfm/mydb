@@ -599,6 +599,32 @@ public:
     GroupBy *gb;
 };
 
+class CreateIdxStmt : public Stmt
+{
+public:
+    CreateIdxStmt(const char *tbName, const char *colName)
+        : tb(std::string(tbName)), col(std::string(colName)) {}
+
+    void printTo(PrintWriter& pw);
+    virtual void accept(Visitor *v);
+
+    std::string tb;
+    std::string col;
+};
+
+class DropIdxStmt : public Stmt
+{
+public:
+    DropIdxStmt(const char *tbName, const char *colName)
+        : tb(std::string(tbName)), col(std::string(colName)) {}
+
+    void printTo(PrintWriter& pw);
+    virtual void accept(Visitor *v);
+
+    std::string tb;
+    std::string col;
+};
+
 
 // Visitor
 class Visitor
@@ -633,6 +659,8 @@ public:
     virtual void visitSelector(Selector *that) { visitTree(that); }
     virtual void visitSelectors(Selectors *that) { visitTree(that); }
     virtual void visitSelectStmt(SelectStmt *that) { visitTree(that); }
+    virtual void visitCreateIdxStmt(CreateIdxStmt *that) { visitTree(that); }
+    virtual void visitDropIdxStmt(DropIdxStmt *that) { visitTree(that); }
 };
 
 #endif // PARSER_TREE_H_

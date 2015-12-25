@@ -21,7 +21,7 @@
     \t{AND} &\t{OR} &\t{SUM} &\t{AVG} &\t{MAX} &\t{MIN} \\
     \t{INT} &\t{SMALLINT} &\t{BIGINT} &\t{FLOAT} & \t{REAL} &\t{DOUBLE} \\
     \t{VARCHAR} &\t{STRING} &\t{CHAR} &\t{BOOLEAN} &\t{DATETIME} &\t{DESC}\\
-    \t{FOREIGN} &\t{REFERENCES} \\
+    \t{FOREIGN} &\t{REFERENCES} & \t{INDEX} \\
 \end{tabular}
 \end{center}
 
@@ -46,6 +46,7 @@ These keywords are \textbf{NOT} case-sensitive.
 <stmt> ::= <sysStmt> \t{;}
 \alt <dbStmt> \t{;}
 \alt <tbStmt> \t{;}
+\alt <idxStmt> \t{;}
 
 <sysStmt> ::= \t{SHOW} \t{DATABASES}
 
@@ -112,6 +113,9 @@ These keywords are \textbf{NOT} case-sensitive.
 \alt <func> \t{(} <col> \t{)}
 
 <func> ::= \t{SUM} | \t{AVG} | \t{MAX} | \t{MIN}
+
+<idxStmt> ::= \t{CREATE} \t{INDEX} <tbName> \t{(} <colName> \t{)}
+\alt \t{DROP} \t{INDEX} <tbName> \t{(} <colName> \t{)}
 
 \end{grammar}
 
