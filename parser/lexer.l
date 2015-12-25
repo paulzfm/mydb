@@ -10,10 +10,10 @@
 #define yyterminate() return token::END
 %}
 
-%option noyywrap nounput debug caseless
+%option noyywrap nounput caseless
 
 %{
-#define YY_USER_ACTION  yylloc->columns (yyleng);
+#define YY_USER_ACTION  yylloc->columns(yyleng);
 %}
 
 %% /* tokens */
@@ -119,7 +119,6 @@
 %%
 void Driver::scan_begin()
 {
-    yy_flex_debug = trace_scanning;
     if (!(yyin = fopen (file.c_str (), "r")))
         error(std::string("cannot open ") + file);
 }

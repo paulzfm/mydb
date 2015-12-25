@@ -16,7 +16,7 @@ YY_DECL;
 class Driver
 {
 public:
-    Driver(bool ts = false, bool tp = false) : trace_scanning(ts), trace_parsing(tp) {}
+    Driver() {}
     virtual ~Driver() {}
 
     // handling the scanner
@@ -32,12 +32,6 @@ public:
 
     // input string
     std::string file;
-
-    // whether to trace scanning
-    bool trace_scanning;
-
-    // whether to trace parsing
-    bool trace_parsing;
 
     // record the ast
     Tree *ast;
