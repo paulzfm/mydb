@@ -4,7 +4,7 @@
 #include <stdio.h>
 
 #include "Tree.h"
-#include "../query/QueryManager.h"
+// #include "../query/QueryManager.h"
 
 class ExecuteVisitor : public Visitor
 {
