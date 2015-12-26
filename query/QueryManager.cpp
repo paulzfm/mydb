@@ -41,7 +41,10 @@ std::function<bool(const Record&)> QueryManager::getFilter(BoolExpr* expr) {
     };
 }
 
-std::function<bool(const vector<Record&>)> QueryManager::getJoinFilter(BoolExpr* expr) {
+std::function<bool(const vector<Record>&)> QueryManager::getJoinFilter(BoolExpr* expr) {
+    return [this, expr] (const vector<Record>&) {
+        return true;
+    };
 }
 
 QueryManager::QueryManager(SystemManager* sysmgr_) : sysmgr(sysmgr_) {
@@ -158,21 +161,15 @@ bool QueryManager::Update(const string& table,
 bool executeJoin(const vector<string>& tables,
         const vector<vector<Record>>& rs,
         std::function<bool(const vector<Record>&)> filter,
-        const vector<pair<string, string>>& attrs,
+        const Selectors& selectors,
         vector<vector<DValue>>& results) {
     return true;
 }
 
-bool QueryManager::Select(const vector<string>& tables, const vector<pair<string, string>>& attrs,
-        BoolExpr* expr, string groupBy, string& msg) {
+bool QueryManager::Select(const vector<string>& tables, const Selectors& selectors,
+        BoolExpr* expr, GroupBy& groupBy, string& msg) {
     cmsg.str("");
     unordered_map<string, Container> rms;
-
-    // some preliminary check
-    if (groupBy != "" && groupBy.find('.') == string::npos && tables.size() > 1) {
-        cmsg << "[ERROR] Invalid syntax for 'GROUP BY'" << endl;
-        return setError(msg);
-    }
 
     // get tables
     for (const auto& table : tables) {
@@ -192,15 +189,16 @@ bool QueryManager::Select(const vector<string>& tables, const vector<pair<string
     }
 
     // join and filter again
-    //auto filter = getJoinFilter(expr);
-    //vector<vector<DValue>> results;
-    //if (!executeJoin(tables, rs, filter, attrs, results)) return setError(msg);
+    auto filter = getJoinFilter(expr);
+    vector<vector<DValue>> results;
+    if (!executeJoin(tables, rs, filter, selectors, results)) return setError(msg);
 
     // groupby
-    if (groupBy != "") {
-        if (groupBy.find('.') == string::npos) groupBy = tables[0] + '.' + groupBy;
+    if (!groupBy.empty) {
         // TODO
     }
+
+    // accumulation
 
     msg = cmsg.str();
     return true;

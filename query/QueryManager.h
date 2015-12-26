@@ -24,7 +24,7 @@ private:
 	std::map<pair<int, string>, Container> tables;
 
     std::function<bool(const Record&)> getFilter(BoolExpr* expr);
-    std::function<bool(const vector<Record&>)> getJoinFilter(BoolExpr* expr);
+    std::function<bool(const vector<Record>&)> getJoinFilter(BoolExpr* expr);
 
 public:
 	QueryManager(SystemManager *sysmgr_);
@@ -41,8 +41,8 @@ public:
 	bool Update(const string& table, unordered_map<string, Expr*>& data, BoolExpr* where, string& msg);
 
 	// tables, [<tableName, attrName>], condition expr, group by
-	bool Select(const vector<string>& tables, const vector<pair<string, string>>& attrs,
-        BoolExpr* where, string groupBy, string& msg);
+	bool Select(const vector<string>& tables, const Selectors& selectors,
+        BoolExpr* where, GroupBy& groupBy, string& msg);
 
 	// tableName
 	// * caller should build up all Columns with constraints
