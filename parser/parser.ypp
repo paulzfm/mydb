@@ -3,12 +3,12 @@
 %defines
 %define "parser_class_name" "SQLParser"
 
-%{
+%code requires {
 #include "Tree.h"
 #include <vector>
 
 class Driver;
-%}
+}
 
 %parse-param { Driver& driver }
 %lex-param   { Driver& driver }
