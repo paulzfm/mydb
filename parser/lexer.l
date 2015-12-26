@@ -2,7 +2,7 @@
 #include <cstdlib>
 #include <string.h>
 #include "Driver.h"
-#include "parser.hpp"
+#include "parser.hh"
 
 #undef yywrap
 #define yywrap() 1

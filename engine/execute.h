@@ -3,8 +3,8 @@
 
 #include <stdio.h>
 
-#include "Tree.h"
-// #include "../query/QueryManager.h"
+#include "../parser/Tree.h"
+#include "../query/QueryManager.h"
 
 class ExecuteVisitor : public Visitor
 {
@@ -12,7 +12,6 @@ public:
     ExecuteVisitor(QueryManager *qm) : qm(qm) {}
 
     void visitValue(Value *that);
-    void visitVariable(Variable *that);
     void visitUnonExpr(UnonExpr *that);
     void visitBinExpr(BinExpr *that);
     void visitTopLevel(TopLevel *that);
@@ -42,6 +41,8 @@ public:
     void visitWhere(Where *that);
     void visitGroupBy(GroupBy *that);
     void visitSelectStmt(SelectStmt *that);
+
+    std::string msg; // to save return message
 
 private:
     QueryManager *qm;

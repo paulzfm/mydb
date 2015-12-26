@@ -1,16 +1,25 @@
 #ifndef ENGINE_ENGINE_H_
 #define ENGINE_ENGINE_H_
 
+#include "../parser/Driver.h"
+#include "execute.h"
+
 #include <string>
 #include <locale>
 
 class Engine
 {
 public:
-    Engine() {}
+    Engine() : qm(&sm), visitor(&qm) {}
 
     virtual void run() = 0;
     std::string execute(std::string& input);
+
+protected:
+    Driver driver;
+    QueryManager qm;
+    SystemManager sm;
+    ExecuteVisitor visitor;
 };
 
 // http://coliru.stacked-crooked.com/a/6088d39e5db3c18d

@@ -5,7 +5,12 @@
 
 std::string Engine::execute(std::string& input)
 {
-    return "done";
+    if (driver.parseString(input)) {
+        driver.ast->accept(&visitor);
+        return visitor.msg;
+    }
+
+    return "";
 }
 
 
@@ -35,12 +40,4 @@ void InteractiveEngine::run()
 
         std::cout << execute(buf) << "\n";
     }
-}
-
-int main()
-{
-    InteractiveEngine ie;
-    ie.run();
-
-    return 0;
 }

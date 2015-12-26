@@ -2,12 +2,6 @@
 
 void ExecuteVisitor::visitValue(Value *that)
 {
-
-}
-
-void ExecuteVisitor::visitVariable(Variable *that)
-{
-
 }
 
 void ExecuteVisitor::visitUnonExpr(UnonExpr *that)
@@ -30,27 +24,27 @@ void ExecuteVisitor::visitTopLevel(TopLevel *that)
 
 void ExecuteVisitor::visitListDB(ListDB *that)
 {
-    qm->ShowDatabase();
+    qm->ShowDatabase(msg);
 }
 
 void ExecuteVisitor::visitCreateDBStmt(CreateDBStmt *that)
 {
-    qm->CreateDatabase(that->db);
+    qm->CreateDatabase(that->db, msg);
 }
 
 void ExecuteVisitor::visitDropDBStmt(DropDBStmt *that)
 {
-    qm->DropDatabase(that->db);
+    qm->DropDatabase(that->db, msg);
 }
 
 void ExecuteVisitor::visitUseDBStmt(UseDBStmt *that)
 {
-    qm->UseDatabase(that->db);
+    qm->UseDatabase(that->db, msg);
 }
 
 void ExecuteVisitor::visitListTB(ListTB *that)
 {
-    qm->ShowTables();
+    qm->ShowTables(msg);
 }
 
 void ExecuteVisitor::visitType(Type *that)
@@ -108,12 +102,12 @@ void ExecuteVisitor::visitCreateTBStmt(CreateTBStmt *that)
 
 void ExecuteVisitor::visitDropTBStmt(DropTBStmt *that)
 {
-    qm->DropTable(that->tb);
+    qm->DropTable(that->tb, msg);
 }
 
 void ExecuteVisitor::visitShowTBStmt(ShowTBStmt *that)
 {
-    qm->DescTable(that->tb);
+    qm->DescTable(that->tb, msg);
 }
 
 void ExecuteVisitor::visitColumns(Columns *that)
@@ -123,11 +117,7 @@ void ExecuteVisitor::visitColumns(Columns *that)
 
 void ExecuteVisitor::visitInsertStmt(InsertStmt *that)
 {
-    that->cols->accept(this);
-    for (auto& val : *(that->values)) {
-        val->accept(this);
-    }
-    // qm->Insert(that->tb, unordered_map<string, char *> data)
+
 }
 
 void ExecuteVisitor::visitDeleteStmt(DeleteStmt *that)
