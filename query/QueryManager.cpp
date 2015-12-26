@@ -76,6 +76,50 @@ bool QueryManager::Insert(const string& table, vector<Value*>& data, string& msg
     return Insert(table, dat, msg);
 }
 
+void set(char* rec, char* null, short cid, Value* val, int size) {
+    switch (val->kind) {
+        case Value::VALUE_INT:
+            switch (size) {
+                case 1: {
+                    char v1 = atoi(val->val.c_str());
+                    memcpy(rec, &v1, 1);
+                    break;
+                }
+                case 2: {
+                    short v2 = atoi(val->val.c_str());
+                    memcpy(rec, &v2, 2);
+                    break;
+                }
+                case 4: {
+                    int v4 = atoi(val->val.c_str());
+                    memcpy(rec, &v4, 4);
+                    break;
+                }
+                case 8: {
+                    int64_t v8 = atoi(val->val.c_str());
+                    memcpy(rec, &v8, 8);
+                    break;
+                }
+            }
+            break;
+        case Value::VALUE_REAL:
+            if (size == 4) {
+                float v = atof(val->val.c_str());
+                memcpy(rec, &v, 4);
+            } else { // size == 8
+                double v = atof(val->val.c_str());
+                memcpy(rec, &v, 8);
+            }
+            break;
+        case Value::VALUE_STRING:
+            strncpy(rec, val->val.c_str(), size - 1);
+            break;
+        case Value::VALUE_NULL:
+            null[cid / 8] &= ~(1 << (cid % 8));
+            break;
+    }
+}
+
 bool QueryManager::Insert(const string& table, unordered_map<string, Value*>& data, string& msg) {
     cmsg.str("");
 	Container rm = getContainer(table);
@@ -104,8 +148,8 @@ bool QueryManager::Insert(const string& table, unordered_map<string, Value*>& da
 	for (auto& col : rm.first->columns) {
 		auto iter = data.find(col.name);
 		if (iter != data.end()) {
-			memcpy(buf + col.offset, iter->second, col.size);
             null[col.cid / 8] &= ~(1 << (col.cid % 8));
+            set(buf + col.offset, null, col.cid, iter->second, col.size);
             data.erase(iter);
         }
 	}
@@ -245,11 +289,59 @@ bool QueryManager::group(const GroupBy& groupby,
         }
         output[V[rec[idx]]].push_back(rec);
     }
+    return true;
 }
 
 bool QueryManager::aggregate(const Selectors& selectors,
+        const GroupBy& groupby,
         vector<vector<vector<DValue>>>& input,
         vector<vector<DValue>>& output) {
+
+    for (const Selector* sel : *selectors.selectors) {
+        if (sel->col->tb != groupby.tb || sel->col->col != groupby.col) {
+            if (sel->func == Selector::FUNC_NULL) {
+                cmsg << "[ERROR] mixed aggregate and non-aggregate columns." << endl;
+                return false;
+            }
+        }
+    }
+
+    for (int gid = 0; gid < input.size(); ++gid) {
+        vector<DValue> rec;
+        int i = -1;
+        for (const Selector* sel : *selectors.selectors) {
+            ++i;
+            if (sel->col->tb != groupby.tb || sel->col->col != groupby.col) {
+                DValue val = input[gid][0][i];
+                for (int id = 1; id < input[gid].size(); ++id) {
+                    switch (sel->func) {
+                        case Selector::FUNC_SUM:
+                        case Selector::FUNC_AVG:
+                            val = val + input[gid][id][i];
+                            break;
+                        case Selector::FUNC_MAX:
+                            if ((val < input[gid][id][i]).getBool())
+                                val = input[gid][id][i];
+                            break;
+                        case Selector::FUNC_MIN:
+                            if ((val > input[gid][id][i]).getBool())
+                                val = input[gid][id][i];
+                            break;
+                    }
+                }
+                if (sel->func == Selector::FUNC_AVG)
+                    val = val / DValue((int64_t)input[gid].size());
+                rec.push_back(val);
+
+            } else {
+                // all the same, take the first one
+                rec.push_back(input[gid][0][i]);
+            }
+        }
+        output.push_back(rec);
+    }
+
+    return true;
 }
 
 bool QueryManager::print(const Selectors& selectors,
@@ -299,7 +391,6 @@ bool QueryManager::Select(const vector<string>& tables, const Selectors* selecto
     // groupby
     vector<vector<vector<DValue>>> gres;
     if (!groupBy->empty) {
-        // TODO
         if (!group(*groupBy, *selectors, jres, gres)) return setError(msg);
     } else {
         gres.push_back(std::move(jres));
@@ -307,7 +398,7 @@ bool QueryManager::Select(const vector<string>& tables, const Selectors* selecto
 
     // aggregate
     vector<vector<DValue>> results;
-    if (!aggregate(*selectors, gres, results)) return setError(msg);
+    if (!aggregate(*selectors, *groupBy, gres, results)) return setError(msg);
 
     // print result
     if (!print(*selectors, results)) return setError(msg);

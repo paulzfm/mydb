@@ -39,6 +39,7 @@ private:
         vector<vector<vector<DValue>>>& output);
 
     bool aggregate(const Selectors& selectors,
+        const GroupBy& groupby,
         vector<vector<vector<DValue>>>& input,
         vector<vector<DValue>>& output);
 
