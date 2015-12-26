@@ -118,13 +118,11 @@
 .       { driver.error(*yylloc, "unrecognized token"); }
 
 %%
-void Driver::scan_begin()
+void Driver::scan_begin(const char *in)
 {
-    if (!(yyin = fopen (file.c_str (), "r")))
-        error(std::string("cannot open ") + file);
+    yy_scan_string(in);
 }
 
 void Driver::scan_end()
 {
-    fclose(yyin);
 }

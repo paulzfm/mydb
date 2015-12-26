@@ -386,7 +386,9 @@ void SelectStmt::printTo(PrintWriter &pw)
 {
     pw.println("select");
     pw.incIndent();
-    pw.println(tb);
+    for (auto& tb : tbs) {
+        pw.println(tb);
+    }
     pw.println("selectors");
     pw.incIndent();
     sel->printTo(pw);
@@ -400,7 +402,8 @@ void SelectStmt::printTo(PrintWriter &pw)
     if (!gb->empty) {
         pw.println("group by");
         pw.incIndent();
-        pw.println(gb->colName);
+        pw.println(gb->tb);
+        pw.println(gb->col);
         pw.decIndent();
     }
     pw.decIndent();

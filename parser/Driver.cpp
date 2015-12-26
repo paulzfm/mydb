@@ -1,12 +1,18 @@
 #include "Driver.h"
 
-void Driver::parse(const std::string &in)
+bool Driver::parseString(const std::string &in)
 {
-    file = in;
-    scan_begin();
+    scan_begin(in.c_str());
     yy::SQLParser parser(*this);
-    parser.parse();
+    int ret = parser.parse();
     scan_end();
+
+    return ret == 0;
+}
+
+bool Driver::parseFile(const std::string &path)
+{
+    return false;
 }
 
 void Driver::error(const yy::location& l, const std::string& m)

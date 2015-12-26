@@ -20,17 +20,21 @@ public:
     virtual ~Driver() {}
 
     // handling the scanner
-    void scan_begin();
+    void scan_begin(const char *in);
     void scan_end();
 
     // handling the parser
-    void parse(const std::string& f);
+    bool parseString(const std::string& str);
+    bool parseFile(const std::string& path);
 
     // error handling
     void error(const yy::location& l, const std::string& m);
     void error(const std::string& m);
 
     // input string
+    std::string input;
+
+    // input file
     std::string file;
 
     // record the ast

@@ -565,35 +565,33 @@ class GroupBy : public Tree
 {
 public:
     GroupBy() : empty(true) {}
-    GroupBy(const char *colName) : colName(std::string(colName)), empty(false) {}
+    GroupBy(const char *colName) : col(std::string(colName)), empty(false) {}
+    GroupBy(const char *tbName, const char *colName)
+        : tb(std::string(tbName)), col(std::string(colName)), empty(false) {}
 
     void printTo(PrintWriter& pw) {}
     virtual void accept(Visitor *v) {}
 
-    std::string colName;
+    std::string tb;
+    std::string col;
     bool empty;
 };
 
 class SelectStmt : public Stmt
 {
 public:
-    SelectStmt(const char *tbName, Tree *selectors, Tree *where, Tree *gb)
-        : tb(std::string(tbName)), sel((Selectors*)selectors), where((Where*)where),
-          gb((GroupBy*)gb)
+    SelectStmt(std::vector<const char*> *tbNames, Tree *selectors, Tree *where, Tree *gb)
+        : sel((Selectors*)selectors), where((Where*)where), gb((GroupBy*)gb)
     {
-        if (!sel->all) {
-            for (auto& selector : *(sel->selectors)) {
-                if (selector->col->tb == "") {
-                    selector->col->tb = tb;
-                }
-            }
+        for (auto& tb : *tbNames) {
+            tbs.push_back(std::string(tb));
         }
     }
 
     void printTo(PrintWriter& pw);
     virtual void accept(Visitor *v);
 
-    std::string tb;
+    std::vector<std::string> tbs;
     Selectors *sel;
     Where *where;
     GroupBy *gb;

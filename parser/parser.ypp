@@ -142,7 +142,7 @@ tbStmt      :   CREATE TABLE IDENT LP fields RP
                 {
                     $$ = new UpdateStmt($2, $4, $6);
                 }
-            |   SELECT selectors FROM IDENT where groupBy
+            |   SELECT selectors FROM idents where groupBy
                 {
                     $$ = new SelectStmt($4, $2, $5, $6);
                 }
@@ -474,6 +474,10 @@ groupBy     :   /* empty */
             |   GROUP BY IDENT
                 {
                     $$ = new GroupBy($3);
+                }
+            |   GROUP BY IDENT DOT IDENT
+                {
+                    $$ = new GroupBy($3, $5);
                 }
             ;
 
