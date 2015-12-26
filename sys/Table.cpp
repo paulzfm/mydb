@@ -177,7 +177,7 @@ void Table::desc() const {
 	cmsg << endl;
 }
 
-bool Table::checkConstraints(const char* rec) const {
+bool Table::checkConstraints(const char* rec) {
 }
 
 bool Table::setColumnValue(char* rec, short cid, const rapidjson::Value& val) const {

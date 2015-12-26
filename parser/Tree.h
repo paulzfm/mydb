@@ -284,10 +284,10 @@ public:
     BoolExpr *right;
 };
 
-class Constraint : public Tree
+class ColConstraint : public Tree
 {
 public:
-    Constraint(int kind) : kind(kind) {}
+    ColConstraint(int kind) : kind(kind) {}
     virtual void printTo(PrintWriter& pw) = 0;
     virtual void accept(Visitor *v) = 0;
 
@@ -299,11 +299,11 @@ public:
     int kind;
 };
 
-class Field : public Constraint
+class Field : public ColConstraint
 {
 public:
     Field(Tree *type, const char *name, std::vector<int> *attrs)
-        : Constraint(Constraint::CONS_FIELD), type(type), name(std::string(name)), attrs(attrs) {}
+        : ColConstraint(ColConstraint::CONS_FIELD), type(type), name(std::string(name)), attrs(attrs) {}
 
     void printTo(PrintWriter& pw);
     virtual void accept(Visitor *v);
@@ -317,12 +317,12 @@ public:
     const static int ATTR_AUTO_INCREMENT = 2;
 };
 
-class Check : public Constraint
+class Check : public ColConstraint
 {
 public:
-    Check() : Constraint(Constraint::CONS_CHECK), empty(true) {}
+    Check() : ColConstraint(ColConstraint::CONS_CHECK), empty(true) {}
     Check(Tree *check)
-        : Constraint(Constraint::CONS_CHECK), check((BoolExpr*)check), empty(false) {}
+        : ColConstraint(ColConstraint::CONS_CHECK), check((BoolExpr*)check), empty(false) {}
 
     void printTo(PrintWriter& pw);
     virtual void accept(Visitor *v) {}
@@ -331,12 +331,12 @@ public:
     bool empty;
 };
 
-class PrimaryKey : public Constraint
+class PrimaryKey : public ColConstraint
 {
 public:
-    PrimaryKey() : Constraint(Constraint::CONS_PKEY), empty(true) {}
+    PrimaryKey() : ColConstraint(ColConstraint::CONS_PKEY), empty(true) {}
     PrimaryKey(const char *key)
-        : Constraint(Constraint::CONS_PKEY), key(std::string(key)), empty(false) {}
+        : ColConstraint(ColConstraint::CONS_PKEY), key(std::string(key)), empty(false) {}
 
     void printTo(PrintWriter& pw);
     virtual void accept(Visitor *v) {}
@@ -345,11 +345,11 @@ public:
     bool empty;
 };
 
-class ForeignKey : public Constraint
+class ForeignKey : public ColConstraint
 {
 public:
     ForeignKey(const char *key, const char *rtb, const char *rkey)
-        : Constraint(Constraint::CONS_FKEY), key(std::string(key)),
+        : ColConstraint(ColConstraint::CONS_FKEY), key(std::string(key)),
           rtb(std::string(rtb)), rkey(std::string(rkey)) {}
 
     void printTo(PrintWriter& pw);
@@ -372,20 +372,20 @@ public:
         fkeys = new std::vector<ForeignKey*>;
 
         for (auto& con : *constrains) {
-            Constraint *c = (Constraint*)con;
+            ColConstraint *c = (ColConstraint*)con;
             switch (c->kind) {
-                case Constraint::CONS_FIELD:
+                case ColConstraint::CONS_FIELD:
                     fields->push_back((Field*)c);
                     break;
-                case Constraint::CONS_CHECK:
+                case ColConstraint::CONS_CHECK:
                     check = (Check*)c;
                     check->empty = false;
                     break;
-                case Constraint::CONS_PKEY:
+                case ColConstraint::CONS_PKEY:
                     pkey = (PrimaryKey*)c;
                     pkey->empty = false;
                     break;
-                case Constraint::CONS_FKEY:
+                case ColConstraint::CONS_FKEY:
                     fkeys->push_back((ForeignKey*)c);
                     break;
             }

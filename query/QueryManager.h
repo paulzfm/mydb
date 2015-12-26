@@ -24,6 +24,7 @@ private:
 	std::map<pair<int, string>, Container> tables;
 
     std::function<bool(const Record&)> getFilter(BoolExpr* expr);
+    std::function<bool(const vector<Record&>)> getJoinFilter(BoolExpr* expr);
 
 public:
 	QueryManager(SystemManager *sysmgr_);

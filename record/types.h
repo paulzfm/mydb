@@ -5,6 +5,7 @@
 #define RECORD_TYPES_H_
 
 #include <string>
+#include <cstring>
 
 class DType
 {
