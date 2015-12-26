@@ -39,8 +39,9 @@ public:
 	// tableName, <attrName -> expr>, condition expr
 	bool Update(const string& table, unordered_map<string, Expr*>& data, BoolExpr* where, string& msg);
 
-	// [<tableName, attrName>], condition expr, group by
-	bool Select(vector<pair<string, string>>& attrs, BoolExpr* where, string groupBy, string& msg);
+	// tables, [<tableName, attrName>], condition expr, group by
+	bool Select(const vector<string>& tables, const vector<pair<string, string>>& attrs,
+        BoolExpr* where, string groupBy, string& msg);
 
 	// tableName
 	// * caller should build up all Columns with constraints
