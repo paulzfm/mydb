@@ -5,9 +5,17 @@
 
 class Constraint {
 public:
+    const static int NOT_NULL = 0;
+    const static int UNIQUE = 1;
+    const static int PRIMARY_KEY = 2;
+    const static int FOREIGN_KEY = 3;
+    const static int CHECK = 4;
+    const static int DEFAULT = 5;
+    const static int AUTO_INCREMENT = 6;
+
 	short cid;		// reference to column id
 	string name;
-	char type;		// 0:NN, 1:UQ, 2:PK, 3:FK, 4:CHK, 5:DEFAULT
+	char type;
 	rapidjson::Value data;
 
 	Constraint();

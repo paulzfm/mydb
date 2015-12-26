@@ -4,15 +4,15 @@ Table NullTable = Table();
 
 Table::Table() {
 	this->width = 0;
-	this->maxcid = 0;
+	this->maxcid = -1;
 }
 
-Table::Table(int tid, const std::string& name, int count) {
+Table::Table(int tid, const std::string& name) {
 	this->tid = tid;
 	this->name = name;
 	// allocation for Nulls
-	this->width = (count - 1) / 8 + 1;
-	this->maxcid = 0;
+	this->width = 0;
+	this->maxcid = -1;
 }
 
 int Table::getTid() const {
@@ -27,13 +27,13 @@ string Table::getName() const {
 	return name;
 }
 
-int Table::getColumnById(int cid) {
+int Table::getColumnById(int cid) const {
 	for (unsigned i = 0; i < columns.size(); ++i)
 		if (columns[i].cid == cid) return i;
 	return -1;
 }
 
-int Table::getColumnByName(std::string name) {
+int Table::getColumnByName(std::string name) const {
 	for (unsigned i = 0; i < columns.size(); ++i)
 		if (name == std::string(columns[i].name)) return i;
 	return -1;
@@ -44,19 +44,19 @@ Column& Table::getColumn(int index) {
 	return columns[index];
 }
 
-bool Table::addColumn(Column& col) {
+int Table::addColumn(Column& col) {
 	// check if column name is unique
 	for (auto& c : columns)
 		if (c.name == col.name) {
-			cerr << "[ERROR] Column " << name << " already exist." << endl;
-			return false;
+			cmsg << "[ERROR] Column " << name << " already exist." << endl;
+			return -1;
 		}
 
 	col.cid = ++maxcid;
 	col.offset = this->width;
 	this->width += col.size;
 	this->columns.push_back(std::move(col));
-	return true;
+	return maxcid;
 }
 
 // TODO: rearrange data store in this table
@@ -66,7 +66,7 @@ bool Table::removeColumn(int cid) {
 			columns.erase(columns.begin() + i);
 			return true;
 		}
-	cerr << "[ERROR] Column not found!" << endl;
+	cmsg << "[ERROR] Column not found!" << endl;
 	return false;
 }
 
@@ -146,33 +146,44 @@ bool Table::close(std::ofstream& fout) const {
 }
 
 void Table::desc() const {
-	cout << "------ Columns of Table " << name << " ------" << endl;
+	cmsg << "------ Columns of Table " << name << " ------" << endl;
 	for (auto& col : columns) {
-		cout << "| " << col.name << " of type " << col.type << "\t";
+		cmsg << "| " << col.name << " of type " << col.type << "\t";
 		for (auto& cons : constraints) {
 			if (cons.cid != col.cid) continue;
 			switch (cons.type) {
 				case 0:
-					cout << " Not Null\t";
+					cmsg << " Not Null\t";
 					break;
 				case 1:
-					cout << " Unique\t";
+					cmsg << " Unique\t";
 					break;
 				case 2:
-					cout << " Primary Key\t";
+					cmsg << " Primary Key\t";
 					break;
 				case 3:
-					cout << " Foreign Key\t";
+					cmsg << " Foreign Key\t";
 					break;
 				case 4:
-					cout << " Check\t";
+					cmsg << " Check\t";
 					break;
 				case 5:
-					cout << " Default\t";
+					cmsg << " Default\t";
 					break;
 			}
 		}
-		cout << endl;
+		cmsg << endl;
 	}
-	cout << endl;
+	cmsg << endl;
+}
+
+bool Table::checkConstraints(const char* rec) const {
+}
+
+bool Table::setColumnValue(char* rec, short cid, const rapidjson::Value& val) const {
+}
+
+char* Table::getColumnValue(char* rec, short cid) const {
+    int id = getColumnById(cid);
+    return rec + columns[id].offset;
 }

@@ -10,9 +10,9 @@ SystemManager::SystemManager() {
 	std::ifstream fin(DBLIST_FILE);
 	dbid = -1;
 	if ( ! fin.is_open() ) {
-		std::cerr << "[WARNING] database list file " << DBLIST_FILE << " not found, empty list created." << std::endl;
+		cmsg << "[WARNING] database list file " << DBLIST_FILE << " not found, empty list created." << endl;
 		std::ofstream fout(DBLIST_FILE);
-		fout << 0 << std::endl;
+		fout << 0 << endl;
 		fout.close();
 		return;
 	}
@@ -30,13 +30,13 @@ SystemManager::SystemManager() {
 SystemManager::~SystemManager() {
 	std::ofstream fout(DBLIST_FILE);
 	if ( ! fout.is_open() ) {
-		std::cerr << "[ERROR] cannot save database list file" << std::endl;
+		cmsg << "[ERROR] cannot save database list file" << endl;
 		return;
 	}
 
-	fout << dbs.size() << std::endl;
+	fout << dbs.size() << endl;
 	for (auto& db : dbs)
-		fout << db.name << std::endl;
+		fout << db.name << endl;
 }
 
 int SystemManager::getDBIdByName(const std::string& name) const {
@@ -46,7 +46,7 @@ int SystemManager::getDBIdByName(const std::string& name) const {
 			dbid = i;
 			break;
 		}
-	if (dbid == -1) std::cerr << "[ERROR] database " << name << " not found!" << std::endl;
+	if (dbid == -1) cmsg << "[ERROR] database " << name << " not found!" << endl;
 	return dbid;
 }
 
@@ -76,14 +76,14 @@ Database& SystemManager::useDatabase(const std::string& name) {
 void SystemManager::showDatabases() const {
 	cout << "-- LIST OF DATABASES, TOTAL " << dbs.size() << " --" << endl;
 	for (auto& db : dbs) {
-		std::cout << ">> " << db.name << std::endl;
+		std::cout << ">> " << db.name << endl;
 	}
 }
 
 Database& SystemManager::createDatabase(const std::string& name) {
 	for (auto &db : dbs)
 		if (db.name == name) {
-			std::cerr << "[ERROR] database " << name << " already exists, skipping..." << std::endl;
+			cmsg << "[ERROR] database " << name << " already exists, skipping..." << endl;
 			return NullDatabase;
 		}
 
@@ -101,7 +101,7 @@ Database& SystemManager::createDatabase(const std::string& name) {
 void SystemManager::dropDatabase(const std::string& name) {
 	int dbid = getDBIdByName(name);
 	if (dbid == -1) {
-		std::cerr << "[ERROR] database " << name << " not exists, skipping..." << std::endl;
+		cmsg << "[ERROR] database " << name << " not exists, skipping..." << endl;
 		return;
 	}
 
@@ -115,7 +115,7 @@ void SystemManager::dropDatabase(const std::string& name) {
 
 void SystemManager::showTables() const {
 	if (dbid == -1) {
-		std::cerr << "[ERROR] no database selected." << std::endl;
+		cmsg << "[ERROR] no database selected." << endl;
 		return;
 	}
 	dbs[dbid].showTables();
@@ -123,7 +123,7 @@ void SystemManager::showTables() const {
 
 void SystemManager::descTable(const std::string& name) const {
 	if (dbid == -1) {
-		std::cerr << "[ERROR] no database selected." << std::endl;
+		cmsg << "[ERROR] no database selected." << endl;
 		return;
 	}
 	dbs[dbid].descTable(name);
@@ -131,7 +131,7 @@ void SystemManager::descTable(const std::string& name) const {
 
 Table& SystemManager::createTable(const std::string& name, int count) {
 	if (dbid == -1) {
-		std::cerr << "[ERROR] no database selected." << std::endl;
+		cmsg << "[ERROR] no database selected." << endl;
 		return NullTable;
 	}
 	return dbs[dbid].createTable(name, count);
@@ -139,7 +139,7 @@ Table& SystemManager::createTable(const std::string& name, int count) {
 
 void SystemManager::dropTable(const std::string& name) {
 	if (dbid == -1) {
-		std::cerr << "[ERROR] no database selected." << std::endl;
+		cmsg << "[ERROR] no database selected." << endl;
 		return;
 	}
 	dbs[dbid].dropTable(name);

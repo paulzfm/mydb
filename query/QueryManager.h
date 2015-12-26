@@ -40,7 +40,7 @@ public:
 	bool Update(const string& table, unordered_map<string, Expr*>& data, BoolExpr* where, string& msg);
 
 	// [<tableName, attrName>], condition expr, group by
-	bool Select(vector<pair<string, string>>& attrs, BoolExpr* where, string groupBy = "", string& msg);
+	bool Select(vector<pair<string, string>>& attrs, BoolExpr* where, string groupBy, string& msg);
 
 	// tableName
 	// * caller should build up all Columns with constraints
