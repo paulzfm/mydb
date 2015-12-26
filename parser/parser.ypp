@@ -3,7 +3,7 @@
 %defines
 %define "parser_class_name" "SQLParser"
 
-%code requires{
+%code requires {
 #include "Tree.h"
 #include <cstring>
 #include <vector>
