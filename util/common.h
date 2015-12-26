@@ -12,6 +12,7 @@
 #include <functional>
 #include <vector>
 #include <string>
+#include <sstream>
 
 #include "../lib/rapidjson/document.h"
 #include "../lib/rapidjson/writer.h"
@@ -19,11 +20,16 @@
 
 using std::string;
 using std::vector;
+using std::pair;
+using std::make_pair;
+
 using std::cin;
 using std::cout;
 using std::cerr;
 using std::endl;
 
-using namespace rapidjson;
+using rapidjson::Document;
+
+extern std::stringstream cmsg;
 
 #endif

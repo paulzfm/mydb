@@ -28,7 +28,7 @@ bool Database::open(const string& name) {
 		string str;
 		std::getline(fin, str);
 
-		Document doc;
+		rapidjson::Document doc;
 		doc.Parse(str.c_str());
 
 		assert(doc.HasMember("name") && doc["name"].IsString());
@@ -46,7 +46,7 @@ bool Database::open(const string& name) {
 		fin.close();
 		return true;
 	} else {
-		std::cerr << "[ERROR] table list of database " << name << " file not found." << std::endl;
+		cmsg << "[ERROR] table list of database " << name << " file not found." << endl;
 		return false;
 	}
 }
@@ -54,13 +54,19 @@ bool Database::open(const string& name) {
 bool Database::close() const {
 	std::ofstream fout((name + "/" + TABLELIST_FILE).c_str());
 	if (!fout.is_open()) return false;
-	Document doc(kObjectType);
-	Document::AllocatorType& alloc = doc.GetAllocator();
+	rapidjson::Document doc(rapidjson::kObjectType);
+	rapidjson::Document::AllocatorType& alloc = doc.GetAllocator();
 
-	Value vName;
+	rapidjson::Value vName;
 	vName.SetString(name.c_str(), alloc);
 	doc.AddMember("name", vName, alloc);
 	doc.AddMember("table_num", tables.size(), alloc);
+
+	rapidjson::StringBuffer buf;
+	rapidjson::Writer<rapidjson::StringBuffer> writer(buf);
+	doc.Accept(writer);
+	string str = buf.GetString();
+	fout << str << endl;
 
 	for (const auto& table : tables) {
 		table.close(fout);
@@ -70,16 +76,16 @@ bool Database::close() const {
 }
 
 void Database::showTables() const {
-	std::cout << "-- LIST OF TABLES" << std::endl;
+	std::cout << "-- LIST OF TABLES" << endl;
 	for (const auto& table : tables) {
-		std::cout << ">> " << table.name << std::endl;
+		std::cout << ">> " << table.name << endl;
 	}
 }
 
 void Database::descTable(const std::string& name) const {
 	int tid = getTableByName(name);
 	if (tid == -1) {
-		std::cerr << "[ERROR] Table " << name << " not exists." << std::endl;
+		cmsg << "[ERROR] Table " << name << " not exists." << endl;
 		return;
 	}
 	
@@ -90,11 +96,11 @@ Table& Database::createTable(const string& name, int count) {
 	// check if name is unique
 	int tid = getTableByName(name);
 	if (tid != -1) {
-		std::cerr << "[ERROR] Table " << name << " already exist." << std::endl;
+		cmsg << "[ERROR] Table " << name << " already exist." << endl;
 		return NullTable;
 	}
 
-	Table table(++maxtid, name, count);
+	Table table(++maxtid, name);
 	tables.push_back(std::move(table));
 	return tables.back();
 }
@@ -102,7 +108,7 @@ Table& Database::createTable(const string& name, int count) {
 void Database::dropTable(const std::string& name) {
 	int tid = getTableByName(name);
 	if (tid == -1) {
-		std::cerr<< "[ERROR] Table " << name << " not exists." << std::endl;
+		cmsg<< "[ERROR] Table " << name << " not exists." << endl;
 		return;
 	}
 

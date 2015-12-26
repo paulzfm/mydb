@@ -3,27 +3,27 @@
 Constraint::Constraint() {}
 
 Constraint::Constraint(short _cid, const string& _name, char _type,
-		Value& _data) {
+		rapidjson::Value& _data) {
 	cid = _cid;
 	name = _name;
 	type = _type;
 	data = _data;
 }
 
-Value Constraint::serialize(Document& doc) const {
-	Document::AllocatorType& alloc = doc.GetAllocator();
+rapidjson::Value Constraint::serialize(rapidjson::Document& doc) const {
+	rapidjson::Document::AllocatorType& alloc = doc.GetAllocator();
 
-	Value value(kObjectType), vName;
+	rapidjson::Value value(rapidjson::kObjectType), vName;
 	vName.SetString(name.c_str(), alloc);
 	value.AddMember("cid", (int)cid, alloc);
 	value.AddMember("name", vName, alloc);
 	value.AddMember("type", (int)type, alloc);
-	value.AddMember("data", Value(data, alloc), alloc);
+	value.AddMember("data", rapidjson::Value(data, alloc), alloc);
 
 	return value;
 }
 
-void Constraint::unserialize(Value value) {
+void Constraint::unserialize(rapidjson::Value value) {
 	assert(value.IsObject());
 
 	assert(value.HasMember("cid") && value["cid"].IsInt());

@@ -16,7 +16,9 @@ class SystemManager {
 		~SystemManager();
 
 		int getDBIdByName(const string& name) const;
+		int getCurrentDBId() const;
 		Database& getDB(int index);
+		Database& getCurrentDB();
 
 		Database& useDatabase(const string& name);
 		void showDatabases() const;

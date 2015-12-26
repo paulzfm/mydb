@@ -17,26 +17,29 @@ class Table {
 		std::vector<Constraint> constraints;
 
 		Table();
-		Table(int tid, const std::string& name, int count);
+		Table(int tid, const std::string& name);
 
 		int getTid() const;
 		int getWidth() const;
 		string getName() const;
 
-		int getColumnById(int cid);
-		int getColumnByName(std::string name);
+		int getColumnById(int cid) const ;
+		int getColumnByName(std::string name) const;
 
 		Column& getColumn(int index);
 
-		bool addColumn(Column& col);
+		int addColumn(Column& col);
 		bool removeColumn(int cid);
 		bool addConstraint(Constraint& c);
-
-		bool checkConstraints(const char* rec) const;
 
 		bool open(std::ifstream& fin);
 		bool close(std::ofstream& fout) const;
 		void desc() const;
+
+        // util functions
+		bool checkConstraints(const char* rec) const;
+        bool setColumnValue(char* rec, short cid, const rapidjson::Value& val) const;
+        char* getColumnValue(char* rec, short cid) const;
 };
 
 extern Table NullTable;

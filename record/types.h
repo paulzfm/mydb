@@ -35,6 +35,7 @@ public:
     // identifier: for pattern matching
     int ident;
     // We support the following types:
+    const static int BOOL = 99;
     const static int BYTE = 100;
     const static int SHORT = 101;
     const static int INT = 102;

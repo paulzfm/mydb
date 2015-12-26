@@ -8,10 +8,10 @@ Column::Column(int _cid, const string& _name, char _type, short _size, short _of
 		: cid(_cid), name(_name), type(_type), size(_size), offset(_offset) {
 }
 
-Value Column::serialize(Document& doc) const {
-	Document::AllocatorType& alloc = doc.GetAllocator();
+rapidjson::Value Column::serialize(rapidjson::Document& doc) const {
+	rapidjson::Document::AllocatorType& alloc = doc.GetAllocator();
 
-	Value value(kObjectType), vName;
+	rapidjson::Value value(rapidjson::kObjectType), vName;
 	vName.SetString(name.c_str(), alloc);
 
 	value.AddMember("cid", (int)cid, alloc);
@@ -23,7 +23,7 @@ Value Column::serialize(Document& doc) const {
 	return value;
 }
 
-void Column::unserialize(const Value& value) {
+void Column::unserialize(const rapidjson::Value& value) {
 	assert(value.IsObject());
 
 	assert(value.HasMember("cid") && value["cid"].IsInt());
