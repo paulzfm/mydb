@@ -60,7 +60,7 @@ bool Database::close() const {
 	rapidjson::Value vName;
 	vName.SetString(name.c_str(), alloc);
 	doc.AddMember("name", vName, alloc);
-	doc.AddMember("table_num", tables.size(), alloc);
+	doc.AddMember("table_num", (int)(tables.size()), alloc);
 
 	rapidjson::StringBuffer buf;
 	rapidjson::Writer<rapidjson::StringBuffer> writer(buf);
@@ -88,7 +88,7 @@ void Database::descTable(const std::string& name) const {
 		cmsg << "[ERROR] Table " << name << " not exists." << endl;
 		return;
 	}
-	
+
 	tables[tid].desc();
 }
 
