@@ -28,6 +28,8 @@ public:
     int64_t getInt() const;
     double getReal() const;
     string getString() const;
+
+    void print() const;
 };
 
 DValue operator == (const DValue& a, const DValue& b);
@@ -44,5 +46,9 @@ DValue operator - (const DValue& a, const DValue& b);
 DValue operator * (const DValue& a, const DValue& b);
 DValue operator / (const DValue& a, const DValue& b);
 DValue operator % (const DValue& a, const DValue& b);
+
+struct DValueLT {
+    bool operator() (const DValue& lhs, const DValue& rhs) const;
+};
 
 #endif 

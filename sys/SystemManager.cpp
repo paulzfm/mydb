@@ -68,8 +68,10 @@ Database& SystemManager::useDatabase(const std::string& name) {
 	for (unsigned i = 0; i < dbs.size(); ++i)
 		if (dbs[i].name == name) {
 			dbid = i;
+            cmsg << "Current database changed to " << name << endl;
 			return dbs[i];
 		}
+    cmsg << "[ERROR] database " << name << " not exists." << endl;
 	return NullDatabase;
 }
 
@@ -95,6 +97,8 @@ Database& SystemManager::createDatabase(const std::string& name) {
 	Database db(name);
 	dbs.push_back(std::move(db));
 
+    cmsg << "Database " << name << " created." << endl;
+
 	return dbs.back();
 }
 
@@ -111,6 +115,8 @@ void SystemManager::dropDatabase(const std::string& name) {
 	char cmd[256];
 	sprintf(cmd, "rm -rf %s", name.c_str());
 	system(cmd);
+
+    cmsg << "Database " << name << " has been dropped." << endl;
 }
 
 void SystemManager::showTables() const {
@@ -134,6 +140,7 @@ Table& SystemManager::createTable(const std::string& name, int count) {
 		cmsg << "[ERROR] no database selected." << endl;
 		return NullTable;
 	}
+    cmsg << "Table " << name << " created." << endl;
 	return dbs[dbid].createTable(name, count);
 }
 
@@ -143,4 +150,5 @@ void SystemManager::dropTable(const std::string& name) {
 		return;
 	}
 	dbs[dbid].dropTable(name);
+    cmsg << "Table " << name << " has been dropped." << endl;
 }

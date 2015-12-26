@@ -4,6 +4,7 @@
 #include "../util/common.h"
 #include "Column.h"
 #include "Constraint.h"
+#include "../query/values.h"
 
 class Table {
 	private:
@@ -39,7 +40,7 @@ class Table {
         // util functions
 		bool checkConstraints(const char* rec);
         bool setColumnValue(char* rec, short cid, const rapidjson::Value& val) const;
-        char* getColumnValue(char* rec, short cid) const;
+        DValue getColumnValue(char* rec, short cid) const;
 };
 
 extern Table NullTable;

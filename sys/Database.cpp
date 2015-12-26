@@ -10,6 +10,11 @@ int Database::getTableByName(const string& name) const {
 	return -1;
 }
 
+Table& Database::getTable(int index) {
+    assert(index >= 0 && index < tables.size());
+    return tables[index];
+}
+
 Database::Database() {
 	maxtid = 0;
 }

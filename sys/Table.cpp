@@ -183,7 +183,7 @@ bool Table::checkConstraints(const char* rec) {
 bool Table::setColumnValue(char* rec, short cid, const rapidjson::Value& val) const {
 }
 
-char* Table::getColumnValue(char* rec, short cid) const {
+DValue Table::getColumnValue(char* rec, short cid) const {
     int id = getColumnById(cid);
     return rec + columns[id].offset;
 }

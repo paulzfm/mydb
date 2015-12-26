@@ -66,13 +66,27 @@ int64_t DValue::getInt() const {
 }
 
 double DValue::getReal() const {
-    double val;
-    memcpy(&val, data, 8);
-    return val;
+    if (isReal()) {
+        double val;
+        memcpy(&val, data, 8);
+        return val;
+    } else {
+        int64_t val;
+        memcpy(&val, data, 8);
+        return val;
+    }
 }
 
 string DValue::getString() const {
     return string(data);
+}
+
+void DValue::print() const {
+    if (isNull()) cmsg << "NULL";
+    if (isInt()) cmsg << getInt();
+    if (isReal()) cmsg << getReal();
+    if (isBool()) cmsg << getBool() ? "TRUE" : "FALSE";
+    if (isString()) cmsg << '\'' << getString() << '\'';
 }
 
 DValue operator == (const DValue& a, const DValue& b) {
@@ -158,3 +172,14 @@ DValue operator % (const DValue& a, const DValue& b) {
     return DValue(a.getInt() % b.getInt());
 }
 
+bool DValueLT::operator() (const DValue& lhs, const DValue& rhs) const {
+    if (lhs.isNum() && rhs.isNum()) {
+        if (lhs.isInt() && rhs.isInt()) return lhs.getInt() < rhs.getInt();
+        return lhs.getReal() < rhs.getReal();
+    } else if (lhs.isBool() && rhs.isBool()) {
+        return lhs.getBool() < rhs.getBool();
+    } else if (lhs.isString() && rhs.isString()) {
+        return lhs.getString() < rhs.getString();
+    }
+    return false;
+}
