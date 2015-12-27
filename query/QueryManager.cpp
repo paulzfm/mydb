@@ -49,7 +49,7 @@ QueryManager::QueryManager(SystemManager* sysmgr_) : sysmgr(sysmgr_) {
 }
 
 QueryManager::~QueryManager() {
-	for (auto tb : tables)
+	for (const auto& tb : tables)
 		delete tb.second;
 	tables.clear();
 }
@@ -122,7 +122,8 @@ bool QueryManager::Insert(const string& table, unordered_map<string, Value*>& da
 	Container rm = getContainer(table);
 	if (rm == NullContainer) return setError(msg);
 	
-	char* buf = new char[rm.second->width()];
+    cout << rm.first->getWidth() << endl;
+	char* buf = new char[rm.first->getWidth()];
 	memset(buf, 0, sizeof(char) * rm.second->width());
 
     // intialize null column to all 1
@@ -450,6 +451,7 @@ bool QueryManager::CreateTable(const string& name, vector<Column>& cols,
 		vector<Constraint>& cons, string& msg) {
     cmsg.str("");
 	Table& table = sysmgr->createTable(name, cols.size());
+    if (table.name == "") return setError(msg);
 
     int sz = cols.size() / 8 + 1;
     Column null(42, "NULL", DType::STRING, sz, 0);
@@ -467,6 +469,11 @@ bool QueryManager::CreateTable(const string& name, vector<Column>& cols,
         con.cid = cids[con.cid];
 		table.addConstraint(con);
     }
+
+    string path = Configuration::conf()->basepath + sysmgr->dbs[sysmgr->dbid].name;
+    path += '/' + name + ".dat";
+    RecordManager rm(path, table.getWidth());
+
     msg = cmsg.str();
     return true;
 }
