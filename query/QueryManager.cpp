@@ -20,8 +20,7 @@ Container QueryManager::getContainer(const string& name) {
     Table* table = &db.getTable(tid);
 
 	if (tables.find(idx) == tables.end()) {
-		string path = Configuration::conf()->basepath + db.name;
-		path += '/' + name + ".dat";
+		string path = db.name + '/' + name + ".dat";
 		RecordManager* rm = new RecordManager(path);
 		tables[idx] = rm;
         return make_pair(table, rm);
@@ -470,9 +469,8 @@ bool QueryManager::CreateTable(const string& name, vector<Column>& cols,
 		table.addConstraint(con);
     }
 
-    string path = Configuration::conf()->basepath + sysmgr->dbs[sysmgr->dbid].name;
-    path += '/' + name + ".dat";
-    RecordManager rm(path, table.getWidth());
+    string path = sysmgr->dbs[sysmgr->dbid].name + '/' + name + ".dat";
+    RecordManager *rm = new RecordManager(path, table.getWidth());
 
     msg = cmsg.str();
     return true;
