@@ -320,29 +320,25 @@ public:
 class Check : public ColConstraint
 {
 public:
-    Check() : ColConstraint(ColConstraint::CONS_CHECK), empty(true) {}
     Check(Tree *check)
-        : ColConstraint(ColConstraint::CONS_CHECK), check((BoolExpr*)check), empty(false) {}
+        : ColConstraint(ColConstraint::CONS_CHECK), check((BoolExpr*)check) {}
 
     void printTo(PrintWriter& pw);
     virtual void accept(Visitor *v) {}
 
     BoolExpr *check;
-    bool empty;
 };
 
 class PrimaryKey : public ColConstraint
 {
 public:
-    PrimaryKey() : ColConstraint(ColConstraint::CONS_PKEY), empty(true) {}
     PrimaryKey(const char *key)
-        : ColConstraint(ColConstraint::CONS_PKEY), key(std::string(key)), empty(false) {}
+        : ColConstraint(ColConstraint::CONS_PKEY), key(std::string(key)) {}
 
     void printTo(PrintWriter& pw);
     virtual void accept(Visitor *v) {}
 
     std::string key;
-    bool empty;
 };
 
 class ForeignKey : public ColConstraint
@@ -367,8 +363,8 @@ public:
         : tb(std::string(tbName))
     {
         fields = new std::vector<Field*>;
-        check = new Check;
-        pkey = new PrimaryKey;
+        checks = new std::vector<Check*>;
+        pkeys = new std::vector<PrimaryKey*>;
         fkeys = new std::vector<ForeignKey*>;
 
         for (auto& con : *constrains) {
@@ -378,12 +374,10 @@ public:
                     fields->push_back((Field*)c);
                     break;
                 case ColConstraint::CONS_CHECK:
-                    check = (Check*)c;
-                    check->empty = false;
+                    checks->push_back((Check*)c);
                     break;
                 case ColConstraint::CONS_PKEY:
-                    pkey = (PrimaryKey*)c;
-                    pkey->empty = false;
+                    pkeys->push_back((PrimaryKey*)c);
                     break;
                 case ColConstraint::CONS_FKEY:
                     fkeys->push_back((ForeignKey*)c);
@@ -394,11 +388,12 @@ public:
 
     void printTo(PrintWriter& pw);
     virtual void accept(Visitor *v);
+    bool exists(std::string& col);
 
     std::string tb;
     std::vector<Field*> *fields;
-    Check *check;
-    PrimaryKey *pkey;
+    std::vector<Check*> *checks;
+    std::vector<PrimaryKey*> *pkeys;
     std::vector<ForeignKey*> *fkeys;
 };
 

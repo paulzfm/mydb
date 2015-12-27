@@ -202,22 +202,18 @@ void ComplexExpr::printTo(PrintWriter &pw)
 
 void Check::printTo(PrintWriter &pw)
 {
-    if (!empty) {
-        pw.println("check");
-        pw.incIndent();
-        check->printTo(pw);
-        pw.decIndent();
-    }
+    pw.println("check");
+    pw.incIndent();
+    check->printTo(pw);
+    pw.decIndent();
 }
 
 void PrimaryKey::printTo(PrintWriter &pw)
 {
-    if (!empty) {
-        pw.println("primary key");
-        pw.incIndent();
-        pw.println(key);
-        pw.decIndent();
-    }
+    pw.println("primary key");
+    pw.incIndent();
+    pw.println(key);
+    pw.decIndent();
 }
 
 void ForeignKey::printTo(PrintWriter &pw)
@@ -245,12 +241,27 @@ void CreateTBStmt::printTo(PrintWriter &pw)
         field->printTo(pw);
     }
     pw.decIndent();
-    check->printTo(pw);
-    pkey->printTo(pw);
+    for (auto& check : *checks) {
+        check->printTo(pw);
+    }
+    for (auto& pkey : *pkeys) {
+        pkey->printTo(pw);
+    }
     for (auto& key : *fkeys) {
         key->printTo(pw);
     }
     pw.decIndent();
+}
+
+bool CreateTBStmt::exists(std::string &col)
+{
+    for (auto& field : *fields) {
+        if (field->name == col) {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 void DropTBStmt::printTo(PrintWriter &pw)
