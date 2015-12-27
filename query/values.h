@@ -11,11 +11,13 @@ public:
     char* data;
 
     DValue();
+    DValue(const DValue& a);
     DValue(bool val);
     DValue(int64_t val);
     DValue(double val);
     DValue(string& val);
     ~DValue();
+    DValue& operator = (const DValue& a);
 
     bool isNull() const;
     bool isBool() const;

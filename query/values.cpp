@@ -4,23 +4,32 @@ DValue::DValue() : type(0) {
     data = NULL;
 }
 
+DValue::DValue(const DValue& a) : type(a.type), len(a.len) {
+    int l = len + (type.ident == DType::STRING ? 1 : 0);
+    data = new char[l];
+    memcpy(data, a.data, l);
+}
+
 DValue::DValue(bool val) : type(DType::BYTE) {
-    data = new char;
+    data = new char[1];
+    len = 1;
     *data = val ? 1 : 0;
 }
 
 DValue::DValue(int64_t val) : type(DType::LONG) {
     data = new char[8];
+    len = 8;
     memcpy(data, &val, 8);
 }
 
 DValue::DValue(double val) : type(DType::DOUBLE) {
     data = new char[8];
+    len = 8;
     memcpy(data, &val, 8);
 }
 
-DValue::DValue(string& val) : type(DType::STRING, len) {
-    int len = val.length();
+DValue::DValue(string& val) : type(DType::STRING, val.length()) {
+    len = val.length();
     data = new char[len + 1];
     memcpy(data, val.c_str(), len);
     data[len] = '\0';
@@ -28,6 +37,16 @@ DValue::DValue(string& val) : type(DType::STRING, len) {
 
 DValue::~DValue() {
     delete [] data;
+}
+
+DValue& DValue::operator = (const DValue& a) {
+    type = a.type;
+    len = a.len;
+    if (data) delete [] data;
+    int l = len + (type.ident == DType::STRING ? 1 : 0);
+    data = new char[l];
+    memcpy(data, a.data, l);
+    return *this;
 }
 
 bool DValue::isNull() const {
