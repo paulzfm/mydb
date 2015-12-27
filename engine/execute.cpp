@@ -2,9 +2,12 @@
 
 bool ExecuteVisitor::visitTopLevel(TopLevel *that)
 {
+    msgs = "";
     for (auto& stmt : *that->stmts) {
         msg = "";
-        if (!stmt->accept(this)) {
+        bool ret = stmt->accept(this);
+        msgs += msg;
+        if (!ret) {
             return false;
         }
     }
