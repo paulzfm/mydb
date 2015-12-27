@@ -22,15 +22,15 @@ typedef unsigned int uint;
 // NOTE: never define global variables in header
 // unsigned char h[61];
 
+extern unsigned char hv[61];
+
 class MyBitMap {
-protected:
+public:
 //	static const int LEAF_BIT = 32;
 //	static const int MAX_LEVEL = 5;
 //	static const int MAX_INNER_NUM = 10;
 //	static const int MOD = 61;
 //	static unsigned char h[MOD];
-
-    unsigned char h[61];
 
 	static uint getMask(int k) {
 		uint s = 0;
@@ -145,7 +145,7 @@ protected:
 	}
 	int _findLeftOne(int level, int offset, int pos, int prevLevelCap) {
 		uint lb = lowbit(inner[offset + pos]);
-		int index = h[_hash(lb)];
+		int index = hv[_hash(lb)];
 		/*if (level == 0) {
 			cout << "level0:" << index << " " << pos << endl;
 		}*/
@@ -169,17 +169,15 @@ public:
 	static int _hash(uint i) {
 		return i % 61;
 	}
-	// static
-    void initConst() {
+	static void initConst() {
 		for (int i = 0; i < 32; ++ i) {
 			unsigned int k = (1 << i);
-			h[_hash(k)] = i;
+			hv[_hash(k)] = i;
 		}
 	}
-	// static 
-    int getIndex(uint k)
+	static int getIndex(uint k)
 	{
-		return h[_hash(k)];
+		return hv[_hash(k)];
 	}
 	static uint lowbit(uint k) {
 		return (k & (-k));
@@ -213,7 +211,7 @@ public:
 		//cout << i << endl;
 		//cout << data[0] << endl;
 		uint lb = lowbit(getLeafData(i));
-		int index = h[_hash(lb)];
+		int index = hv[_hash(lb)];
 		return (i << BIAS) + index;
 	}
 	MyBitMap(int cap, uint k) {

@@ -121,7 +121,6 @@ bool QueryManager::Insert(const string& table, unordered_map<string, Value*>& da
 	Container rm = getContainer(table);
 	if (rm == NullContainer) return setError(msg);
 	
-    cout << rm.first->getWidth() << endl;
 	char* buf = new char[rm.first->getWidth()];
 	memset(buf, 0, sizeof(char) * rm.second->width());
 
@@ -471,6 +470,7 @@ bool QueryManager::CreateTable(const string& name, vector<Column>& cols,
 
     string path = sysmgr->dbs[sysmgr->dbid].name + '/' + name + ".dat";
     RecordManager *rm = new RecordManager(path, table.getWidth());
+    delete rm;
 
     msg = cmsg.str();
     return true;

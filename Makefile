@@ -1,8 +1,8 @@
-SOURCES 	= 	$(wildcard *.cpp engine/*.cpp parser/*.cpp query/*.cpp record/*.cpp sys/*.cpp util/*.cpp)
+SOURCES 	= 	$(wildcard *.cpp engine/*.cpp parser/*.cpp query/*.cpp record/*.cpp sys/*.cpp util/*.cpp lib/fs/utils/*.cpp)
 OBJECTS 	= 	$(SOURCES:%.cpp=%.o)
 LEX			=	flex
 YACC		=	bison
-CXXFLAGS  	= 	-std=c++11
+CXXFLAGS  	= 	-std=c++11 -g
 LDFLAGS  	=
 TARGET  	= 	mydb
 

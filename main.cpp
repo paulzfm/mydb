@@ -22,6 +22,7 @@ bool readFile(const std::string& file, std::string& ret)
 
 int main(int argc, char **argv)
 {
+    MyBitMap::initConst();
     if (argc < 2) {
         InteractiveEngine ie;
         ie.run();

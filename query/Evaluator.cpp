@@ -25,6 +25,10 @@ bool Evaluator::visitValue(Value *that) {
             values.push_back(DValue(that->val.c_str()));
         case Value::VALUE_NULL:
             values.push_back(DValue());
+        case Value::VALUE_TRUE:
+            values.push_back(DValue(true));
+        case Value::VALUE_FALSE:
+            values.push_back(DValue(false));
     }
 
     return true;
