@@ -78,7 +78,7 @@ public:
 class Value : public Expr
 {
 public:
-    Value() : kind(VALUE_NULL) {}
+    Value(int kind) : kind(kind) {}
     Value(int kind, const char *val) : kind(kind), val(std::string(val)) {}
 
     void printTo(PrintWriter& pw);

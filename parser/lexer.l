@@ -93,6 +93,8 @@
 "REFERENCES"        { return token::REFERENCES;     }
 "INDEX"     { return token::INDEX;     }
 "DEFAULT"   { return token::DEFAULT;   }
+"TRUE"      { return token::TRUE;      }
+"FALSE"     { return token::FALSE;     }
 
 
 [0-9]+ {
