@@ -92,6 +92,7 @@
 "FOREIGN"   { return token::FOREIGN;   }
 "REFERENCES"        { return token::REFERENCES;     }
 "INDEX"     { return token::INDEX;     }
+"DEFAULT"   { return token::DEFAULT;   }
 
 
 [0-9]+ {
