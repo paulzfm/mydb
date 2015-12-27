@@ -572,6 +572,11 @@ bool Field::accept(Visitor *v)
     return v->visitField(this);
 }
 
+bool BoolValue::accept(Visitor *v)
+{
+    return v->visitBoolValue(this);
+}
+
 bool NullExpr::accept(Visitor *v)
 {
     return v->visitNullExpr(this);

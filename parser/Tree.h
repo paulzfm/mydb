@@ -216,6 +216,17 @@ public:
     const static int OP_IS_NOT_NULL = 15;
 };
 
+class BoolValue : public BoolExpr
+{
+public:
+    BoolValue(bool val = true) : val(val) {}
+
+    void printTo(PrintWriter& pw) {}
+    virtual bool accept(Visitor *v);
+
+    bool val;
+};
+
 class NullExpr : public BoolExpr
 {
 public:
@@ -658,6 +669,7 @@ public:
     virtual bool visitListTB(ListTB *that) { return visitTree(that); }
     virtual bool visitType(Type *that) { return visitTree(that); }
     virtual bool visitField(Field *that) { return visitTree(that); }
+    virtual bool visitBoolValue(BoolValue *that) { return visitTree(that); }
     virtual bool visitNullExpr(NullExpr *that) { return visitTree(that); }
     virtual bool visitCompareExpr(CompareExpr *that) { return visitTree(that); }
     virtual bool visitInExpr(InExpr *that) { return visitTree(that); }
