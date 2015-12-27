@@ -240,6 +240,10 @@ bool ExecuteVisitor::visitSelectStmt(SelectStmt *that)
 {
     PrintWriter pw;
     that->printTo(pw);
-    
+
+    if (that->where->empty) {
+        that->where->where = new BoolValue(true);
+    }
+
     return qm->Select(that->tbs, that->sel, that->where->where, that->gb, msg);
 }
