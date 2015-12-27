@@ -236,21 +236,10 @@ bool ExecuteVisitor::visitUpdateStmt(UpdateStmt *that)
     return qm->Update(that->tb, data, that->where, msg);
 }
 
-bool ExecuteVisitor::visitSelector(Selector *that)
-{
-
-}
-
-bool ExecuteVisitor::visitSelectors(Selectors *that)
-{
-    if (!that->all) {
-        for (auto& sel : *(that->selectors)) {
-            sel->accept(this);
-        }
-    }
-}
-
 bool ExecuteVisitor::visitSelectStmt(SelectStmt *that)
 {
-
+    PrintWriter pw;
+    that->printTo(pw);
+    
+    return qm->Select(that->tbs, that->sel, that->where->where, that->gb, msg);
 }

@@ -24,8 +24,6 @@ public:
     bool visitInsertStmt(InsertStmt *that);
     bool visitDeleteStmt(DeleteStmt *that);
     bool visitUpdateStmt(UpdateStmt *that);
-    bool visitSelector(Selector *that);
-    bool visitSelectors(Selectors *that);
     bool visitSelectStmt(SelectStmt *that);
 
     std::string msg; // to save return message
