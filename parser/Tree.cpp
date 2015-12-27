@@ -104,6 +104,40 @@ void Type::printTo(PrintWriter &pw)
     }
 }
 
+char Type::toDType()
+{
+    switch (kind) {
+        case TYPE_INT:
+            if (length < 5) return DType::SHORT;
+            else if (length < 10) return DType::INT;
+            else return DType::LONG;
+        case TYPE_SMALL_INT: return DType::SHORT;
+        case TYPE_BIG_INT: return DType::LONG;
+        case TYPE_FLOAT: return DType::FLOAT;
+        case TYPE_DOUBLE: return DType::DOUBLE;
+        case TYPE_STRING: return DType::STRING;
+        case TYPE_CHAR: return DType::CHAR;
+        case TYPE_BOOLEAN: return DType::BOOL;
+    }
+}
+
+short Type::getSize()
+{
+    switch (kind) {
+        case TYPE_INT:
+            if (length < 5) return 2;
+            else if (length < 10) return 4;
+            else return 8;
+        case TYPE_SMALL_INT: return 2;
+        case TYPE_BIG_INT: return 8;
+        case TYPE_FLOAT: return 4;
+        case TYPE_DOUBLE: return 8;
+        case TYPE_STRING: return length;
+        case TYPE_CHAR: return 1;
+        case TYPE_BOOLEAN: return 1;
+    }
+}
+
 void Field::printTo(PrintWriter &pw)
 {
     pw.printIndent();
@@ -262,6 +296,17 @@ bool CreateTBStmt::exists(std::string &col)
     }
 
     return false;
+}
+
+int CreateTBStmt::indexOf(std::string &col)
+{
+    for (int i = 0; i < fields->size(); i++) {
+        if ((*fields)[i]->name == col) {
+            return i;
+        }
+    }
+
+    return -1;
 }
 
 void DropTBStmt::printTo(PrintWriter &pw)

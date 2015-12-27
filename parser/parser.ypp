@@ -185,7 +185,12 @@ type        :   INT
                 }
             |   INT LP value RP
                 {
-                    $$ = new Type(Type::TYPE_INT, $3);
+                    // value must be non-negative integer
+                    if ($3->kind == Value::VALUE_INT && $3->val.front() != '-') {
+                        $$ = new Type(Type::TYPE_INT, atoi($3->val.c_str()));
+                    } else { // using default
+                        $$ = new Type(Type::TYPE_INT);
+                    }
                 }
             |   SMALLINT
                 {
@@ -205,7 +210,12 @@ type        :   INT
                 }
             |   VARCHAR LP value RP
                 {
-                    $$ = new Type(Type::TYPE_STRING, $3);
+                    // value must be non-negative integer
+                    if ($3->kind == Value::VALUE_INT && $3->val.front() != '-') {
+                        $$ = new Type(Type::TYPE_STRING, atoi($3->val.c_str()));
+                    } else { // using default
+                        $$ = new Type(Type::TYPE_STRING, 255);
+                    }
                 }
             |   STRING
                 {

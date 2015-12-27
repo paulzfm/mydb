@@ -2,6 +2,7 @@
 #define PARSER_TREE_H_
 
 #include "PrintWriter.h"
+#include "../record/types.h"
 
 #include <string>
 #include <vector>
@@ -164,16 +165,12 @@ public:
 class Type : public Tree
 {
 public:
-    Type(int kind, Value *len = nullptr) : kind(kind)
-    {
-        length = 255;
-        if (len && len->kind == Value::VALUE_INT) {
-            length = atoi(len->val.c_str());
-        }
-    }
+    Type(int kind, int len = 10) : kind(kind), length(len) {}
 
     void printTo(PrintWriter& pw);
     virtual void accept(Visitor *v);
+    char toDType();
+    short getSize();
 
     int kind;
     int length;
@@ -186,6 +183,7 @@ public:
     const static int TYPE_STRING = 5;
     const static int TYPE_CHAR = 6;
     const static int TYPE_BOOLEAN = 7;
+    // TODO: remove DATETIME
     const static int TYPE_DATETIME = 8;
 };
 
@@ -303,18 +301,18 @@ class Field : public ColConstraint
 {
 public:
     Field(Tree *type, const char *name, std::vector<int> *attrs)
-        : ColConstraint(ColConstraint::CONS_FIELD), type(type), name(std::string(name)), attrs(attrs) {}
+        : ColConstraint(ColConstraint::CONS_FIELD), type((Type*)type), name(std::string(name)), attrs(attrs) {}
 
     void printTo(PrintWriter& pw);
     virtual void accept(Visitor *v);
 
-    Tree *type;
+    Type *type;
     std::string name;
     std::vector<int> *attrs;
 
     const static int ATTR_NOT_NULL = 0;
     const static int ATTR_UNIQUE = 1;
-    const static int ATTR_AUTO_INCREMENT = 2;
+    const static int ATTR_AUTO_INCREMENT = 6;
 };
 
 class Check : public ColConstraint
@@ -389,6 +387,7 @@ public:
     void printTo(PrintWriter& pw);
     virtual void accept(Visitor *v);
     bool exists(std::string& col);
+    int indexOf(std::string& col);
 
     std::string tb;
     std::vector<Field*> *fields;
