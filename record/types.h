@@ -14,6 +14,7 @@ public:
     {
         ident = ident;
         switch (ident) {
+            case BOOL:      bytes = 1; break;
             case BYTE:      bytes = 1; break;
             case SHORT:     bytes = 2; break;
             case INT:       bytes = 4; break;
