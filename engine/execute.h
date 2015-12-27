@@ -43,6 +43,7 @@ public:
     void visitSelectStmt(SelectStmt *that);
 
     std::string msg; // to save return message
+    bool success; // whether a statement execution is successful
 
 private:
     QueryManager *qm;

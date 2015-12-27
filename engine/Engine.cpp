@@ -38,6 +38,6 @@ void InteractiveEngine::run()
             }
         }
 
-        std::cout << execute(buf) << "\n";
+        std::cout << execute(buf);
     }
 }
