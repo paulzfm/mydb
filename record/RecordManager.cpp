@@ -51,6 +51,8 @@ RecordManager::RecordManager(const std::string& path, int length)
 
 RecordManager::~RecordManager()
 {
+    bpm->close();
+    fm->closeFile(fid);
     delete fm;
     delete bpm;
 }
