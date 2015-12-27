@@ -26,14 +26,14 @@ void InteractiveEngine::run()
         if (buf == "quit" || buf == "exit") {
             std::cout << "Bye!\n";
             return;
-        } else if (buf.back() != ';') { // non terminate
+        } else if (buf.back() != ';' || buf.length() == 0) { // non terminate
             while (true) {
                 std::cout << "   -> ";
                 std::getline(std::cin, buf1);
                 buf1 = trim(buf1);
                 buf += " ";
                 buf += buf1;
-                if (buf1.back() == ';') { // terminate
+                if (buf1.length() > 0 && buf1.back() == ';') { // terminate
                     break;
                 }
             }

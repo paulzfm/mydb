@@ -25,6 +25,7 @@ int main(int argc, char **argv)
     if (argc < 2) {
         InteractiveEngine ie;
         ie.run();
+        return 0;
     }
 
     std::string input;
