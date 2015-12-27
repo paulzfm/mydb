@@ -179,6 +179,7 @@ void Table::desc() const {
 }
 
 bool Table::checkConstraints(const char* rec) {
+    return true;
 }
 
 bool Table::setColumnValue(char* rec, short cid, const DValue& val) const {
