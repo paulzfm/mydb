@@ -22,7 +22,9 @@ SystemManager::SystemManager() {
 	fin >> n;
 	for (int i = 0; i < n; ++i) {
 		fin >> name;
-		dbs.push_back(Database(name));
+        Database db;
+        db.open(name);
+		dbs.push_back(std::move(db));
 	}
 	fin.close();
 }
@@ -35,8 +37,10 @@ SystemManager::~SystemManager() {
 	}
 
 	fout << dbs.size() << endl;
-	for (auto& db : dbs)
+	for (auto& db : dbs) {
+        db.close();
 		fout << db.name << endl;
+    }
 }
 
 int SystemManager::getDBIdByName(const std::string& name) const {

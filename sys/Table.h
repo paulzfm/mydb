@@ -39,7 +39,7 @@ class Table {
 
         // util functions
 		bool checkConstraints(const char* rec);
-        bool setColumnValue(char* rec, short cid, const rapidjson::Value& val) const;
+        bool setColumnValue(char* rec, short cid, const DValue& val) const;
         DValue getColumnValue(char* rec, short cid) const;
 };
 

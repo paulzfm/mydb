@@ -119,6 +119,7 @@ bool Table::close(std::ofstream& fout) const {
 	rapidjson::Value vName;
 	vName.SetString(name.c_str(), alloc);
 	doc.AddMember("name", vName, alloc);
+    doc.AddMember("width", width, alloc);
 
 	// write columns
 	rapidjson::Value vCol(rapidjson::kArrayType);
@@ -180,7 +181,7 @@ void Table::desc() const {
 bool Table::checkConstraints(const char* rec) {
 }
 
-bool Table::setColumnValue(char* rec, short cid, const rapidjson::Value& val) const {
+bool Table::setColumnValue(char* rec, short cid, const DValue& val) const {
 }
 
 DValue Table::getColumnValue(char* rec, short cid) const {

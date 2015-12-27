@@ -9,9 +9,6 @@ bool setError(string& msg) {
     return false;
 }
 
-rapidjson::Value convValue(DValue& val) {
-}
-
 Container QueryManager::getContainer(const string& name) {
 	pair<int, string> idx = std::make_pair(sysmgr->getCurrentDBId(), name);
     Database& db = sysmgr->getCurrentDB();
@@ -136,11 +133,11 @@ bool QueryManager::Insert(const string& table, unordered_map<string, Value*>& da
     // fill default values
     for (auto& con : rm.first->constraints) {
         if (con.type == Constraint::DEFAULT) {
-            rm.first->setColumnValue(buf, con.cid, con.data);
+            rm.first->setColumnValue(buf, con.cid, DValue(con.data));
             null[con.cid / 8] &= ~(1 << (con.cid % 8));
         }
         if (con.type == Constraint::AUTO_INCREMENT) {
-            rm.first->setColumnValue(buf, con.cid, con.data);
+            rm.first->setColumnValue(buf, con.cid, DValue(con.data));
         }
     }
 
@@ -203,7 +200,7 @@ bool QueryManager::Update(const string& table,
 
         for (auto& rec : results) {
             Evaluator eval(this, rec.data);
-            rm.first->setColumnValue(rec.data, cid, convValue(eval.getValues().back()));
+            rm.first->setColumnValue(rec.data, cid, eval.getValues().back());
         }
     }
 

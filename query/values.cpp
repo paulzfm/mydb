@@ -10,6 +10,14 @@ DValue::DValue(const DValue& a) : type(a.type), len(a.len) {
     memcpy(data, a.data, l);
 }
 
+DValue::DValue(const rapidjson::Value& a) : type(0) {
+    if (a.IsInt()) {
+        type = DType(DType::INT);
+    }
+    if (a.IsDouble()) type = DType(DType::DOUBLE);
+    if (a.IsString()) type = DType(DType::STRING, a.GetStringLength());
+}
+
 DValue::DValue(bool val) : type(DType::BYTE) {
     data = new char[1];
     len = 1;
