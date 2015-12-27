@@ -12,6 +12,7 @@ public:
 
     DValue();
     DValue(const DValue& a);
+    DValue(const rapidjson::Value& a);
     DValue(bool val);
     DValue(int64_t val);
     DValue(double val);
