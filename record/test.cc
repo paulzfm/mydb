@@ -58,9 +58,24 @@ void test()
     }
 }
 
+void test_read()
+{
+    // open a table
+    RecordManager rman(FILE_PATH);
+
+    // load all records
+    std::vector<Record> records;
+    rman.loadAll(records);
+    printf("%lu records found.\n", records.size());
+    for (const auto& rec : records) {
+        printRecord(rec);
+    }
+}
+
 int main()
 {
-    test();
+    // test();
+    test_read();
 
     return 0;
 }
