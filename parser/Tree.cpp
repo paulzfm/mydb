@@ -666,3 +666,48 @@ bool DropIdxStmt::accept(Visitor *v)
 {
     return v->visitDropIdxStmt(this);
 }
+
+void Col::fillTable(std::string &tbName)
+{
+    if (col == "") {
+        col = tbName;
+    }
+}
+
+void UnonExpr::fillTable(std::string &tbName)
+{
+    expr->fillTable(tbName);
+}
+
+void BinExpr::fillTable(std::string &tbName)
+{
+    left->fillTable(tbName);
+    right->fillTable(tbName);
+}
+
+void NullExpr::fillTable(std::string &tbName)
+{
+    name->fillTable(tbName);
+}
+
+void CompareExpr::fillTable(std::string &tbName)
+{
+    left->fillTable(tbName);
+    right->fillTable(tbName);
+}
+
+void InExpr::fillTable(std::string &tbName)
+{
+    left->fillTable(tbName);
+}
+
+void BetweenExpr::fillTable(std::string &tbName)
+{
+    left->fillTable(tbName);
+}
+
+void ComplexExpr::fillTable(std::string &tbName)
+{
+    left->fillTable(tbName);
+    right->fillTable(tbName);
+}
