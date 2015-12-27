@@ -63,6 +63,10 @@ bool ExecuteVisitor::visitField(Field *that)
                 return false;
             }
         }
+        if (attr->kind == Attr::ATTR_DEFAULT && !attr->def->compatibleWith(that->type)) {
+            msg = "[ERROR] Invalid default value for column '" + that->name + "'.\n";
+            return false;
+        }
     }
 
     return true;

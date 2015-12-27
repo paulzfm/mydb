@@ -10,6 +10,31 @@ void Value::printTo(PrintWriter &pw)
     }
 }
 
+bool Value::compatibleWith(Type *type)
+{
+    switch (kind) {
+        case VALUE_NULL:
+            return true;
+        case VALUE_INT:
+            return type->kind == Type::TYPE_BIG_INT || type->kind == Type::TYPE_INT
+                || type->kind == Type::TYPE_SMALL_INT;
+        case VALUE_REAL:
+            return type->kind == Type::TYPE_FLOAT || type->kind == Type::TYPE_DOUBLE;
+        case VALUE_STRING:
+            if (val.length() == 1) {
+                return type->kind == Type::TYPE_STRING || type->kind == Type::TYPE_CHAR;
+            } else {
+                return type->kind == Type::TYPE_STRING;
+            }
+        case VALUE_TRUE:
+            return type->kind == Type::TYPE_BOOLEAN;
+        case VALUE_FALSE:
+            return type->kind == Type::TYPE_BOOLEAN;
+        default:
+            return false;
+    }
+}
+
 void Col::printTo(PrintWriter &pw)
 {
     pw.println(tb + "." + col);
