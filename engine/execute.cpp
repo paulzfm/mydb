@@ -1,23 +1,5 @@
 #include "execute.h"
 
-bool ExecuteVisitor::visitValue(Value *that)
-{
-    return false;
-}
-
-bool ExecuteVisitor::visitUnonExpr(UnonExpr *that)
-{
-    that->expr->accept(this);
-    return false;
-}
-
-bool ExecuteVisitor::visitBinExpr(BinExpr *that)
-{
-    that->left->accept(this);
-    that->right->accept(this);
-    return false;
-}
-
 bool ExecuteVisitor::visitTopLevel(TopLevel *that)
 {
     for (auto& stmt : *that->stmts) {
@@ -26,6 +8,8 @@ bool ExecuteVisitor::visitTopLevel(TopLevel *that)
             return false;
         }
     }
+
+    return true;
 }
 
 bool ExecuteVisitor::visitListDB(ListDB *that)
@@ -53,11 +37,6 @@ bool ExecuteVisitor::visitListTB(ListTB *that)
     return qm->ShowTables(msg);
 }
 
-bool ExecuteVisitor::visitType(Type *that)
-{
-
-}
-
 bool ExecuteVisitor::visitField(Field *that)
 {
     // visit type
@@ -67,13 +46,11 @@ bool ExecuteVisitor::visitField(Field *that)
                 msg = "[ERROR] display width out of range for column '" + that->name + "' (max = 19).\n";
                 return false;
             }
-            break;
         case Type::TYPE_STRING:
             if (that->type->length > 65535) {
                 msg = "[ERROR] display width out of range for column '" + that->name + "' (max = 65535).\n";
                 return false;
             }
-            break;
     }
 
     // visit attrs
@@ -89,39 +66,6 @@ bool ExecuteVisitor::visitField(Field *that)
     }
 
     return true;
-}
-
-bool ExecuteVisitor::visitNullExpr(NullExpr *that)
-{
-    return false;
-}
-
-bool ExecuteVisitor::visitCompareExpr(CompareExpr *that)
-{
-    that->right->accept(this);
-    return false;
-}
-
-bool ExecuteVisitor::visitInExpr(InExpr *that)
-{
-    for (auto& val : *(that->right)) {
-        val->accept(this);
-    }
-    return false;
-}
-
-bool ExecuteVisitor::visitBetweenExpr(BetweenExpr *that)
-{
-    that->rightL->accept(this);
-    that->rightR->accept(this);
-    return false;
-}
-
-bool ExecuteVisitor::visitComplexExpr(ComplexExpr *that)
-{
-    that->left->accept(this);
-    that->right->accept(this);
-    return false;
 }
 
 bool ExecuteVisitor::visitCreateTBStmt(CreateTBStmt *that)
@@ -178,7 +122,7 @@ bool ExecuteVisitor::visitCreateTBStmt(CreateTBStmt *that)
     int cid = 0;
     int offset = 0;
     for (auto& field : *that->fields) {
-        short bytes = field->type->getSize();
+        int bytes = field->type->getSize();
         cols.push_back(Column(cid++, field->name, field->type->toDType(), bytes, offset));
         offset += bytes;
     }
@@ -213,6 +157,7 @@ bool ExecuteVisitor::visitCreateTBStmt(CreateTBStmt *that)
     for (const auto& con : cons) {
         std::cout << "cid=" << con.cid << ",name=" << con.name << ",type=" << int(con.type) << "\n";
     }
+
     return qm->CreateTable(that->tb, cols, cons, msg);
 }
 
@@ -226,34 +171,65 @@ bool ExecuteVisitor::visitShowTBStmt(ShowTBStmt *that)
     return qm->DescTable(that->tb, msg);
 }
 
-bool ExecuteVisitor::visitColumns(Columns *that)
-{
-
-}
-
 bool ExecuteVisitor::visitInsertStmt(InsertStmt *that)
 {
+    PrintWriter pw;
+    that->printTo(pw);
 
+    if (that->cols->cols->size() > 0) {
+        for (int i = 0; i < that->cols->cols->size() - 1; i++) {
+            for (int j = i + 1; j < that->cols->cols->size(); j++) {
+                if ((*that->cols->cols)[i] == (*that->cols->cols)[j]) {
+                    msg = "[ERROR] column '" + (*that->cols->cols)[i] + "' specified more than once.\n";
+                    return false;
+                }
+            }
+        }
+    }
+
+    for (auto& values : *that->values) {
+        if (that->cols->cols->size() > 0) {
+            if (that->cols->cols->size() != values->size()) {
+                msg = "[ERROR] column count doesn't match value count.\n";
+                return false;
+            }
+
+            std::unordered_map<std::string, Value*> data;
+            for (int i = 0; i < that->cols->cols->size(); i++) {
+                data[(*that->cols->cols)[i]] = (*values)[i];
+            }
+            if (!qm->Insert(that->tb, data, msg)) {
+                return false;
+            }
+        }
+
+        if (!qm->Insert(that->tb, *values, msg)) {
+            return false;
+        }
+    }
+
+    return true;
 }
 
 bool ExecuteVisitor::visitDeleteStmt(DeleteStmt *that)
 {
-    that->where->accept(this);
-    // return qm->Delete(that->tb, that->where);
-}
+    PrintWriter pw;
+    that->printTo(pw);
 
-bool ExecuteVisitor::visitEq(Eq *that)
-{
-    that->expr->accept(this);
+    return qm->Delete(that->tb, that->where, msg);
 }
 
 bool ExecuteVisitor::visitUpdateStmt(UpdateStmt *that)
 {
-    for (auto& eq : *(that->eqs)) {
-        eq->accept(this);
+    PrintWriter pw;
+    that->printTo(pw);
+    
+    std::unordered_map<std::string, Expr*> data;
+    for (auto& eq : *that->eqs) {
+        data[eq->colName] = eq->expr;
     }
-    that->where->accept(this);
-    // return qm->Update(that->tb, unordered_map<string, Expr *> data, Expr *expr);
+
+    return qm->Update(that->tb, data, that->where, msg);
 }
 
 bool ExecuteVisitor::visitSelector(Selector *that)
@@ -272,13 +248,5 @@ bool ExecuteVisitor::visitSelectors(Selectors *that)
 
 bool ExecuteVisitor::visitSelectStmt(SelectStmt *that)
 {
-    that->sel->accept(this);
-    if (!that->where->empty) {
-        that->where->where->accept(this);
-    }
-    if (!that->gb->empty) {
 
-    }
-
-    // return qm->Select(that->tb, vector<string> attrs, Expr *expr)
 }

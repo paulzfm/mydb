@@ -170,7 +170,7 @@ public:
     void printTo(PrintWriter& pw);
     virtual bool accept(Visitor *v);
     char toDType();
-    short getSize();
+    int getSize();
 
     int kind;
     int length;

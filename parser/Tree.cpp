@@ -121,7 +121,7 @@ char Type::toDType()
     }
 }
 
-short Type::getSize()
+int Type::getSize()
 {
     switch (kind) {
         case TYPE_INT:
