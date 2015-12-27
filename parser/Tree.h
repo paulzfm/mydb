@@ -297,22 +297,42 @@ public:
     int kind;
 };
 
+class Attr : public Tree
+{
+public:
+    Attr(int kind) : kind(kind) {}
+    Attr(Tree *val) : def((Value*)val), kind(ATTR_DEFAULT) {}
+
+    virtual void printTo(PrintWriter& pw) {}
+    virtual bool accept(Visitor *v) { return false; }
+
+    const static int ATTR_NOT_NULL = 0;
+    const static int ATTR_UNIQUE = 1;
+    const static int ATTR_AUTO_INCREMENT = 6;
+    const static int ATTR_DEFAULT = 5;
+
+    int kind;
+    Value *def;
+};
+
 class Field : public ColConstraint
 {
 public:
-    Field(Tree *type, const char *name, std::vector<int> *attrs)
-        : ColConstraint(ColConstraint::CONS_FIELD), type((Type*)type), name(std::string(name)), attrs(attrs) {}
+    Field(Tree *type, const char *name, std::vector<Tree*> *attributes)
+        : ColConstraint(ColConstraint::CONS_FIELD), type((Type*)type), name(std::string(name))
+    {
+        attrs = new std::vector<Attr*>;
+        for (auto &attr : *attributes) {
+            attrs->push_back((Attr*)attr);
+        }
+    }
 
     void printTo(PrintWriter& pw);
     virtual bool accept(Visitor *v);
 
     Type *type;
     std::string name;
-    std::vector<int> *attrs;
-
-    const static int ATTR_NOT_NULL = 0;
-    const static int ATTR_UNIQUE = 1;
-    const static int ATTR_AUTO_INCREMENT = 6;
+    std::vector<Attr*> *attrs;
 };
 
 class Check : public ColConstraint

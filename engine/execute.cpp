@@ -55,7 +55,7 @@ bool ExecuteVisitor::visitField(Field *that)
 
     // visit attrs
     for (const auto& attr : *that->attrs) {
-        if (attr == Field::ATTR_AUTO_INCREMENT) {
+        if (attr->kind == Attr::ATTR_AUTO_INCREMENT) {
             if (that->type->kind != Type::TYPE_INT && that->type->kind != Type::TYPE_SMALL_INT &&
                 that->type->kind != Type::TYPE_BIG_INT) {
                 msg = "[ERROR] incorrect column specifier 'AUTO_INCREMENT' for column '"
@@ -145,7 +145,7 @@ bool ExecuteVisitor::visitCreateTBStmt(CreateTBStmt *that)
     cid = 0;
     for (auto& field : *that->fields) {
         for (auto& attr : *field->attrs) {
-            cons.push_back(Constraint(cid, field->name, attr, data));
+            cons.push_back(Constraint(cid, field->name, attr->kind, data));
         }
         cid++;
     }
@@ -223,7 +223,7 @@ bool ExecuteVisitor::visitUpdateStmt(UpdateStmt *that)
 {
     PrintWriter pw;
     that->printTo(pw);
-    
+
     std::unordered_map<std::string, Expr*> data;
     for (auto& eq : *that->eqs) {
         data[eq->colName] = eq->expr;

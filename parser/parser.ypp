@@ -46,16 +46,15 @@ class Driver;
 %token EQ NE LE GE LT GT
 %token LP RP COMMA STOP DOT
 %token PLUS MINUS MUL DIV MOD
-%token DESC FOREIGN REFERENCES INDEX
+%token DESC FOREIGN REFERENCES INDEX DEFAULT
 %token END 0 "end of file"
 %token <value> VALUE
 %token <ident> IDENT
 
-%type <tree> program stmt sysStmt dbStmt tbStmt type boolExpr columns eq selector where groupBy selectors expr field col idxStmt
-%type <tlist> fields stmts set eqs sellist
+%type <tree> program stmt sysStmt dbStmt tbStmt type boolExpr columns eq selector where groupBy selectors expr field col idxStmt attr
+%type <tlist> fields stmts set eqs sellist attrs
 %type <ttlist> sets
-%type <integer> attr func
-%type <ilist> attrs
+%type <integer> func
 %type <slist> idents
 %type <value> value
 
@@ -247,7 +246,7 @@ value       :   VALUE
 
 attrs       :   /* empty */
                 {
-                    $$ = new std::vector<int>;
+                    $$ = new std::vector<Tree*>;
                 }
             |   attrs attr
                 {
@@ -258,15 +257,19 @@ attrs       :   /* empty */
 
 attr        :   NOT NIL
                 {
-                    $$ = Field::ATTR_NOT_NULL;
+                    $$ = new Attr(Attr::ATTR_NOT_NULL);
                 }
             |   UNIQUE
                 {
-                    $$ = Field::ATTR_UNIQUE;
+                    $$ = new Attr(Attr::ATTR_UNIQUE);
                 }
             |   AUTO_INCREMENT
                 {
-                    $$ = Field::ATTR_AUTO_INCREMENT;
+                    $$ = new Attr(Attr::ATTR_AUTO_INCREMENT);
+                }
+            |   DEFAULT value
+                {
+                    $$ = new Attr($2);
                 }
             ;
 

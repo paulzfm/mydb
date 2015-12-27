@@ -146,10 +146,14 @@ void Field::printTo(PrintWriter &pw)
     pw.print(name);
     for (auto& attr : *attrs) {
         pw.print(" ");
-        switch (attr) {
-            case ATTR_AUTO_INCREMENT: pw.print("auto increment"); break;
-            case ATTR_NOT_NULL: pw.print("not null"); break;
-            case ATTR_UNIQUE: pw.print("unique"); break;
+        switch (attr->kind) {
+            case Attr::ATTR_AUTO_INCREMENT: pw.print("auto increment"); break;
+            case Attr::ATTR_NOT_NULL: pw.print("not null"); break;
+            case Attr::ATTR_UNIQUE: pw.print("unique"); break;
+            case Attr::ATTR_DEFAULT:
+                pw.print("default ");
+                attr->def->printTo(pw);
+                break;
         }
     }
     pw.println("");
