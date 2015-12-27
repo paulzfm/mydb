@@ -50,14 +50,40 @@ public:
     std::string col;
 };
 
+class Type : public Tree
+{
+public:
+    Type(int kind, int len = 10) : kind(kind), length(len) {}
+
+    void printTo(PrintWriter& pw);
+    virtual bool accept(Visitor *v);
+    char toDType();
+    int getSize();
+
+    int kind;
+    int length;
+
+    const static int TYPE_INT = 0;
+    const static int TYPE_SMALL_INT = 1;
+    const static int TYPE_BIG_INT = 2;
+    const static int TYPE_FLOAT = 3;
+    const static int TYPE_DOUBLE = 4;
+    const static int TYPE_STRING = 5;
+    const static int TYPE_CHAR = 6;
+    const static int TYPE_BOOLEAN = 7;
+    // TODO: remove DATETIME
+    const static int TYPE_DATETIME = 8;
+};
+
 class Value : public Expr
 {
 public:
-    Value() : kind(VALUE_NULL) {}
+    Value(int kind) : kind(kind) {}
     Value(int kind, const char *val) : kind(kind), val(std::string(val)) {}
 
     void printTo(PrintWriter& pw);
     virtual bool accept(Visitor *v);
+    bool compatibleWith(Type *type);
 
     int kind;
     std::string val;
@@ -66,6 +92,8 @@ public:
     static const int VALUE_REAL = 1;
     static const int VALUE_STRING = 2;
     static const int VALUE_NULL = 3;
+    static const int VALUE_TRUE = 4;
+    static const int VALUE_FALSE = 5;
 };
 
 class UnonExpr : public Expr
@@ -160,31 +188,6 @@ public:
 
     void printTo(PrintWriter& pw);
     virtual bool accept(Visitor *v);
-};
-
-class Type : public Tree
-{
-public:
-    Type(int kind, int len = 10) : kind(kind), length(len) {}
-
-    void printTo(PrintWriter& pw);
-    virtual bool accept(Visitor *v);
-    char toDType();
-    int getSize();
-
-    int kind;
-    int length;
-
-    const static int TYPE_INT = 0;
-    const static int TYPE_SMALL_INT = 1;
-    const static int TYPE_BIG_INT = 2;
-    const static int TYPE_FLOAT = 3;
-    const static int TYPE_DOUBLE = 4;
-    const static int TYPE_STRING = 5;
-    const static int TYPE_CHAR = 6;
-    const static int TYPE_BOOLEAN = 7;
-    // TODO: remove DATETIME
-    const static int TYPE_DATETIME = 8;
 };
 
 class BoolExpr : public Tree

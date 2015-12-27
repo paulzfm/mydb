@@ -47,6 +47,7 @@ class Driver;
 %token LP RP COMMA STOP DOT
 %token PLUS MINUS MUL DIV MOD
 %token DESC FOREIGN REFERENCES INDEX DEFAULT
+%token TRUE FALSE
 %token END 0 "end of file"
 %token <value> VALUE
 %token <ident> IDENT
@@ -240,7 +241,15 @@ value       :   VALUE
                 }
             |   NIL
                 {
-                    $$ = new Value;
+                    $$ = new Value(Value::VALUE_NULL);
+                }
+            |   TRUE
+                {
+                    $$ = new Value(Value::VALUE_TRUE);
+                }
+            |   FALSE
+                {
+                    $$ = new Value(Value::VALUE_FALSE);
                 }
             ;
 
