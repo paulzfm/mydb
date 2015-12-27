@@ -40,9 +40,19 @@ std::basic_string<C,T,A> trim( const std::basic_string<C,T,A>& str,
 class InteractiveEngine : public Engine
 {
 public:
-    InteractiveEngine() {}
+    InteractiveEngine() : Engine() {}
 
     virtual void run();
+};
+
+class StringEngine : public Engine
+{
+public:
+    StringEngine(const std::string& input) : Engine(), str(input) {}
+
+    virtual void run();
+
+    std::string str;
 };
 
 #endif // ENGINE_ENGINE_H_

@@ -1,6 +1,7 @@
 #include "Engine.h"
 
 #include <iostream>
+#include <fstream>
 #include <string>
 
 std::string Engine::execute(std::string& input)
@@ -40,4 +41,9 @@ void InteractiveEngine::run()
 
         std::cout << execute(buf);
     }
+}
+
+void StringEngine::run()
+{
+    std::cout << execute(str);
 }
