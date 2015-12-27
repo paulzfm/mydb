@@ -205,9 +205,7 @@ bool ExecuteVisitor::visitInsertStmt(InsertStmt *that)
             if (!qm->Insert(that->tb, data, msg)) {
                 return false;
             }
-        }
-
-        if (!qm->Insert(that->tb, *values, msg)) {
+        } else if (!qm->Insert(that->tb, *values, msg)) {
             return false;
         }
     }
