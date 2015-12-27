@@ -483,152 +483,152 @@ void DropIdxStmt::printTo(PrintWriter &pw)
     pw.decIndent();
 }
 
-void Value::accept(Visitor *v)
+bool Value::accept(Visitor *v)
 {
-    v->visitValue(this);
+    return v->visitValue(this);
 }
 
-void Col::accept(Visitor *v)
+bool Col::accept(Visitor *v)
 {
-    v->visitCol(this);
+    return v->visitCol(this);
 }
 
-void UnonExpr::accept(Visitor *v)
+bool UnonExpr::accept(Visitor *v)
 {
-    v->visitUnonExpr(this);
+    return v->visitUnonExpr(this);
 }
 
-void BinExpr::accept(Visitor *v)
+bool BinExpr::accept(Visitor *v)
 {
-    v->visitBinExpr(this);
+    return v->visitBinExpr(this);
 }
 
-void TopLevel::accept(Visitor *v)
+bool TopLevel::accept(Visitor *v)
 {
-    v->visitTopLevel(this);
+    return v->visitTopLevel(this);
 }
 
-void ListDB::accept(Visitor *v)
+bool ListDB::accept(Visitor *v)
 {
-    v->visitListDB(this);
+    return v->visitListDB(this);
 }
 
-void CreateDBStmt::accept(Visitor *v)
+bool CreateDBStmt::accept(Visitor *v)
 {
-    v->visitCreateDBStmt(this);
+    return v->visitCreateDBStmt(this);
 }
 
-void DropDBStmt::accept(Visitor *v)
+bool DropDBStmt::accept(Visitor *v)
 {
-    v->visitDropDBStmt(this);
+    return v->visitDropDBStmt(this);
 }
 
-void UseDBStmt::accept(Visitor *v)
+bool UseDBStmt::accept(Visitor *v)
 {
-    v->visitUseDBStmt(this);
+    return v->visitUseDBStmt(this);
 }
 
-void ListTB::accept(Visitor *v)
+bool ListTB::accept(Visitor *v)
 {
-    v->visitListTB(this);
+    return v->visitListTB(this);
 }
 
-void Type::accept(Visitor *v)
+bool Type::accept(Visitor *v)
 {
-    v->visitType(this);
+    return v->visitType(this);
 }
 
-void Field::accept(Visitor *v)
+bool Field::accept(Visitor *v)
 {
-    v->visitField(this);
+    return v->visitField(this);
 }
 
-void NullExpr::accept(Visitor *v)
+bool NullExpr::accept(Visitor *v)
 {
-    v->visitNullExpr(this);
+    return v->visitNullExpr(this);
 }
 
-void CompareExpr::accept(Visitor *v)
+bool CompareExpr::accept(Visitor *v)
 {
-    v->visitCompareExpr(this);
+    return v->visitCompareExpr(this);
 }
 
-void InExpr::accept(Visitor *v)
+bool InExpr::accept(Visitor *v)
 {
-    v->visitInExpr(this);
+    return v->visitInExpr(this);
 }
 
-void BetweenExpr::accept(Visitor *v)
+bool BetweenExpr::accept(Visitor *v)
 {
-    v->visitBetweenExpr(this);
+    return v->visitBetweenExpr(this);
 }
 
-void ComplexExpr::accept(Visitor *v)
+bool ComplexExpr::accept(Visitor *v)
 {
-    v->visitComplexExpr(this);
+    return v->visitComplexExpr(this);
 }
 
-void CreateTBStmt::accept(Visitor *v)
+bool CreateTBStmt::accept(Visitor *v)
 {
-    v->visitCreateTBStmt(this);
+    return v->visitCreateTBStmt(this);
 }
 
-void DropTBStmt::accept(Visitor *v)
+bool DropTBStmt::accept(Visitor *v)
 {
-    v->visitDropTBStmt(this);
+    return v->visitDropTBStmt(this);
 }
 
-void ShowTBStmt::accept(Visitor *v)
+bool ShowTBStmt::accept(Visitor *v)
 {
-    v->visitShowTBStmt(this);
+    return v->visitShowTBStmt(this);
 }
 
-void Columns::accept(Visitor *v)
+bool Columns::accept(Visitor *v)
 {
-    v->visitColumns(this);
+    return v->visitColumns(this);
 }
 
-void InsertStmt::accept(Visitor *v)
+bool InsertStmt::accept(Visitor *v)
 {
-    v->visitInsertStmt(this);
+    return v->visitInsertStmt(this);
 }
 
-void DeleteStmt::accept(Visitor *v)
+bool DeleteStmt::accept(Visitor *v)
 {
-    v->visitDeleteStmt(this);
+    return v->visitDeleteStmt(this);
 }
 
-void Eq::accept(Visitor *v)
+bool Eq::accept(Visitor *v)
 {
-    v->visitEq(this);
+    return v->visitEq(this);
 }
 
-void UpdateStmt::accept(Visitor *v)
+bool UpdateStmt::accept(Visitor *v)
 {
-    v->visitUpdateStmt(this);
+    return v->visitUpdateStmt(this);
 }
 
-void Selector::accept(Visitor *v)
+bool Selector::accept(Visitor *v)
 {
-    v->visitSelector(this);
+    return v->visitSelector(this);
 }
 
-void Selectors::accept(Visitor *v)
+bool Selectors::accept(Visitor *v)
 {
-    v->visitSelectors(this);
+    return v->visitSelectors(this);
 }
 
-void SelectStmt::accept(Visitor *v)
+bool SelectStmt::accept(Visitor *v)
 {
-    v->visitSelectStmt(this);
+    return v->visitSelectStmt(this);
 }
 
-void CreateIdxStmt::accept(Visitor *v)
+bool CreateIdxStmt::accept(Visitor *v)
 {
-    v->visitCreateIdxStmt(this);
+    return v->visitCreateIdxStmt(this);
 }
 
-void DropIdxStmt::accept(Visitor *v)
+bool DropIdxStmt::accept(Visitor *v)
 {
-    v->visitDropIdxStmt(this);
+    return v->visitDropIdxStmt(this);
 }

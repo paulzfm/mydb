@@ -17,14 +17,14 @@ class Tree
 {
 public:
     virtual void printTo(PrintWriter& pw) = 0;
-    virtual void accept(Visitor *v) = 0;
+    virtual bool accept(Visitor *v) = 0;
 };
 
 class Expr : public Tree
 {
 public:
     virtual void printTo(PrintWriter& pw) = 0;
-    virtual void accept(Visitor *v) = 0;
+    virtual bool accept(Visitor *v) = 0;
 
     const static int OP_POS = 0;
     const static int OP_NEG = 1;
@@ -44,7 +44,7 @@ public:
         : tb(std::string(tbName)), col(std::string(colName)) {}
 
     void printTo(PrintWriter& pw);
-    virtual void accept(Visitor *v);
+    virtual bool accept(Visitor *v);
 
     std::string tb;
     std::string col;
@@ -57,7 +57,7 @@ public:
     Value(int kind, const char *val) : kind(kind), val(std::string(val)) {}
 
     void printTo(PrintWriter& pw);
-    virtual void accept(Visitor *v);
+    virtual bool accept(Visitor *v);
 
     int kind;
     std::string val;
@@ -74,7 +74,7 @@ public:
     UnonExpr(Tree *expr, int op) : expr((Expr*)expr), op(op) {}
 
     void printTo(PrintWriter& pw);
-    virtual void accept(Visitor *v);
+    virtual bool accept(Visitor *v);
 
     Expr *expr;
     int op;
@@ -86,7 +86,7 @@ public:
     BinExpr(Tree *left, Tree *right, int op) : left((Expr*)left), right((Expr*)right), op(op) {}
 
     void printTo(PrintWriter& pw);
-    virtual void accept(Visitor *v);
+    virtual bool accept(Visitor *v);
 
     Expr *left;
     Expr *right;
@@ -99,7 +99,7 @@ public:
     TopLevel(std::vector<Tree*> *stmts) : stmts(stmts) {}
 
     void printTo(PrintWriter& pw);
-    virtual void accept(Visitor *v);
+    virtual bool accept(Visitor *v);
 
     std::vector<Tree*> *stmts;
 };
@@ -108,7 +108,7 @@ class Stmt : public Tree
 {
 public:
     virtual void printTo(PrintWriter& pw) = 0;
-    virtual void accept(Visitor *v) = 0;
+    virtual bool accept(Visitor *v) = 0;
 };
 
 class ListDB : public Stmt
@@ -117,7 +117,7 @@ public:
     ListDB() {}
 
     void printTo(PrintWriter& pw);
-    virtual void accept(Visitor *v);
+    virtual bool accept(Visitor *v);
 };
 
 class CreateDBStmt : public Stmt
@@ -126,7 +126,7 @@ public:
     CreateDBStmt(const char *dbName) : db(std::string(dbName)) {}
 
     void printTo(PrintWriter& pw);
-    virtual void accept(Visitor *v);
+    virtual bool accept(Visitor *v);
 
     std::string db;
 };
@@ -137,7 +137,7 @@ public:
     DropDBStmt(const char *dbName) : db(std::string(dbName)) {}
 
     void printTo(PrintWriter& pw);
-    virtual void accept(Visitor *v);
+    virtual bool accept(Visitor *v);
 
     std::string db;
 };
@@ -148,7 +148,7 @@ public:
     UseDBStmt(const char *dbName) : db(std::string(dbName)) {}
 
     void printTo(PrintWriter& pw);
-    virtual void accept(Visitor *v);
+    virtual bool accept(Visitor *v);
 
     std::string db;
 };
@@ -159,7 +159,7 @@ public:
     ListTB() {}
 
     void printTo(PrintWriter& pw);
-    virtual void accept(Visitor *v);
+    virtual bool accept(Visitor *v);
 };
 
 class Type : public Tree
@@ -168,7 +168,7 @@ public:
     Type(int kind, int len = 10) : kind(kind), length(len) {}
 
     void printTo(PrintWriter& pw);
-    virtual void accept(Visitor *v);
+    virtual bool accept(Visitor *v);
     char toDType();
     short getSize();
 
@@ -191,7 +191,7 @@ class BoolExpr : public Tree
 {
 public:
     virtual void printTo(PrintWriter& pw) = 0;
-    virtual void accept(Visitor *v) = 0;
+    virtual bool accept(Visitor *v) = 0;
 
     int op;
 
@@ -219,7 +219,7 @@ public:
     NullExpr(Tree *col, int op) : name((Col*)col), op(op) {}
 
     void printTo(PrintWriter& pw);
-    virtual void accept(Visitor *v);
+    virtual bool accept(Visitor *v);
 
     Col *name;
     int op;
@@ -232,7 +232,7 @@ public:
         : left((Col*)left), right((Expr*)right), op(op) {}
 
     void printTo(PrintWriter& pw);
-    virtual void accept(Visitor *v);
+    virtual bool accept(Visitor *v);
 
     Col *left;
     Expr *right;
@@ -246,7 +246,7 @@ public:
         : left((Col*)left), right((std::vector<Value*>*)right), op(op) {}
 
     void printTo(PrintWriter& pw);
-    virtual void accept(Visitor *v);
+    virtual bool accept(Visitor *v);
 
     Col *left;
     std::vector<Value*> *right;
@@ -260,7 +260,7 @@ public:
         : left((Col*)left), rightL(rightL), rightR(rightR), op(op) {}
 
     void printTo(PrintWriter& pw);
-    virtual void accept(Visitor *v);
+    virtual bool accept(Visitor *v);
 
     Col *left;
     Value *rightL;
@@ -275,7 +275,7 @@ public:
         : left((BoolExpr*)left), right((BoolExpr*)right), op(op) {}
 
     void printTo(PrintWriter& pw);
-    virtual void accept(Visitor *v);
+    virtual bool accept(Visitor *v);
 
     int op;
     BoolExpr *left;
@@ -287,7 +287,7 @@ class ColConstraint : public Tree
 public:
     ColConstraint(int kind) : kind(kind) {}
     virtual void printTo(PrintWriter& pw) = 0;
-    virtual void accept(Visitor *v) = 0;
+    virtual bool accept(Visitor *v) = 0;
 
     const static int CONS_CHECK = 0;
     const static int CONS_PKEY = 1;
@@ -304,7 +304,7 @@ public:
         : ColConstraint(ColConstraint::CONS_FIELD), type((Type*)type), name(std::string(name)), attrs(attrs) {}
 
     void printTo(PrintWriter& pw);
-    virtual void accept(Visitor *v);
+    virtual bool accept(Visitor *v);
 
     Type *type;
     std::string name;
@@ -322,7 +322,7 @@ public:
         : ColConstraint(ColConstraint::CONS_CHECK), check((BoolExpr*)check) {}
 
     void printTo(PrintWriter& pw);
-    virtual void accept(Visitor *v) {}
+    virtual bool accept(Visitor *v) { return false; }
 
     BoolExpr *check;
 };
@@ -334,7 +334,7 @@ public:
         : ColConstraint(ColConstraint::CONS_PKEY), key(std::string(key)) {}
 
     void printTo(PrintWriter& pw);
-    virtual void accept(Visitor *v) {}
+    virtual bool accept(Visitor *v) { return false; }
 
     std::string key;
 };
@@ -347,7 +347,7 @@ public:
           rtb(std::string(rtb)), rkey(std::string(rkey)) {}
 
     void printTo(PrintWriter& pw);
-    virtual void accept(Visitor *v) {}
+    virtual bool accept(Visitor *v) { return false; }
 
     std::string key;
     std::string rtb;
@@ -385,7 +385,7 @@ public:
     }
 
     void printTo(PrintWriter& pw);
-    virtual void accept(Visitor *v);
+    virtual bool accept(Visitor *v);
     bool exists(std::string& col);
     int indexOf(std::string& col);
 
@@ -402,7 +402,7 @@ public:
     DropTBStmt(const char *tbName) : tb(std::string(tbName)) {}
 
     void printTo(PrintWriter& pw);
-    virtual void accept(Visitor *v);
+    virtual bool accept(Visitor *v);
 
     std::string tb;
 };
@@ -413,7 +413,7 @@ public:
     ShowTBStmt(const char *tbName) : tb(std::string(tbName)) {}
 
     void printTo(PrintWriter& pw);
-    virtual void accept(Visitor *v);
+    virtual bool accept(Visitor *v);
 
     std::string tb;
 };
@@ -432,7 +432,7 @@ public:
     }
 
     void printTo(PrintWriter& pw);
-    virtual void accept(Visitor *v);
+    virtual bool accept(Visitor *v);
 
     std::vector<std::string> *cols;
 };
@@ -450,7 +450,7 @@ public:
     }
 
     void printTo(PrintWriter& pw);
-    virtual void accept(Visitor *v);
+    virtual bool accept(Visitor *v);
 
     std::string tb;
     Columns *cols;
@@ -464,7 +464,7 @@ public:
         : tb(std::string(tbName)), where((BoolExpr*)where) {}
 
     void printTo(PrintWriter& pw);
-    virtual void accept(Visitor *v);
+    virtual bool accept(Visitor *v);
 
     std::string tb;
     BoolExpr *where;
@@ -476,7 +476,7 @@ public:
     Eq(const char *colName, Tree *expr) : colName(std::string(colName)), expr((Expr*)expr) {}
 
     void printTo(PrintWriter& pw);
-    virtual void accept(Visitor *v);
+    virtual bool accept(Visitor *v);
 
     std::string colName;
     Expr *expr;
@@ -495,7 +495,7 @@ public:
     }
 
     void printTo(PrintWriter& pw);
-    virtual void accept(Visitor *v);
+    virtual bool accept(Visitor *v);
 
     std::string tb;
     std::vector<Eq*> *eqs;
@@ -511,7 +511,7 @@ public:
         : func(func), col((Col*)col) {}
 
     void printTo(PrintWriter& pw);
-    virtual void accept(Visitor *v);
+    virtual bool accept(Visitor *v);
 
     Col *col;
     int func;
@@ -536,7 +536,7 @@ public:
     }
 
     void printTo(PrintWriter& pw);
-    virtual void accept(Visitor *v);
+    virtual bool accept(Visitor *v);
 
     std::vector<Selector*> *selectors;
     bool all;
@@ -549,7 +549,7 @@ public:
     Where(Tree *where) : where((BoolExpr*)where), empty(false) {}
 
     void printTo(PrintWriter& pw) {}
-    virtual void accept(Visitor *v) {}
+    virtual bool accept(Visitor *v) { return false; }
 
     BoolExpr *where;
     bool empty;
@@ -564,7 +564,7 @@ public:
         : tb(std::string(tbName)), col(std::string(colName)), empty(false) {}
 
     void printTo(PrintWriter& pw) {}
-    virtual void accept(Visitor *v) {}
+    virtual bool accept(Visitor *v) { return false; }
 
     std::string tb;
     std::string col;
@@ -583,7 +583,7 @@ public:
     }
 
     void printTo(PrintWriter& pw);
-    virtual void accept(Visitor *v);
+    virtual bool accept(Visitor *v);
 
     std::vector<std::string> tbs;
     Selectors *sel;
@@ -598,7 +598,7 @@ public:
         : tb(std::string(tbName)), col(std::string(colName)) {}
 
     void printTo(PrintWriter& pw);
-    virtual void accept(Visitor *v);
+    virtual bool accept(Visitor *v);
 
     std::string tb;
     std::string col;
@@ -611,7 +611,7 @@ public:
         : tb(std::string(tbName)), col(std::string(colName)) {}
 
     void printTo(PrintWriter& pw);
-    virtual void accept(Visitor *v);
+    virtual bool accept(Visitor *v);
 
     std::string tb;
     std::string col;
@@ -622,37 +622,37 @@ public:
 class Visitor
 {
 public:
-    virtual void visitTree(Tree *that) { assert(false); }
-    virtual void visitValue(Value *that) { visitTree(that); }
-    virtual void visitCol(Col *that) { visitTree(that); }
-    virtual void visitUnonExpr(UnonExpr *that) { visitTree(that); }
-    virtual void visitBinExpr(BinExpr *that) { visitTree(that); }
-    virtual void visitTopLevel(TopLevel *that) { visitTree(that); }
-    virtual void visitListDB(ListDB *that) { visitTree(that); }
-    virtual void visitCreateDBStmt(CreateDBStmt *that) { visitTree(that); }
-    virtual void visitDropDBStmt(DropDBStmt *that) { visitTree(that); }
-    virtual void visitUseDBStmt(UseDBStmt *that) { visitTree(that); }
-    virtual void visitListTB(ListTB *that) { visitTree(that); }
-    virtual void visitType(Type *that) { visitTree(that); }
-    virtual void visitField(Field *that) { visitTree(that); }
-    virtual void visitNullExpr(NullExpr *that) { visitTree(that); }
-    virtual void visitCompareExpr(CompareExpr *that) { visitTree(that); }
-    virtual void visitInExpr(InExpr *that) { visitTree(that); }
-    virtual void visitBetweenExpr(BetweenExpr *that) { visitTree(that); }
-    virtual void visitComplexExpr(ComplexExpr *that) { visitTree(that); }
-    virtual void visitCreateTBStmt(CreateTBStmt *that) { visitTree(that); }
-    virtual void visitDropTBStmt(DropTBStmt *that) { visitTree(that); }
-    virtual void visitShowTBStmt(ShowTBStmt *that) { visitTree(that); }
-    virtual void visitColumns(Columns *that) { visitTree(that); }
-    virtual void visitInsertStmt(InsertStmt *that) { visitTree(that); }
-    virtual void visitDeleteStmt(DeleteStmt *that) { visitTree(that); }
-    virtual void visitEq(Eq *that) { visitTree(that); }
-    virtual void visitUpdateStmt(UpdateStmt *that) { visitTree(that); }
-    virtual void visitSelector(Selector *that) { visitTree(that); }
-    virtual void visitSelectors(Selectors *that) { visitTree(that); }
-    virtual void visitSelectStmt(SelectStmt *that) { visitTree(that); }
-    virtual void visitCreateIdxStmt(CreateIdxStmt *that) { visitTree(that); }
-    virtual void visitDropIdxStmt(DropIdxStmt *that) { visitTree(that); }
+    virtual bool visitTree(Tree *that) { assert(false); return false; }
+    virtual bool visitValue(Value *that) { return visitTree(that); }
+    virtual bool visitCol(Col *that) { return visitTree(that); }
+    virtual bool visitUnonExpr(UnonExpr *that) { return visitTree(that); }
+    virtual bool visitBinExpr(BinExpr *that) { return visitTree(that); }
+    virtual bool visitTopLevel(TopLevel *that) { return visitTree(that); }
+    virtual bool visitListDB(ListDB *that) { return visitTree(that); }
+    virtual bool visitCreateDBStmt(CreateDBStmt *that) { return visitTree(that); }
+    virtual bool visitDropDBStmt(DropDBStmt *that) { return visitTree(that); }
+    virtual bool visitUseDBStmt(UseDBStmt *that) { return visitTree(that); }
+    virtual bool visitListTB(ListTB *that) { return visitTree(that); }
+    virtual bool visitType(Type *that) { return visitTree(that); }
+    virtual bool visitField(Field *that) { return visitTree(that); }
+    virtual bool visitNullExpr(NullExpr *that) { return visitTree(that); }
+    virtual bool visitCompareExpr(CompareExpr *that) { return visitTree(that); }
+    virtual bool visitInExpr(InExpr *that) { return visitTree(that); }
+    virtual bool visitBetweenExpr(BetweenExpr *that) { return visitTree(that); }
+    virtual bool visitComplexExpr(ComplexExpr *that) { return visitTree(that); }
+    virtual bool visitCreateTBStmt(CreateTBStmt *that) { return visitTree(that); }
+    virtual bool visitDropTBStmt(DropTBStmt *that) { return visitTree(that); }
+    virtual bool visitShowTBStmt(ShowTBStmt *that) { return visitTree(that); }
+    virtual bool visitColumns(Columns *that) { return visitTree(that); }
+    virtual bool visitInsertStmt(InsertStmt *that) { return visitTree(that); }
+    virtual bool visitDeleteStmt(DeleteStmt *that) { return visitTree(that); }
+    virtual bool visitEq(Eq *that) { return visitTree(that); }
+    virtual bool visitUpdateStmt(UpdateStmt *that) { return visitTree(that); }
+    virtual bool visitSelector(Selector *that) { return visitTree(that); }
+    virtual bool visitSelectors(Selectors *that) { return visitTree(that); }
+    virtual bool visitSelectStmt(SelectStmt *that) { return visitTree(that); }
+    virtual bool visitCreateIdxStmt(CreateIdxStmt *that) { return visitTree(that); }
+    virtual bool visitDropIdxStmt(DropIdxStmt *that) { return visitTree(that); }
 };
 
 #endif // PARSER_TREE_H_

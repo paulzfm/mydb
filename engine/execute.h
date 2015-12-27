@@ -11,39 +11,38 @@ class ExecuteVisitor : public Visitor
 public:
     ExecuteVisitor(QueryManager *qm) : qm(qm) {}
 
-    void visitValue(Value *that);
-    void visitUnonExpr(UnonExpr *that);
-    void visitBinExpr(BinExpr *that);
-    void visitTopLevel(TopLevel *that);
-    void visitListDB(ListDB *that);
-    void visitCreateDBStmt(CreateDBStmt *that);
-    void visitDropDBStmt(DropDBStmt *that);
-    void visitUseDBStmt(UseDBStmt *that);
-    void visitListTB(ListTB *that);
-    void visitType(Type *that);
-    void visitField(Field *that);
-    void visitNullExpr(NullExpr *that);
-    void visitCompareExpr(CompareExpr *that);
-    void visitInExpr(InExpr *that);
-    void visitBetweenExpr(BetweenExpr *that);
-    void visitComplexExpr(ComplexExpr *that);
-    void visitPrimaryKey(PrimaryKey *that);
-    void visitCreateTBStmt(CreateTBStmt *that);
-    void visitDropTBStmt(DropTBStmt *that);
-    void visitShowTBStmt(ShowTBStmt *that);
-    void visitColumns(Columns *that);
-    void visitInsertStmt(InsertStmt *that);
-    void visitDeleteStmt(DeleteStmt *that);
-    void visitEq(Eq *that);
-    void visitUpdateStmt(UpdateStmt *that);
-    void visitSelector(Selector *that);
-    void visitSelectors(Selectors *that);
-    void visitWhere(Where *that);
-    void visitGroupBy(GroupBy *that);
-    void visitSelectStmt(SelectStmt *that);
+    bool visitValue(Value *that);
+    bool visitUnonExpr(UnonExpr *that);
+    bool visitBinExpr(BinExpr *that);
+    bool visitTopLevel(TopLevel *that);
+    bool visitListDB(ListDB *that);
+    bool visitCreateDBStmt(CreateDBStmt *that);
+    bool visitDropDBStmt(DropDBStmt *that);
+    bool visitUseDBStmt(UseDBStmt *that);
+    bool visitListTB(ListTB *that);
+    bool visitType(Type *that);
+    bool visitField(Field *that);
+    bool visitNullExpr(NullExpr *that);
+    bool visitCompareExpr(CompareExpr *that);
+    bool visitInExpr(InExpr *that);
+    bool visitBetweenExpr(BetweenExpr *that);
+    bool visitComplexExpr(ComplexExpr *that);
+    bool visitPrimaryKey(PrimaryKey *that);
+    bool visitCreateTBStmt(CreateTBStmt *that);
+    bool visitDropTBStmt(DropTBStmt *that);
+    bool visitShowTBStmt(ShowTBStmt *that);
+    bool visitColumns(Columns *that);
+    bool visitInsertStmt(InsertStmt *that);
+    bool visitDeleteStmt(DeleteStmt *that);
+    bool visitEq(Eq *that);
+    bool visitUpdateStmt(UpdateStmt *that);
+    bool visitSelector(Selector *that);
+    bool visitSelectors(Selectors *that);
+    bool visitWhere(Where *that);
+    bool visitGroupBy(GroupBy *that);
+    bool visitSelectStmt(SelectStmt *that);
 
     std::string msg; // to save return message
-    bool success; // whether a statement execution is successful
 
 private:
     QueryManager *qm;
