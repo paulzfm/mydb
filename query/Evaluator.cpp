@@ -7,13 +7,15 @@ vector<DValue>& Evaluator::getValues() {
     return values;
 }
 
-void Evaluator::visitCol(Col *that) {
+bool Evaluator::visitCol(Col *that) {
     // TODO
     DValue val;
     values.push_back(val);
+
+    return true;
 }
 
-void Evaluator::visitValue(Value *that) {
+bool Evaluator::visitValue(Value *that) {
     switch (that->kind) {
         case Value::VALUE_INT:
             values.push_back(DValue((int64_t)atoll(that->val.c_str())));
@@ -24,9 +26,11 @@ void Evaluator::visitValue(Value *that) {
         case Value::VALUE_NULL:
             values.push_back(DValue());
     }
+
+    return true;
 }
 
-void Evaluator::visitUnonExpr(UnonExpr *that) {
+bool Evaluator::visitUnonExpr(UnonExpr *that) {
     that->expr->accept(this);
     DValue val = values.back();
     values.pop_back();
@@ -36,9 +40,11 @@ void Evaluator::visitUnonExpr(UnonExpr *that) {
         if (val.isReal()) val = DValue(-val.getReal());
     }
     values.push_back(val);
+
+    return true;
 }
 
-void Evaluator::visitBinExpr(BinExpr *that) {
+bool Evaluator::visitBinExpr(BinExpr *that) {
     that->left->accept(this);
     that->right->accept(this);
 
@@ -68,17 +74,21 @@ void Evaluator::visitBinExpr(BinExpr *that) {
             break;
     }
     values.push_back(val);
+
+    return true;
 }
 
-void Evaluator::visitNullExpr(NullExpr *that) {
+bool Evaluator::visitNullExpr(NullExpr *that) {
     // TODO: get null column value and visiting Column
     char* null;
     Column col;
     bool res = (null[col.cid / 8] & (1 << (col.cid % 8)));
     values.push_back(DValue(res != (that->op == BoolExpr::OP_IS_NOT_NULL)));
+
+    return true;
 }
 
-void Evaluator::visitCompareExpr(CompareExpr *that) {
+bool Evaluator::visitCompareExpr(CompareExpr *that) {
     // TODO
     DValue val;
     that->right->accept(this);
@@ -106,9 +116,11 @@ void Evaluator::visitCompareExpr(CompareExpr *that) {
     }
     values.pop_back();
     values.push_back(res);
+
+    return true;
 }
 
-void Evaluator::visitInExpr(InExpr *that) {
+bool Evaluator::visitInExpr(InExpr *that) {
     // TODO
     DValue val;
     bool res = false;
@@ -119,9 +131,11 @@ void Evaluator::visitInExpr(InExpr *that) {
         }
     }
     values.push_back(DValue(res != (that->op == BoolExpr::OP_NOT_IN)));
+
+    return true;
 }
 
-void Evaluator::visitBetweenExpr(BetweenExpr *that) {
+bool Evaluator::visitBetweenExpr(BetweenExpr *that) {
     int low = atoll(that->rightL->val.c_str()),
         high = atoll(that->rightR->val.c_str());
     // TODO: get column value
@@ -133,9 +147,11 @@ void Evaluator::visitBetweenExpr(BetweenExpr *that) {
     else
         res = low <= val.getReal() && val.getReal() <= high;
     values.push_back(DValue(res != (that->op == BoolExpr::OP_NOT_BETWEEN)));
+
+    return true;
 }
 
-void Evaluator::visitComplexExpr(ComplexExpr *that) {
+bool Evaluator::visitComplexExpr(ComplexExpr *that) {
     that->left->accept(this);
     that->right->accept(this);
 
@@ -152,5 +168,6 @@ void Evaluator::visitComplexExpr(ComplexExpr *that) {
             values.push_back(DValue(a || b));
             break;
     }
-}
 
+    return true;
+}

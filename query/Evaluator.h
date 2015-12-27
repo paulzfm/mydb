@@ -12,20 +12,20 @@ private:
     vector<DValue> values;
     const char* rec;
     QueryManager* qm;
-    
+
 public:
     Evaluator(QueryManager* qm, const char* rec);
     vector<DValue>& getValues();
 
-    void visitCol(Col *that);
-    void visitValue(Value *that);
-    void visitUnonExpr(UnonExpr *that);
-    void visitBinExpr(BinExpr *that);
-    void visitNullExpr(NullExpr *that);
-    void visitCompareExpr(CompareExpr *that);
-    void visitInExpr(InExpr *that);
-    void visitBetweenExpr(BetweenExpr *that);
-    void visitComplexExpr(ComplexExpr *that);
+    bool visitCol(Col *that);
+    bool visitValue(Value *that);
+    bool visitUnonExpr(UnonExpr *that);
+    bool visitBinExpr(BinExpr *that);
+    bool visitNullExpr(NullExpr *that);
+    bool visitCompareExpr(CompareExpr *that);
+    bool visitInExpr(InExpr *that);
+    bool visitBetweenExpr(BetweenExpr *that);
+    bool visitComplexExpr(ComplexExpr *that);
 };
 
-#endif 
+#endif
