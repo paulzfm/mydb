@@ -194,6 +194,28 @@ void RecordManager::query(const std::function<bool(const Record&)>& filter, std:
     }
 }
 
+bool RecordManager::queryOne(const std::function<bool(const Record&)>& filter, Record& record)
+{
+    for (int page = 1; page <= pid; page++) {
+        int index;
+        int *b = (int*)(bpm->getPage(fid, page, index));
+        std::vector<int> offsets;
+        BitMap::findZeros(b, RM_PAGE_FREE_MAP_SIZE << 5, offsets);
+        offsets.erase(offsets.begin());
+        for (int offset: offsets) {
+            if ((offset - 1) % words == 0) {
+                int *start = b + offset * RM_WORD_SIZE;
+                Record rec(*start, start + 1, length, page, offset);
+                if (filter(rec)) {
+                    record = rec;
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
+}
+
 int RecordManager::last() const
 {
     return rid;

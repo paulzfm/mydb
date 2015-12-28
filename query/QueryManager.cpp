@@ -31,33 +31,6 @@ Container QueryManager::getContainer(const string& name) {
 	}
 }
 
-std::function<bool(const Record&)> QueryManager::getFilter(Table* table, BoolExpr* expr) {
-    return [this, expr, table] (const Record& rec) {
-        unordered_map<string, DValue> values;
-        string prefix = table->name + ".";
-        DValue null = table->getColumnValue(rec.data, 0), val;
-        for (const auto& col : table->columns) {
-            if (col.cid == 0) continue; // NULL
-            if ((null.data[col.cid / 8] & (1 << (col.cid % 8))) > 0)
-                val = DValue();
-            else
-                val = table->getColumnValue(rec.data, col.cid);
-            values[prefix + col.name] = val;
-        }
-        Evaluator eval(values, table->name);
-        expr->accept(&eval);
-        return eval.getValues().back().getBool();
-    };
-}
-
-std::function<bool(const unordered_map<string, DValue>&)> QueryManager::getJoinFilter(BoolExpr* expr) {
-    return [this, expr] (const unordered_map<string, DValue>& values) {
-        Evaluator eval(values);
-        expr->accept(&eval);
-        return eval.getValues().back().getBool();
-    };
-}
-
 QueryManager::QueryManager(SystemManager* sysmgr_) : sysmgr(sysmgr_) {
 }
 
@@ -165,7 +138,7 @@ bool QueryManager::Insert(const string& table, unordered_map<string, Value*>& da
 	}
     
     // check NN, CHK constraints
-    if ( ! rm.first->checkConstraints(buf) ) return setError(msg);
+    if ( ! rm.first->checkConstraints(buf, rm.second) ) return setError(msg);
     // TODO: check UQ and FK
 
     for (auto& p : data) {
@@ -226,8 +199,8 @@ bool QueryManager::Update(const string& table,
 
     for (auto& rec : results) {
         // check NN, CHK constraints
-        if ( ! rm.first->checkConstraints(rec.data) ) return setError(msg);
-        // TODO: check UQ and FK
+        if ( ! rm.first->checkConstraints(rec.data, rm.second) ) return setError(msg);
+        // TODO: check PK, UQ and FK
     }
 
 	for (auto& rec : results)

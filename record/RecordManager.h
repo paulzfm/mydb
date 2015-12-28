@@ -19,7 +19,9 @@ struct Record
     int page;   // useful when calling query
     int offset; // useful when calling query
 
-    Record() {}
+    Record() {
+        data = NULL;
+    }
 
     Record(int rid, int *buf, int length) : rid(rid), len(length)
     {
@@ -41,6 +43,17 @@ struct Record
         memcpy(data, rec.data, len);
     }
 
+    Record& operator = (const Record& rec)
+    {
+        if (data != NULL) delete[] data;
+        rid = rec.rid;
+        len = rec.len;
+        page = rec.page;
+        offset = rec.offset;
+        data = new char[len];
+        memcpy(data, rec.data, len);
+    }
+
     void set(int rid, int *buf, int length, int pid, int offset)
     {
         this->rid = rid;
@@ -56,7 +69,7 @@ struct Record
 
     ~Record()
     {
-        delete[] data;
+        if (data != NULL) delete[] data;
     }
 };
 
@@ -100,6 +113,7 @@ public:
     // query records satisfing the filter
     //    filter :: const Record & -> bool
     void query(const std::function<bool(const Record&)>& filter, std::vector<Record>& records);
+    bool queryOne(const std::function<bool(const Record&)>& filter, Record& record);
 
     // the id of the last record
     int last() const;

@@ -10,6 +10,7 @@
 #include "../sys/Column.h"
 #include "../parser/Tree.h"
 #include "values.h"
+#include "utils.h"
 
 using std::pair;
 using std::vector;
@@ -24,8 +25,8 @@ private:
 	// <dbid, table name> -> RecordManager
 	std::map<pair<int, string>, RecordManager*> tables;
 
-    std::function<bool(const Record&)> getFilter(Table* table, BoolExpr* expr);
-    std::function<bool(const unordered_map<string, DValue>&)> getJoinFilter(BoolExpr* expr);
+    //std::function<bool(const Record&)> getFilter(Table* table, BoolExpr* expr);
+    //std::function<bool(const unordered_map<string, DValue>&)> getJoinFilter(BoolExpr* expr);
 
     bool join(const vector<string>& tables,
         const vector<vector<Record>>& rs,

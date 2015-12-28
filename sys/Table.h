@@ -5,6 +5,7 @@
 #include "Column.h"
 #include "Constraint.h"
 #include "../query/values.h"
+#include "../record/RecordManager.h"
 
 class Table {
 	private:
@@ -38,7 +39,7 @@ class Table {
 		void desc() const;
 
         // util functions
-		bool checkConstraints(const char* rec);
+		bool checkConstraints(const char* rec, RecordManager* rm);
         bool setColumnValue(char* rec, short cid, const DValue& val) const;
         DValue getColumnValue(const char* rec, short cid) const;
 };

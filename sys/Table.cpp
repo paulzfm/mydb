@@ -1,4 +1,5 @@
 #include "Table.h"
+#include "../query/utils.h"
 
 Table NullTable = Table();
 
@@ -71,7 +72,6 @@ bool Table::removeColumn(int cid) {
 }
 
 bool Table::addConstraint(Constraint& c) {
-	// TODO: check
 	constraints.push_back(std::move(c));
 }
 
@@ -178,25 +178,38 @@ void Table::desc() const {
 	cmsg << endl;
 }
 
-bool Table::checkConstraints(const char* rec) {
+bool Table::checkConstraints(const char* rec, RecordManager* rm) {
+    DValue null = getColumnValue(rec, 0);
     for (const auto& con : constraints) {
+        int mask = 1 << (con.cid % 8);
         switch (con.type) {
+            case Constraint::PRIMARY_KEY:
             case Constraint::NOT_NULL: {
-                DValue null = getColumnValue(rec, 0);
-                int mask = 1 << (con.cid % 8);
                 if ((null.data[con.cid / 8] & mask) > 0) {
                     Column& col = columns[getColumnById(con.cid)];
                     cmsg << "[ERROR] Column " << col.name << " is NOT NULL." << endl;
                     return false;
                 }
+                if (con.type == Constraint::NOT_NULL) break;
             }
             case Constraint::UNIQUE: {
-            }
-            case Constraint::PRIMARY_KEY: {
+                if ((null.data[con.cid / 8] & mask) == 0) {
+                    DValue val = getColumnValue(rec, con.cid);
+                    Column& col = columns[getColumnById(con.cid)];
+                    auto filter = getFilter(this, getBoolExpr(name, col.name, val));
+                    Record r;
+                    if (rm->queryOne(filter, r)) {
+                        cmsg << "[ERROR] value in column " << col.name << " is not UNIQUE." << endl;
+                        return false;
+                    }
+                }
+                break;
             }
             case Constraint::FOREIGN_KEY: {
+                break;
             }
             case Constraint::CHECK: {
+                break;
             }
         }
     }

@@ -6,6 +6,9 @@
 #include "../sys/Table.h"
 #include "values.h"
 #include "QueryManager.h"
+#include <unordered_map>
+
+using std::unordered_map;
 
 class Evaluator : public Visitor {
 private:
