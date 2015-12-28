@@ -51,8 +51,10 @@ std::function<bool(const Record&)> QueryManager::getFilter(Table* table, BoolExp
 }
 
 std::function<bool(const unordered_map<string, DValue>&)> QueryManager::getJoinFilter(BoolExpr* expr) {
-    return [this, expr] (const unordered_map<string, DValue>&) {
-        return true;
+    return [this, expr] (const unordered_map<string, DValue>& values) {
+        Evaluator eval(values);
+        expr->accept(&eval);
+        return eval.getValues().back().getBool();
     };
 }
 
