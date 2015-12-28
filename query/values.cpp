@@ -112,12 +112,12 @@ string DValue::getString() const {
     return string(data);
 }
 
-void DValue::print() const {
-    if (isNull()) cmsg << "NULL";
-    if (isInt()) cmsg << getInt();
-    if (isReal()) cmsg << getReal();
-    if (isBool()) cmsg << getBool() ? "TRUE" : "FALSE";
-    if (isString()) cmsg << '\'' << getString() << '\'';
+string DValue::printToString() const {
+    if (isNull()) return string("NULL");
+    if (isInt()) return std::to_string(getInt());
+    if (isReal()) return std::to_string(getReal());
+    if (isBool()) return getBool() ? string("TRUE") : string("FALSE");
+    if (isString()) return string("'") + getString() + "'";
 }
 
 DValue operator == (const DValue& a, const DValue& b) {

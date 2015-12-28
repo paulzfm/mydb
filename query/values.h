@@ -32,7 +32,7 @@ public:
     double getReal() const;
     string getString() const;
 
-    void print() const;
+    string printToString() const;
 };
 
 DValue operator == (const DValue& a, const DValue& b);

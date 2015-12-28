@@ -24,27 +24,28 @@ private:
 	// <dbid, table name> -> RecordManager
 	std::map<pair<int, string>, RecordManager*> tables;
 
-    std::function<bool(const Record&)> getFilter(BoolExpr* expr);
-    std::function<bool(const vector<DValue>&)> getJoinFilter(BoolExpr* expr);
+    std::function<bool(const Record&)> getFilter(Table* table, BoolExpr* expr);
+    std::function<bool(const unordered_map<string, DValue>&)> getJoinFilter(BoolExpr* expr);
 
     bool join(const vector<string>& tables,
         const vector<vector<Record>>& rs,
-        std::function<bool(const vector<DValue>&)> filter,
+        std::function<bool(const unordered_map<string, DValue>&)> filter,
         const Selectors& selectors,
-        vector<vector<DValue>>& results);
+        vector<unordered_map<string, DValue>>& results);
 
     bool group(const GroupBy& groupby,
         const Selectors& selectors,
-        vector<vector<DValue>>& input,
-        vector<vector<vector<DValue>>>& output);
+        vector<unordered_map<string, DValue>>& input,
+        vector<vector<unordered_map<string, DValue>>>& output);
 
     bool aggregate(const Selectors& selectors,
         const GroupBy& groupby,
-        vector<vector<vector<DValue>>>& input,
-        vector<vector<DValue>>& output);
+        vector<vector<unordered_map<string, DValue>>>& input,
+        vector<unordered_map<string, DValue>>& output);
 
     bool print(const Selectors& selectors,
-        const vector<vector<DValue>>& results);
+        const vector<string>& tables,
+        const vector<unordered_map<string, DValue>>& results);
 
 public:
 	QueryManager(SystemManager *sysmgr_);

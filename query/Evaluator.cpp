@@ -1,6 +1,7 @@
 #include "Evaluator.h"
 
-Evaluator::Evaluator(QueryManager* qm, const char* rec) : qm(qm), rec(rec){
+Evaluator::Evaluator(const unordered_map<string, DValue>& rec, string tb)
+        : rec(rec), tb(tb) {
 }
 
 vector<DValue>& Evaluator::getValues() {
@@ -8,15 +9,14 @@ vector<DValue>& Evaluator::getValues() {
 }
 
 bool Evaluator::visitCol(Col *that) {
-    Container rm = qm->getContainer(that->tb);
-    if (rm == NullContainer) {
+    string name = that->tb + "." + that->col;
+    if (that->tb == "") name = tb + name;
+    auto iter = rec.find(name);
+    if (iter == rec.end()) {
         values.push_back(DValue());
 
     } else {
-        int id = rm.first->getColumnByName(that->col);
-        int cid = rm.first->getColumn(id).cid;
-        DValue val = rm.first->getColumnValue(rec, cid);
-        values.push_back(val);
+        values.push_back(iter->second);
     }
 
     return true;
@@ -31,7 +31,7 @@ bool Evaluator::visitValue(Value *that) {
             values.push_back(DValue(atof(that->val.c_str())));
             break;
         case Value::VALUE_STRING:
-            values.push_back(DValue(that->val.c_str()));
+            values.push_back(DValue(that->val));
             break;
         case Value::VALUE_NULL:
             values.push_back(DValue());

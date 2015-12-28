@@ -82,7 +82,8 @@ bool RecordManager::insert(char *data)
     int index1;
     int *b1 = (int*)(bpm->getPage(fid, pageId, index1));
     int offset = BitMap::findOne(b1, RM_PAGE_FREE_MAP_SIZE << 5);
-    BitMap::reset(b1, offset);
+    for (int i = 0; i < words; ++i)
+        BitMap::reset(b1, offset + i);
 
     // write record
     rid++;

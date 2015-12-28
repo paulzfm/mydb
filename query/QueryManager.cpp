@@ -1,5 +1,6 @@
 #include "QueryManager.h"
 #include "Evaluator.h"
+#include "../util/print.h"
 #include "../record/types.h"
 
 Container NullContainer = make_pair((Table*)NULL, (RecordManager*)NULL);
@@ -30,16 +31,22 @@ Container QueryManager::getContainer(const string& name) {
 	}
 }
 
-std::function<bool(const Record&)> QueryManager::getFilter(BoolExpr* expr) {
-    return [this, expr] (const Record& rec) {
-        Evaluator eval(this, rec.data);
+std::function<bool(const Record&)> QueryManager::getFilter(Table* table, BoolExpr* expr) {
+    return [this, expr, table] (const Record& rec) {
+        unordered_map<string, DValue> values;
+        string prefix = table->name + ".";
+        for (const auto& col : table->columns) {
+            DValue val = table->getColumnValue(rec.data, col.cid);
+            values[prefix + col.name] = val;
+        }
+        Evaluator eval(values, table->name);
         expr->accept(&eval);
         return eval.getValues().back().getBool();
     };
 }
 
-std::function<bool(const vector<DValue>&)> QueryManager::getJoinFilter(BoolExpr* expr) {
-    return [this, expr] (const vector<DValue>&) {
+std::function<bool(const unordered_map<string, DValue>&)> QueryManager::getJoinFilter(BoolExpr* expr) {
+    return [this, expr] (const unordered_map<string, DValue>&) {
         return true;
     };
 }
@@ -171,7 +178,7 @@ bool QueryManager::Delete(const string& table, BoolExpr* where, string& msg) {
 	if (rm == NullContainer) return setError(msg);
 
 	// query then remove
-    auto filter = getFilter(where);
+    auto filter = getFilter(rm.first, where);
 	vector<Record> results;
 	rm.second->query(filter, results);
 
@@ -188,7 +195,7 @@ bool QueryManager::Update(const string& table,
 	if (rm == NullContainer) return setError(msg);
 
 	// query then update
-    auto filter = getFilter(expr);
+    auto filter = getFilter(rm.first, expr);
 	vector<Record> results;
 	rm.second->query(filter, results);
 
@@ -198,7 +205,13 @@ bool QueryManager::Update(const string& table,
         if (cid == -1) return setError(msg);
 
         for (auto& rec : results) {
-            Evaluator eval(this, rec.data);
+            unordered_map<string, DValue> values;
+            string prefix = table + ".";
+            for (const auto& col : rm.first->columns) {
+                DValue val = rm.first->getColumnValue(rec.data, col.cid);
+                values[prefix + col.name] = val;
+            }
+            Evaluator eval(values, table);
             rm.first->setColumnValue(rec.data, cid, eval.getValues().back());
         }
     }
@@ -218,14 +231,35 @@ bool QueryManager::Update(const string& table,
 
 bool QueryManager::join(const vector<string>& tables,
         const vector<vector<Record>>& rs,
-        std::function<bool(const vector<DValue>&)> filter,
+        std::function<bool(const unordered_map<string, DValue>&)> filter,
         const Selectors& selectors,
-        vector<vector<DValue>>& results) {
+        vector<unordered_map<string, DValue>>& results) {
 
-    std::function<bool(int, vector<DValue>&)> recur_func;
-    recur_func = [&] (int level, vector<DValue>& rec) {
+    std::function<bool(int, unordered_map<string, DValue>&)> recur_func;
+    string prefix = "";
+    if (tables.size() == 1) prefix = tables[0] + ".";
+    recur_func = [&] (int level, unordered_map<string, DValue>& rec) {
         if (level == tables.size()) {
-            if (filter(rec)) results.push_back(rec);
+            if (filter(rec)) {
+                unordered_map<string, DValue> v;
+                // generate queried results
+                for (const Selector* sel : *selectors.selectors) {
+                    string tbName = sel->col->tb;
+                    if (tbName == "") {
+                        if (tables.size() == 1) tbName = tables[0];
+                        else {
+                            cmsg << "[ERROR] table name should be provided when SELECT from multiple tables." << endl;
+                            return false;
+                        }
+                    }
+                    Table* table = getContainer(tbName).first;
+                    int idx = table->getColumnByName(sel->col->col);
+                    Column& col = table->getColumn(idx);
+                    string name = tbName + "." + sel->col->col;
+                    v[name] = rec[name];
+                }
+                results.push_back(v);
+            }
             return true;
 
         } else {
@@ -234,12 +268,12 @@ bool QueryManager::join(const vector<string>& tables,
             int sz = rec.size();
             for (int i = 0; i < rs[level].size(); ++i) {
                 const Record& r = rs[level][i];
-                if (selectors.all) {
-                    for (int idx = 0; idx < table->columns.size(); ++idx) {
-                        Column& col = table->getColumn(idx);
-                        rec.push_back(table->getColumnValue(r.data, col.cid));
-                    }
-                } else {
+                for (int idx = 1; idx < table->columns.size(); ++idx) {
+                    Column& col = table->getColumn(idx);
+                    string name = tbName + "." + col.name;
+                    rec[name] = table->getColumnValue(r.data, col.cid);
+                }
+                /*} else {
                     int i = -1;
                     for (const Selector* sel : *selectors.selectors) {
                         ++i;
@@ -248,23 +282,29 @@ bool QueryManager::join(const vector<string>& tables,
                         Column& col = table->getColumn(idx);
                         rec[i] = table->getColumnValue(r.data, col.cid);
                     }
-                }
+                }*/
                 if (!recur_func(level + 1, rec)) return false;
-                if (selectors.all) rec.resize(sz);
+
+                // backtrace
+                for (int idx = 1; idx < table->columns.size(); ++idx) {
+                    Column& col = table->getColumn(idx);
+                    string name = tbName + "." + col.name;
+                    rec.erase(name);
+                }
             }
             return true;
         }
     };
-    vector<DValue> rec;
-    if (!selectors.all) rec.resize(selectors.selectors->size());
+    unordered_map<string, DValue> rec;
     return recur_func(0, rec);
 }
 
 bool QueryManager::group(const GroupBy& groupby,
         const Selectors& selectors,
-        vector<vector<DValue>>& input,
-        vector<vector<vector<DValue>>>& output) {
+        vector<unordered_map<string, DValue>>& input,
+        vector<vector<unordered_map<string, DValue>>>& output) {
 
+    string name = groupby.tb + "." + groupby.col;
     int sz = -1, idx = -1;
     for (const Selector* sel : *selectors.selectors) {
         ++sz;
@@ -279,19 +319,19 @@ bool QueryManager::group(const GroupBy& groupby,
 
     int cnt = 0;
     std::map<DValue, int, DValueLT> V;
-    for (const auto& rec : input) {
-        if (V.find(rec[idx]) == V.end()) {
-            V[rec[idx]] = cnt++;
+    for (auto& rec : input) {
+        if (V.find(rec[name]) == V.end()) {
+            V[rec[name]] = cnt++;
         }
-        output[V[rec[idx]]].push_back(rec);
+        output[V[rec[name]]].push_back(rec);
     }
     return true;
 }
 
 bool QueryManager::aggregate(const Selectors& selectors,
         const GroupBy& groupby,
-        vector<vector<vector<DValue>>>& input,
-        vector<vector<DValue>>& output) {
+        vector<vector<unordered_map<string, DValue>>>& input,
+        vector<unordered_map<string, DValue>>& output) {
 
     bool agg = false, nagg = false;
 
@@ -321,35 +361,35 @@ bool QueryManager::aggregate(const Selectors& selectors,
     }
 
     for (int gid = 0; gid < input.size(); ++gid) {
-        vector<DValue> rec;
-        int i = -1;
+        unordered_map<string, DValue> rec;
         for (const Selector* sel : *selectors.selectors) {
-            ++i;
+            string name = sel->col->tb + "." + sel->col->col;
             if (sel->col->tb != groupby.tb || sel->col->col != groupby.col) {
-                DValue val = input[gid][0][i];
+                DValue val = input[gid][0][name];
                 for (int id = 1; id < input[gid].size(); ++id) {
+                    DValue tmp = input[gid][id][name];
                     switch (sel->func) {
                         case Selector::FUNC_SUM:
                         case Selector::FUNC_AVG:
-                            val = val + input[gid][id][i];
+                            val = val + tmp;
                             break;
                         case Selector::FUNC_MAX:
-                            if ((val < input[gid][id][i]).getBool())
-                                val = input[gid][id][i];
+                            if ((val < tmp).getBool())
+                                val = tmp;
                             break;
                         case Selector::FUNC_MIN:
-                            if ((val > input[gid][id][i]).getBool())
-                                val = input[gid][id][i];
+                            if ((val > tmp).getBool())
+                                val = tmp;
                             break;
                     }
                 }
                 if (sel->func == Selector::FUNC_AVG)
                     val = val / DValue((int64_t)input[gid].size());
-                rec.push_back(val);
+                rec[name] = val;
 
             } else {
                 // all the same, take the first one
-                rec.push_back(input[gid][0][i]);
+                rec[name] = input[gid][0][name];
             }
         }
         output.push_back(rec);
@@ -359,20 +399,26 @@ bool QueryManager::aggregate(const Selectors& selectors,
 }
 
 bool QueryManager::print(const Selectors& selectors,
-        const vector<vector<DValue>>& results) {
-    cmsg << "|";
-    for (const Selector* sel : *selectors.selectors)
-        cmsg << sel->col->tb << '.' << sel->col->col << "\t|";
-    cmsg << endl;
-
-    for (const auto& rec : results) {
-        cmsg << "|";
-        for (const auto& val : rec) {
-            val.print();
-            cmsg << "\t|";
-        }
-        cmsg << endl;
+        const vector<string>& tables,
+        const vector<unordered_map<string, DValue>>& results) {
+    vector<string> heads;
+    for (const Selector* sel : *selectors.selectors) {
+        if (sel->col->tb == "") heads.push_back(sel->col->col);
+        else heads.push_back(sel->col->tb + "." + sel->col->col);
     }
+
+    vector<vector<string>> data;
+    for (const auto& rec : results) {
+        vector<string> row;
+        for (const Selector* sel : *selectors.selectors) {
+            string name;
+            if (sel->col->tb == "") name = tables[0] + "." + sel->col->col;
+            else heads.push_back(sel->col->tb + "." + sel->col->col);
+            row.push_back(rec.find(name)->second.printToString());
+        }
+        data.push_back(row);
+    }
+    cmsg << tableToString(heads, data) << endl;
 }
 
 bool QueryManager::Select(const vector<string>& tables, const Selectors* selectors,
@@ -391,7 +437,7 @@ bool QueryManager::Select(const vector<string>& tables, const Selectors* selecto
     // get individual candidates
     vector<vector<Record>> rs;
     for (auto& rm : rms) {
-        auto filter = getFilter(expr);
+        auto filter = getFilter(rm.second.first, expr);
 	    vector<Record> results;
 	    rm.second.second->query(filter, results);
         rs.push_back(std::move(results));
@@ -399,11 +445,11 @@ bool QueryManager::Select(const vector<string>& tables, const Selectors* selecto
 
     // join and filter again
     auto filter = getJoinFilter(expr);
-    vector<vector<DValue>> jres;
+    vector<unordered_map<string, DValue>> jres;
     if (!join(tables, rs, filter, *selectors, jres)) return setError(msg);
 
     // groupby
-    vector<vector<vector<DValue>>> gres;
+    vector<vector<unordered_map<string, DValue>>> gres;
     if (!groupBy->empty) {
         if (!group(*groupBy, *selectors, jres, gres)) return setError(msg);
     } else {
@@ -411,11 +457,11 @@ bool QueryManager::Select(const vector<string>& tables, const Selectors* selecto
     }
 
     // aggregate
-    vector<vector<DValue>> results;
+    vector<unordered_map<string, DValue>> results;
     if (!aggregate(*selectors, *groupBy, gres, results)) return setError(msg);
 
     // print result
-    if (!print(*selectors, results)) return setError(msg);
+    if (!print(*selectors, tables, results)) return setError(msg);
 
     msg = cmsg.str();
     return true;
