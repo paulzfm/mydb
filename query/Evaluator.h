@@ -10,11 +10,11 @@
 class Evaluator : public Visitor {
 private:
     vector<DValue> values;
-    const char* rec;
-    QueryManager* qm;
+    const unordered_map<string, DValue>& rec;
+    string tb;
 
 public:
-    Evaluator(QueryManager* qm, const char* rec);
+    Evaluator(const unordered_map<string, DValue>& rec, string tb = "");
     vector<DValue>& getValues();
 
     bool visitCol(Col *that);
