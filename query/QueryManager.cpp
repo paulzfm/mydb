@@ -134,8 +134,10 @@ bool QueryManager::Insert(const string& table, unordered_map<string, Value*>& da
             rm.first->setColumnValue(buf, con.cid, DValue(con.data));
             null[con.cid / 8] &= ~(1 << (con.cid % 8));
         }
+        // auto increment
         if (con.type == Constraint::AUTO_INCREMENT) {
-            rm.first->setColumnValue(buf, con.cid, DValue(con.data));
+            rm.first->setColumnValue(buf, con.cid, DValue((int64_t)con.data.GetInt()));
+            con.data.SetInt(con.data.GetInt() + 1);
         }
     }
 
