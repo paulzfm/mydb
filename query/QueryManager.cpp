@@ -103,6 +103,18 @@ void set(char* rec, char* null, short cid, Value* val, int size) {
     }
 }
 
+bool compatible(int colType, int valType) {
+    if (valType == Value::VALUE_NULL) return true;
+    return (((colType == DType::BYTE || colType == DType::SHORT
+                    || colType == DType::INT || colType == DType::LONG)
+                && valType == Value::VALUE_INT) ||
+            ((colType == DType::FLOAT || colType == DType::DOUBLE)
+                && valType == Value::VALUE_REAL) ||
+            (colType == DType::STRING && valType == Value::VALUE_STRING) ||
+            (colType == DType::BOOL && (valType == Value::VALUE_TRUE || valType == Value::VALUE_FALSE)));
+            
+}
+
 bool QueryManager::Insert(const string& table, unordered_map<string, Value*>& data, string& msg) {
     cmsg.str("");
 	Container rm = getContainer(table);
@@ -131,6 +143,11 @@ bool QueryManager::Insert(const string& table, unordered_map<string, Value*>& da
 	for (auto& col : rm.first->columns) {
 		auto iter = data.find(col.name);
 		if (iter != data.end()) {
+            // type check
+            if (!compatible(col.type, iter->second->kind)) {
+                cmsg << "[ERROR] data of column " << col.name << " is not compatible." << endl;
+                return setError(msg);
+            }
             null[col.cid / 8] &= ~(1 << (col.cid % 8));
             set(buf + col.offset, null, col.cid, iter->second, col.size);
             data.erase(iter);
