@@ -669,8 +669,8 @@ bool DropIdxStmt::accept(Visitor *v)
 
 void Col::fillTable(std::string &tbName)
 {
-    if (col == "") {
-        col = tbName;
+    if (tb == "") {
+        tb = tbName;
     }
 }
 
