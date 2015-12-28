@@ -169,7 +169,7 @@ bool QueryManager::Insert(const string& table, unordered_map<string, Value*>& da
     // TODO: check UQ and FK
 
     for (auto& p : data) {
-        cmsg << "[WARNING] Column " << p.first << "not found, ignored" << endl;
+        cmsg << "[WARNING] Column " << p.first << " not found, ignored" << endl;
     }
 
 	rm.second->insert(buf);
@@ -426,6 +426,11 @@ bool QueryManager::print(const Selectors& selectors,
     vector<string> heads;
     vector<vector<string>> data;
 
+    if (results.size() == 0) {
+        cmsg << "Empty set." << endl;
+        return true;
+    }
+
     if (selectors.all) {
         bool first = true;
         for (const auto& rec : results) {
@@ -477,6 +482,12 @@ bool QueryManager::Select(const vector<string>& tables, const Selectors* selecto
         rms[table] = rm;
     }
     // TODO: check column names
+    /*
+    ColumnChecker cc(tables, rms);
+    if (!expr->accept(&cc)) {
+        cmsg << "[ERROR] Evaluation error at " << cc.error << ".";
+        return false;
+    }*/
 
     // get individual candidates
     vector<vector<Record>> rs;

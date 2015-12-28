@@ -17,11 +17,11 @@ public:
     Evaluator(const unordered_map<string, DValue>& rec, string tb = "");
     vector<DValue>& getValues();
 
-    bool visitTree(Tree *that);
     bool visitCol(Col *that);
     bool visitValue(Value *that);
     bool visitUnonExpr(UnonExpr *that);
     bool visitBinExpr(BinExpr *that);
+    bool visitBoolValue(BoolValue *that);
     bool visitNullExpr(NullExpr *that);
     bool visitCompareExpr(CompareExpr *that);
     bool visitInExpr(InExpr *that);

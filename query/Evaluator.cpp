@@ -8,10 +8,6 @@ vector<DValue>& Evaluator::getValues() {
     return values;
 }
 
-bool Evaluator::visitTree(Tree *that) {
-    return true;
-}
-
 bool Evaluator::visitCol(Col *that) {
     string name = that->tb + "." + that->col;
     if (that->tb == "") name = tb + name;
@@ -50,6 +46,11 @@ bool Evaluator::visitValue(Value *that) {
             break;
     }
 
+    return true;
+}
+
+bool Evaluator::visitBoolValue(BoolValue *that) {
+    values.push_back(DValue(that->val));
     return true;
 }
 
