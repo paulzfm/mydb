@@ -27,6 +27,7 @@ public:
     bool visitSelectStmt(SelectStmt *that);
 
     std::string msg; // to save return message
+    std::string msgs; // all messages
 
 private:
     QueryManager *qm;

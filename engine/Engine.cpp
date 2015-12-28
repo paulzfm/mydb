@@ -8,7 +8,7 @@ std::string Engine::execute(std::string& input)
 {
     if (driver.parseString(input)) {
         driver.ast->accept(&visitor);
-        return visitor.msg;
+        return visitor.msgs;
     }
 
     return "";

@@ -2,9 +2,12 @@
 
 bool ExecuteVisitor::visitTopLevel(TopLevel *that)
 {
+    msgs = "";
     for (auto& stmt : *that->stmts) {
         msg = "";
-        if (!stmt->accept(this)) {
+        bool ret = stmt->accept(this);
+        msgs += msg;
+        if (!ret) {
             return false;
         }
     }
@@ -205,9 +208,7 @@ bool ExecuteVisitor::visitInsertStmt(InsertStmt *that)
             if (!qm->Insert(that->tb, data, msg)) {
                 return false;
             }
-        }
-
-        if (!qm->Insert(that->tb, *values, msg)) {
+        } else if (!qm->Insert(that->tb, *values, msg)) {
             return false;
         }
     }
@@ -240,6 +241,10 @@ bool ExecuteVisitor::visitSelectStmt(SelectStmt *that)
 {
     PrintWriter pw;
     that->printTo(pw);
-    
+
+    if (that->where->empty) {
+        that->where->where = new BoolValue(true);
+    }
+
     return qm->Select(that->tbs, that->sel, that->where->where, that->gb, msg);
 }

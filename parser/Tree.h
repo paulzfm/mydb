@@ -25,6 +25,7 @@ class Expr : public Tree
 public:
     virtual void printTo(PrintWriter& pw) = 0;
     virtual bool accept(Visitor *v) = 0;
+    virtual void fillTable(std::string &tbName) = 0;
 
     const static int OP_POS = 0;
     const static int OP_NEG = 1;
@@ -45,6 +46,7 @@ public:
 
     void printTo(PrintWriter& pw);
     virtual bool accept(Visitor *v);
+    void fillTable(std::string &tbName);
 
     std::string tb;
     std::string col;
@@ -84,6 +86,7 @@ public:
     void printTo(PrintWriter& pw);
     virtual bool accept(Visitor *v);
     bool compatibleWith(Type *type);
+    virtual void fillTable(std::string &tbName) {}
 
     int kind;
     std::string val;
@@ -103,6 +106,7 @@ public:
 
     void printTo(PrintWriter& pw);
     virtual bool accept(Visitor *v);
+    virtual void fillTable(std::string &tbName);
 
     Expr *expr;
     int op;
@@ -115,6 +119,7 @@ public:
 
     void printTo(PrintWriter& pw);
     virtual bool accept(Visitor *v);
+    virtual void fillTable(std::string &tbName);
 
     Expr *left;
     Expr *right;
@@ -193,8 +198,11 @@ public:
 class BoolExpr : public Tree
 {
 public:
+    BoolExpr(int op) : op(op) {}
+
     virtual void printTo(PrintWriter& pw) = 0;
     virtual bool accept(Visitor *v) = 0;
+    virtual void fillTable(std::string &tbName) = 0;
 
     int op;
 
@@ -214,73 +222,86 @@ public:
     const static int OP_OR = 13;
     const static int OP_IS_NULL = 14;
     const static int OP_IS_NOT_NULL = 15;
+    const static int OP_NONE = 16;
+};
+
+class BoolValue : public BoolExpr
+{
+public:
+    BoolValue(bool val = true) : BoolExpr(OP_NONE), val(val) {}
+
+    void printTo(PrintWriter& pw) {}
+    virtual bool accept(Visitor *v);
+    virtual void fillTable(std::string &tbName) {}
+
+    bool val;
 };
 
 class NullExpr : public BoolExpr
 {
 public:
-    NullExpr(Tree *col, int op) : name((Col*)col), op(op) {}
+    NullExpr(Tree *col, int op) : BoolExpr(op), name((Col*)col) {}
 
     void printTo(PrintWriter& pw);
     virtual bool accept(Visitor *v);
+    virtual void fillTable(std::string &tbName);
 
     Col *name;
-    int op;
 };
 
 class CompareExpr : public BoolExpr
 {
 public:
     CompareExpr(Tree *left, Tree *right, int op)
-        : left((Col*)left), right((Expr*)right), op(op) {}
+        : BoolExpr(op), left((Col*)left), right((Expr*)right) {}
 
     void printTo(PrintWriter& pw);
     virtual bool accept(Visitor *v);
+    virtual void fillTable(std::string &tbName);
 
     Col *left;
     Expr *right;
-    int op;
 };
 
 class InExpr : public BoolExpr
 {
 public:
     InExpr(Tree *left, std::vector<Tree*> *right, int op)
-        : left((Col*)left), right((std::vector<Value*>*)right), op(op) {}
+        : BoolExpr(op), left((Col*)left), right((std::vector<Value*>*)right) {}
 
     void printTo(PrintWriter& pw);
     virtual bool accept(Visitor *v);
+    virtual void fillTable(std::string &tbName);
 
     Col *left;
     std::vector<Value*> *right;
-    int op;
 };
 
 class BetweenExpr : public BoolExpr
 {
 public:
     BetweenExpr(Tree *left, Value *rightL, Value *rightR, int op)
-        : left((Col*)left), rightL(rightL), rightR(rightR), op(op) {}
+        : BoolExpr(op), left((Col*)left), rightL(rightL), rightR(rightR) {}
 
     void printTo(PrintWriter& pw);
     virtual bool accept(Visitor *v);
+    virtual void fillTable(std::string &tbName);
 
     Col *left;
     Value *rightL;
     Value *rightR;
-    int op;
 };
 
 class ComplexExpr : public BoolExpr
 {
 public:
     ComplexExpr(Tree *left, Tree *right, int op)
-        : left((BoolExpr*)left), right((BoolExpr*)right), op(op) {}
+        : BoolExpr(op), left((BoolExpr*)left), right((BoolExpr*)right) {}
 
     void printTo(PrintWriter& pw);
     virtual bool accept(Visitor *v);
+    virtual void fillTable(std::string &tbName);
 
-    int op;
     BoolExpr *left;
     BoolExpr *right;
 };
@@ -597,11 +618,23 @@ public:
 class SelectStmt : public Stmt
 {
 public:
-    SelectStmt(std::vector<const char*> *tbNames, Tree *selectors, Tree *where, Tree *gb)
-        : sel((Selectors*)selectors), where((Where*)where), gb((GroupBy*)gb)
+    SelectStmt(std::vector<const char*> *tbNames, Tree *selectors, Tree *whereClause, Tree *gb)
+        : sel((Selectors*)selectors), where((Where*)whereClause), gb((GroupBy*)gb)
     {
         for (auto& tb : *tbNames) {
             tbs.push_back(std::string(tb));
+        }
+
+        if (tbs.size() == 1) {
+            if (!sel->all) {
+                for (auto& s : *sel->selectors) {
+                    s->col->fillTable(tbs[0]);
+                }
+            }
+
+            if (!where->empty) {
+                where->where->fillTable(tbs[0]);
+            }
         }
     }
 
@@ -658,6 +691,7 @@ public:
     virtual bool visitListTB(ListTB *that) { return visitTree(that); }
     virtual bool visitType(Type *that) { return visitTree(that); }
     virtual bool visitField(Field *that) { return visitTree(that); }
+    virtual bool visitBoolValue(BoolValue *that) { return visitTree(that); }
     virtual bool visitNullExpr(NullExpr *that) { return visitTree(that); }
     virtual bool visitCompareExpr(CompareExpr *that) { return visitTree(that); }
     virtual bool visitInExpr(InExpr *that) { return visitTree(that); }
