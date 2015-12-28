@@ -20,7 +20,10 @@ public:
     ~DValue();
     DValue& operator = (const DValue& a);
 
+    void setMiss();
+
     bool isNull() const;
+    bool isMiss() const;
     bool isBool() const;
     bool isInt() const;
     bool isReal() const;
