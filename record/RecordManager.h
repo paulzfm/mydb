@@ -25,7 +25,15 @@ struct Record
         memcpy(data, buf, len);
     }
 
-    Record(const Record& rec) : rid(rec.rid), len(rec.len)
+    Record(int rid, int *buf, int length, int pid, int offset)
+        : rid(rid), len(length), page(pid), offset(offset)
+    {
+        data = new char[len];
+        memcpy(data, buf, len);
+    }
+
+    Record(const Record& rec)
+        : rid(rec.rid), len(rec.len), page(rec.page), offset(rec.offset)
     {
         data = new char[len];
         memcpy(data, rec.data, len);
