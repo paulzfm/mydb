@@ -150,7 +150,8 @@ bool RecordManager::load(int page, int offset, Record& rec)
 
     // read data
     int *start = b + offset * RM_WORD_SIZE;
-    rec = Record(*start, start + 1, length);
+    rec.set(*start, start + 1, length, page, offset);
+    // rec = Record(*start, start + 1, length, page, offset);
     bpm->access(index);
     return true;
 }
@@ -166,7 +167,7 @@ void RecordManager::loadAll(std::vector<Record>& records)
         for (int offset: offsets) {
             if ((offset - 1) % words == 0) {
                 int *start = b + offset * RM_WORD_SIZE;
-                records.push_back(Record(*start, start + 1, length));
+                records.push_back(Record(*start, start + 1, length, page, offset));
             }
         }
         bpm->access(index);
@@ -184,7 +185,7 @@ void RecordManager::query(const std::function<bool(const Record&)>& filter, std:
         for (int offset: offsets) {
             if ((offset - 1) % words == 0) {
                 int *start = b + offset * RM_WORD_SIZE;
-                Record rec(*start, start + 1, length);
+                Record rec(*start, start + 1, length, page, offset);
                 if (filter(rec)) {
                     records.push_back(rec);
                 }

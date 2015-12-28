@@ -3,6 +3,7 @@
 
 #include "PrintWriter.h"
 #include "../record/types.h"
+#include "../lib/rapidjson/document.h"
 
 #include <string>
 #include <vector>
@@ -26,6 +27,7 @@ public:
     virtual void printTo(PrintWriter& pw) = 0;
     virtual bool accept(Visitor *v) = 0;
     virtual void fillTable(std::string &tbName) = 0;
+    virtual rapidjson::Value toJSONValue(rapidjson::Document::AllocatorType& allocator) = 0;
 
     const static int OP_POS = 0;
     const static int OP_NEG = 1;
@@ -47,6 +49,7 @@ public:
     void printTo(PrintWriter& pw);
     virtual bool accept(Visitor *v);
     void fillTable(std::string &tbName);
+    virtual rapidjson::Value toJSONValue(rapidjson::Document::AllocatorType& allocator);
 
     std::string tb;
     std::string col;
@@ -87,6 +90,7 @@ public:
     virtual bool accept(Visitor *v);
     bool compatibleWith(Type *type);
     virtual void fillTable(std::string &tbName) {}
+    virtual rapidjson::Value toJSONValue(rapidjson::Document::AllocatorType& allocator);
 
     int kind;
     std::string val;
@@ -107,6 +111,7 @@ public:
     void printTo(PrintWriter& pw);
     virtual bool accept(Visitor *v);
     virtual void fillTable(std::string &tbName);
+    virtual rapidjson::Value toJSONValue(rapidjson::Document::AllocatorType& allocator);
 
     Expr *expr;
     int op;
@@ -120,6 +125,7 @@ public:
     void printTo(PrintWriter& pw);
     virtual bool accept(Visitor *v);
     virtual void fillTable(std::string &tbName);
+    virtual rapidjson::Value toJSONValue(rapidjson::Document::AllocatorType& allocator);
 
     Expr *left;
     Expr *right;
@@ -203,6 +209,7 @@ public:
     virtual void printTo(PrintWriter& pw) = 0;
     virtual bool accept(Visitor *v) = 0;
     virtual void fillTable(std::string &tbName) = 0;
+    virtual rapidjson::Value toJSONValue(rapidjson::Document::AllocatorType& allocator) = 0;
 
     int op;
 
@@ -233,6 +240,7 @@ public:
     void printTo(PrintWriter& pw) {}
     virtual bool accept(Visitor *v);
     virtual void fillTable(std::string &tbName) {}
+    virtual rapidjson::Value toJSONValue(rapidjson::Document::AllocatorType& allocator);
 
     bool val;
 };
@@ -245,6 +253,7 @@ public:
     void printTo(PrintWriter& pw);
     virtual bool accept(Visitor *v);
     virtual void fillTable(std::string &tbName);
+    virtual rapidjson::Value toJSONValue(rapidjson::Document::AllocatorType& allocator);
 
     Col *name;
 };
@@ -258,6 +267,7 @@ public:
     void printTo(PrintWriter& pw);
     virtual bool accept(Visitor *v);
     virtual void fillTable(std::string &tbName);
+    virtual rapidjson::Value toJSONValue(rapidjson::Document::AllocatorType& allocator);
 
     Col *left;
     Expr *right;
@@ -272,6 +282,7 @@ public:
     void printTo(PrintWriter& pw);
     virtual bool accept(Visitor *v);
     virtual void fillTable(std::string &tbName);
+    virtual rapidjson::Value toJSONValue(rapidjson::Document::AllocatorType& allocator);
 
     Col *left;
     std::vector<Value*> *right;
@@ -286,6 +297,7 @@ public:
     void printTo(PrintWriter& pw);
     virtual bool accept(Visitor *v);
     virtual void fillTable(std::string &tbName);
+    virtual rapidjson::Value toJSONValue(rapidjson::Document::AllocatorType& allocator);
 
     Col *left;
     Value *rightL;
@@ -301,6 +313,7 @@ public:
     void printTo(PrintWriter& pw);
     virtual bool accept(Visitor *v);
     virtual void fillTable(std::string &tbName);
+    virtual rapidjson::Value toJSONValue(rapidjson::Document::AllocatorType& allocator);
 
     BoolExpr *left;
     BoolExpr *right;

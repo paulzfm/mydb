@@ -711,3 +711,124 @@ void ComplexExpr::fillTable(std::string &tbName)
     left->fillTable(tbName);
     right->fillTable(tbName);
 }
+
+rapidjson::Value Col::toJSONValue(rapidjson::Document::AllocatorType& allocator)
+{
+    rapidjson::Value members(rapidjson::kObjectType);
+    members.AddMember("tb", rapidjson::StringRef(tb.c_str()), allocator);
+    members.AddMember("col", rapidjson::StringRef(col.c_str()), allocator);
+
+    rapidjson::Value object(rapidjson::kObjectType);
+    object.AddMember("Col", members, allocator);
+    return object;
+}
+
+rapidjson::Value Value::toJSONValue(rapidjson::Document::AllocatorType &allocator)
+{
+    rapidjson::Value members(rapidjson::kObjectType);
+    members.AddMember("kind", kind, allocator);
+    members.AddMember("val", rapidjson::StringRef(val.c_str()), allocator);
+
+    rapidjson::Value object(rapidjson::kObjectType);
+    object.AddMember("Value", members, allocator);
+    return object;
+}
+
+rapidjson::Value UnonExpr::toJSONValue(rapidjson::Document::AllocatorType &allocator)
+{
+    rapidjson::Value members(rapidjson::kObjectType);
+    members.AddMember("op", op, allocator);
+    members.AddMember("expr", expr->toJSONValue(allocator), allocator);
+
+    rapidjson::Value object(rapidjson::kObjectType);
+    object.AddMember("UnonExpr", members, allocator);
+    return object;
+}
+
+rapidjson::Value BinExpr::toJSONValue(rapidjson::Document::AllocatorType &allocator)
+{
+    rapidjson::Value members(rapidjson::kObjectType);
+    members.AddMember("op", op, allocator);
+    members.AddMember("left", left->toJSONValue(allocator), allocator);
+    members.AddMember("right", right->toJSONValue(allocator), allocator);
+
+    rapidjson::Value object(rapidjson::kObjectType);
+    object.AddMember("BinExpr", members, allocator);
+    return object;
+}
+
+rapidjson::Value BoolValue::toJSONValue(rapidjson::Document::AllocatorType& allocator)
+{
+    rapidjson::Value members(rapidjson::kObjectType);
+    members.AddMember("op", op, allocator);
+    members.AddMember("val", val, allocator);
+
+    rapidjson::Value object(rapidjson::kObjectType);
+    object.AddMember("BoolValue", members, allocator);
+    return object;
+}
+
+rapidjson::Value NullExpr::toJSONValue(rapidjson::Document::AllocatorType& allocator)
+{
+    rapidjson::Value members(rapidjson::kObjectType);
+    members.AddMember("op", op, allocator);
+    members.AddMember("name", name->toJSONValue(allocator), allocator);
+
+    rapidjson::Value object(rapidjson::kObjectType);
+    object.AddMember("NullExpr", members, allocator);
+    return object;
+}
+
+rapidjson::Value CompareExpr::toJSONValue(rapidjson::Document::AllocatorType& allocator)
+{
+    rapidjson::Value members(rapidjson::kObjectType);
+    members.AddMember("op", op, allocator);
+    members.AddMember("left", left->toJSONValue(allocator), allocator);
+    members.AddMember("right", right->toJSONValue(allocator), allocator);
+
+    rapidjson::Value object(rapidjson::kObjectType);
+    object.AddMember("CompareExpr", members, allocator);
+    return object;
+}
+
+rapidjson::Value InExpr::toJSONValue(rapidjson::Document::AllocatorType& allocator)
+{
+    rapidjson::Value array(rapidjson::kArrayType);
+    for (auto& val : *right) {
+        array.PushBack(val->toJSONValue(allocator), allocator);
+    }
+
+    rapidjson::Value members(rapidjson::kObjectType);
+    members.AddMember("op", op, allocator);
+    members.AddMember("left", left->toJSONValue(allocator), allocator);
+    members.AddMember("right", array, allocator);
+
+    rapidjson::Value object(rapidjson::kObjectType);
+    object.AddMember("InExpr", members, allocator);
+    return object;
+}
+
+rapidjson::Value BetweenExpr::toJSONValue(rapidjson::Document::AllocatorType& allocator)
+{
+    rapidjson::Value members(rapidjson::kObjectType);
+    members.AddMember("op", op, allocator);
+    members.AddMember("left", left->toJSONValue(allocator), allocator);
+    members.AddMember("rightL", rightL->toJSONValue(allocator), allocator);
+    members.AddMember("rightR", rightR->toJSONValue(allocator), allocator);
+
+    rapidjson::Value object(rapidjson::kObjectType);
+    object.AddMember("BetweenExpr", members, allocator);
+    return object;
+}
+
+rapidjson::Value ComplexExpr::toJSONValue(rapidjson::Document::AllocatorType& allocator)
+{
+    rapidjson::Value members(rapidjson::kObjectType);
+    members.AddMember("op", op, allocator);
+    members.AddMember("left", left->toJSONValue(allocator), allocator);
+    members.AddMember("right", right->toJSONValue(allocator), allocator);
+
+    rapidjson::Value object(rapidjson::kObjectType);
+    object.AddMember("ComplexExpr", members, allocator);
+    return object;
+}
