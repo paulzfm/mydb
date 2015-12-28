@@ -17,6 +17,7 @@ public:
     Evaluator(const unordered_map<string, DValue>& rec, string tb = "");
     vector<DValue>& getValues();
 
+    bool visitTree(Tree *that);
     bool visitCol(Col *that);
     bool visitValue(Value *that);
     bool visitUnonExpr(UnonExpr *that);

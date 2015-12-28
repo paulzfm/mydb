@@ -248,6 +248,10 @@ bool QueryManager::join(const vector<string>& tables,
             if (filter(rec)) {
                 unordered_map<string, DValue> v;
                 // generate queried results
+                if (selectors.all) {
+                    results.push_back(rec);
+                    return true;
+                }
                 for (const Selector* sel : *selectors.selectors) {
                     string tbName = sel->col->tb;
                     if (tbName == "") {
@@ -316,11 +320,15 @@ bool QueryManager::group(const GroupBy& groupby,
 
     string name = groupby.tb + "." + groupby.col;
     int sz = -1, idx = -1;
-    for (const Selector* sel : *selectors.selectors) {
-        ++sz;
-        if (sel->col->tb != groupby.tb || sel->col->col != groupby.col) continue;
-        idx = sz;
-        break;
+    if (selectors.all) {
+        idx = 0;
+    } else {
+        for (const Selector* sel : *selectors.selectors) {
+            ++sz;
+            if (sel->col->tb != groupby.tb || sel->col->col != groupby.col) continue;
+            idx = sz;
+            break;
+        }
     }
     if (idx == -1) {
         cmsg << "[ERROR] column not found in GROUP BY clause." << endl;
@@ -345,15 +353,17 @@ bool QueryManager::aggregate(const Selectors& selectors,
 
     bool agg = false, nagg = false;
 
-    for (const Selector* sel : *selectors.selectors) {
-        if (sel->col->tb == groupby.tb && sel->col->col == groupby.col) {
-            if (sel->func == Selector::FUNC_NULL) {
-                cmsg << "[ERROR] cannot apply aggregate function on GROUP BY column." << endl;
-                return false;
+    if (!selectors.all) {
+        for (const Selector* sel : *selectors.selectors) {
+            if (sel->col->tb == groupby.tb && sel->col->col == groupby.col) {
+                if (sel->func == Selector::FUNC_NULL) {
+                    cmsg << "[ERROR] cannot apply aggregate function on GROUP BY column." << endl;
+                    return false;
+                }
             }
+            if (sel->func == Selector::FUNC_NULL) nagg = true;
+            else agg = true;
         }
-        if (sel->func == Selector::FUNC_NULL) nagg = true;
-        else agg = true;
     }
     if (agg && nagg) {
         cmsg << "[ERROR] mixed aggregate and non-aggregate columns." << endl;
@@ -412,23 +422,45 @@ bool QueryManager::print(const Selectors& selectors,
         const vector<string>& tables,
         const vector<unordered_map<string, DValue>>& results) {
     vector<string> heads;
-    for (const Selector* sel : *selectors.selectors) {
-        if (sel->col->tb == "") heads.push_back(sel->col->col);
-        else heads.push_back(sel->col->tb + "." + sel->col->col);
-    }
-
     vector<vector<string>> data;
-    for (const auto& rec : results) {
-        vector<string> row;
-        for (const Selector* sel : *selectors.selectors) {
-            string name;
-            if (sel->col->tb == "") name = tables[0] + "." + sel->col->col;
-            else heads.push_back(sel->col->tb + "." + sel->col->col);
-            row.push_back(rec.find(name)->second.printToString());
+
+    if (selectors.all) {
+        bool first = true;
+        for (const auto& rec : results) {
+            vector<string> row;
+            if (first) {
+                for (const auto& p : rec) {
+                    row.push_back(p.second.printToString());
+                    heads.push_back(p.first);
+                }
+                first = false;
+
+            } else {
+                for (const auto& name : heads)
+                    row.push_back(rec.find(name)->second.printToString());
+            }
+            data.push_back(row);
         }
-        data.push_back(row);
+    } else {
+
+        for (const Selector* sel : *selectors.selectors) {
+            if (sel->col->tb == "") heads.push_back(sel->col->col);
+            else heads.push_back(sel->col->tb + "." + sel->col->col);
+        }
+
+        for (const auto& rec : results) {
+            vector<string> row;
+            for (const Selector* sel : *selectors.selectors) {
+                string name;
+                if (sel->col->tb == "") name = tables[0] + "." + sel->col->col;
+                else heads.push_back(sel->col->tb + "." + sel->col->col);
+                row.push_back(rec.find(name)->second.printToString());
+            }
+            data.push_back(row);
+        }
     }
     cmsg << tableToString(heads, data) << endl;
+    return true;
 }
 
 bool QueryManager::Select(const vector<string>& tables, const Selectors* selectors,
@@ -446,10 +478,11 @@ bool QueryManager::Select(const vector<string>& tables, const Selectors* selecto
 
     // get individual candidates
     vector<vector<Record>> rs;
-    for (auto& rm : rms) {
-        auto filter = getFilter(rm.second.first, expr);
+    for (const auto& table : tables) {
+        auto rm = rms[table];
+        auto filter = getFilter(rm.first, expr);
 	    vector<Record> results;
-	    rm.second.second->query(filter, results);
+	    rm.second->query(filter, results);
         rs.push_back(std::move(results));
     }
 

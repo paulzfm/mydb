@@ -8,12 +8,18 @@ vector<DValue>& Evaluator::getValues() {
     return values;
 }
 
+bool Evaluator::visitTree(Tree *that) {
+    return true;
+}
+
 bool Evaluator::visitCol(Col *that) {
     string name = that->tb + "." + that->col;
     if (that->tb == "") name = tb + name;
     auto iter = rec.find(name);
     if (iter == rec.end()) {
-        values.push_back(DValue());
+        DValue missing;
+        missing.setMiss();
+        values.push_back(missing);
 
     } else {
         values.push_back(iter->second);

@@ -65,8 +65,16 @@ DValue& DValue::operator = (const DValue& a) {
     return *this;
 }
 
+void DValue::setMiss() {
+    type = 1;
+}
+
 bool DValue::isNull() const {
-    return data == NULL;
+    return type.ident == 0;
+}
+
+bool DValue::isMiss() const {
+    return type.ident == 1;
 }
 
 bool DValue::isBool() const {
@@ -125,6 +133,7 @@ string DValue::printToString() const {
 }
 
 DValue operator == (const DValue& a, const DValue& b) {
+    if (a.isMiss() || b.isMiss()) return DValue(true);
     if (a.isNull() || b.isNull()) return DValue(false);
     if (a.isBool()) return DValue(a.getBool() == b.getBool());
     if (a.isInt()) return DValue(a.getInt() == b.getInt());
@@ -134,6 +143,7 @@ DValue operator == (const DValue& a, const DValue& b) {
 }
 
 DValue operator != (const DValue& a, const DValue& b) {
+    if (a.isMiss() || b.isMiss()) return DValue(true);
     if (a.isNull() || b.isNull()) return DValue(false);
     if (a.isBool() && b.isBool()) return DValue(a.getBool() != b.getBool());
     if (a.isInt() && b.isInt()) return DValue(a.getInt() != b.getInt());
@@ -142,6 +152,7 @@ DValue operator != (const DValue& a, const DValue& b) {
 }
 
 DValue operator < (const DValue& a, const DValue& b) {
+    if (a.isMiss() || b.isMiss()) return DValue(true);
     if (a.isNull() || b.isNull()) return DValue(false);
     assert(a.isNum() && b.isNum());
     if (a.isInt() && b.isInt()) return DValue(a.getInt() < b.getInt());
@@ -149,6 +160,7 @@ DValue operator < (const DValue& a, const DValue& b) {
 }
 
 DValue operator > (const DValue& a, const DValue& b) {
+    if (a.isMiss() || b.isMiss()) return DValue(true);
     if (a.isNull() || b.isNull()) return DValue(false);
     assert(a.isNum() && b.isNum());
     if (a.isInt() && b.isInt()) return DValue(a.getInt() > b.getInt());
@@ -156,6 +168,7 @@ DValue operator > (const DValue& a, const DValue& b) {
 }
 
 DValue operator <= (const DValue& a, const DValue& b) {
+    if (a.isMiss() || b.isMiss()) return DValue(true);
     if (a.isNull() || b.isNull()) return DValue(false);
     assert(a.isNum() && b.isNum());
     if (a.isInt() && b.isInt()) return DValue(a.getInt() <= b.getInt());
@@ -163,6 +176,7 @@ DValue operator <= (const DValue& a, const DValue& b) {
 }
 
 DValue operator >= (const DValue& a, const DValue& b) {
+    if (a.isMiss() || b.isMiss()) return DValue(true);
     if (a.isNull() || b.isNull()) return DValue(false);
     assert(a.isNum() && b.isNum());
     if (a.isInt() && b.isInt()) return DValue(a.getInt() >= b.getInt());
@@ -170,24 +184,28 @@ DValue operator >= (const DValue& a, const DValue& b) {
 }
 
 DValue operator && (const DValue& a, const DValue& b) {
+    if (a.isMiss() || b.isMiss()) return DValue(true);
     if (a.isNull() || b.isNull()) return DValue(false);
     assert(a.isBool() && b.isBool());
     return DValue(a.getBool() && b.getBool());
 }
 
 DValue operator || (const DValue& a, const DValue& b) {
+    if (a.isMiss() || b.isMiss()) return DValue(true);
     if (a.isNull() || b.isNull()) return DValue(false);
     assert(a.isBool() && b.isBool());
     return DValue(a.getBool() || b.getBool());
 }
 
 DValue operator ! (const DValue& a) {
+    if (a.isMiss()) return DValue(true);
     if (a.isNull()) return DValue(false);
     assert(a.isBool());
     return DValue(!a.getBool());
 }
 
 DValue operator + (const DValue& a, const DValue& b) {
+    if (a.isMiss() || b.isMiss()) return DValue(true);
     if (a.isNull() || b.isNull()) return DValue(false);
     assert(a.isNum() && b.isNum());
     if (a.isInt() && b.isInt()) return DValue(a.getInt() + b.getInt());
@@ -195,6 +213,7 @@ DValue operator + (const DValue& a, const DValue& b) {
 }
 
 DValue operator - (const DValue& a, const DValue& b) {
+    if (a.isMiss() || b.isMiss()) return DValue(true);
     if (a.isNull() || b.isNull()) return DValue(false);
     assert(a.isNum() && b.isNum());
     if (a.isInt() && b.isInt()) return DValue(a.getInt() - b.getInt());
@@ -202,6 +221,7 @@ DValue operator - (const DValue& a, const DValue& b) {
 }
 
 DValue operator * (const DValue& a, const DValue& b) {
+    if (a.isMiss() || b.isMiss()) return DValue(true);
     if (a.isNull() || b.isNull()) return DValue(false);
     assert(a.isNum() && b.isNum());
     if (a.isInt() && b.isInt()) return DValue(a.getInt() * b.getInt());
@@ -209,6 +229,7 @@ DValue operator * (const DValue& a, const DValue& b) {
 }
 
 DValue operator / (const DValue& a, const DValue& b) {
+    if (a.isMiss() || b.isMiss()) return DValue(true);
     if (a.isNull() || b.isNull()) return DValue(false);
     assert(a.isNum() && b.isNum());
     if (a.isInt() && b.isInt()) return DValue(a.getInt() / b.getInt());
@@ -216,12 +237,15 @@ DValue operator / (const DValue& a, const DValue& b) {
 }
 
 DValue operator % (const DValue& a, const DValue& b) {
+    if (a.isMiss() || b.isMiss()) return DValue(true);
     if (a.isNull() || b.isNull()) return DValue(false);
     assert(a.isInt() && b.isInt());
     return DValue(a.getInt() % b.getInt());
 }
 
 bool DValueLT::operator() (const DValue& lhs, const DValue& rhs) const {
+    if (lhs.isMiss() || rhs.isMiss()) return true;
+    if (lhs.isNull() || rhs.isNull()) return false;
     if (lhs.isNum() && rhs.isNum()) {
         if (lhs.isInt() && rhs.isInt()) return lhs.getInt() < rhs.getInt();
         return lhs.getReal() < rhs.getReal();
