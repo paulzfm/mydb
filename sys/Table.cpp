@@ -185,7 +185,49 @@ bool Table::checkConstraints(const char* rec) {
 bool Table::setColumnValue(char* rec, short cid, const DValue& val) const {
 }
 
-DValue Table::getColumnValue(char* rec, short cid) const {
+DValue Table::getColumnValue(const char* rec, short cid) const {
     int id = getColumnById(cid);
-    return rec + columns[id].offset;
+    const Column& col = columns[id];
+    switch (col.type) {
+        case DType::BYTE: {
+            char v;
+            memcpy(&v, rec + col.offset, col.size);
+            return DValue((int64_t)v);
+        }
+        case DType::SHORT: {
+            short v;
+            memcpy(&v, rec + col.offset, col.size);
+            return DValue((int64_t)v);
+        }
+        case DType::INT: {
+            int v;
+            memcpy(&v, rec + col.offset, col.size);
+            return DValue((int64_t)v);
+        }
+        case DType::LONG: {
+            int64_t v;
+            memcpy(&v, rec + col.offset, col.size);
+            return DValue(v);
+        }
+        case DType::FLOAT: {
+            float v;
+            memcpy(&v, rec + col.offset, col.size);
+            return DValue((double)v);
+        }
+        case DType::DOUBLE: {
+            double v;
+            memcpy(&v, rec + col.offset, col.size);
+            return DValue(v);
+        }
+        case DType::CHAR: {
+            char v;
+            memcpy(&v, rec + col.offset, col.size);
+            return DValue((int64_t)v);
+        }
+        case DType::STRING: {
+            string str(rec + col.offset, col.size);
+            return DValue(str);
+        }
+    }
+    return DValue();
 }

@@ -5,12 +5,16 @@ DValue::DValue() : type(0) {
 }
 
 DValue::DValue(const DValue& a) : type(a.type), len(a.len) {
-    int l = len + (type.ident == DType::STRING ? 1 : 0);
-    data = new char[l];
-    memcpy(data, a.data, l);
+    if (a.data != NULL) {
+        int l = len + (type.ident == DType::STRING ? 1 : 0);
+        data = new char[l];
+        memcpy(data, a.data, l);
+    } else
+        data = NULL;
 }
 
 DValue::DValue(const rapidjson::Value& a) : type(0) {
+    // TODO
     if (a.IsInt()) {
         type = DType(DType::INT);
     }
@@ -117,7 +121,6 @@ void DValue::print() const {
 }
 
 DValue operator == (const DValue& a, const DValue& b) {
-    assert(a.type.ident == b.type.ident);
     if (a.isBool()) return DValue(a.getBool() == b.getBool());
     if (a.isInt()) return DValue(a.getInt() == b.getInt());
     if (a.isReal()) return DValue(a.getReal() == b.getReal());

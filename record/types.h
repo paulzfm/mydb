@@ -12,7 +12,7 @@ class DType
 public:
     DType(int ident) : ident(ident)
     {
-        ident = ident;
+        this->ident = ident;
         switch (ident) {
             case BOOL:      bytes = 1; break;
             case BYTE:      bytes = 1; break;
@@ -30,7 +30,7 @@ public:
     DType(int ident, int length)
     {
         if (ident != STRING) ; // error
-        ident = STRING;
+        this->ident = STRING;
         bytes = length;
     }
 
