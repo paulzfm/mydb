@@ -35,8 +35,13 @@ std::function<bool(const Record&)> QueryManager::getFilter(Table* table, BoolExp
     return [this, expr, table] (const Record& rec) {
         unordered_map<string, DValue> values;
         string prefix = table->name + ".";
+        DValue null = table->getColumnValue(rec.data, 0), val;
         for (const auto& col : table->columns) {
-            DValue val = table->getColumnValue(rec.data, col.cid);
+            if (col.cid == 0) continue; // NULL
+            if ((null.data[col.cid / 8] & (1 << (col.cid % 8))) > 0)
+                val = DValue();
+            else
+                val = table->getColumnValue(rec.data, col.cid);
             values[prefix + col.name] = val;
         }
         Evaluator eval(values, table->name);

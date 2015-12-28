@@ -125,6 +125,7 @@ string DValue::printToString() const {
 }
 
 DValue operator == (const DValue& a, const DValue& b) {
+    if (a.isNull() || b.isNull()) return DValue(false);
     if (a.isBool()) return DValue(a.getBool() == b.getBool());
     if (a.isInt()) return DValue(a.getInt() == b.getInt());
     if (a.isReal()) return DValue(a.getReal() == b.getReal());
@@ -133,75 +134,89 @@ DValue operator == (const DValue& a, const DValue& b) {
 }
 
 DValue operator != (const DValue& a, const DValue& b) {
-    assert(a.isBool() && b.isBool());
+    if (a.isNull() || b.isNull()) return DValue(false);
+    if (a.isBool() && b.isBool()) return DValue(a.getBool() != b.getBool());
     if (a.isInt() && b.isInt()) return DValue(a.getInt() != b.getInt());
-    else return DValue(a.getReal() != b.getReal());
+    if (a.isReal() && b.isReal()) return DValue(a.getReal() != b.getReal());
+    return DValue(false);
 }
 
 DValue operator < (const DValue& a, const DValue& b) {
+    if (a.isNull() || b.isNull()) return DValue(false);
     assert(a.isNum() && b.isNum());
     if (a.isInt() && b.isInt()) return DValue(a.getInt() < b.getInt());
     else return DValue(a.getReal() < b.getReal());
 }
 
 DValue operator > (const DValue& a, const DValue& b) {
+    if (a.isNull() || b.isNull()) return DValue(false);
     assert(a.isNum() && b.isNum());
     if (a.isInt() && b.isInt()) return DValue(a.getInt() > b.getInt());
     else return DValue(a.getReal() > b.getReal());
 }
 
 DValue operator <= (const DValue& a, const DValue& b) {
+    if (a.isNull() || b.isNull()) return DValue(false);
     assert(a.isNum() && b.isNum());
     if (a.isInt() && b.isInt()) return DValue(a.getInt() <= b.getInt());
     else return DValue(a.getReal() <= b.getReal());
 }
 
 DValue operator >= (const DValue& a, const DValue& b) {
+    if (a.isNull() || b.isNull()) return DValue(false);
     assert(a.isNum() && b.isNum());
     if (a.isInt() && b.isInt()) return DValue(a.getInt() >= b.getInt());
     else return DValue(a.getReal() >= b.getReal());
 }
 
 DValue operator && (const DValue& a, const DValue& b) {
+    if (a.isNull() || b.isNull()) return DValue(false);
     assert(a.isBool() && b.isBool());
     return DValue(a.getBool() && b.getBool());
 }
 
 DValue operator || (const DValue& a, const DValue& b) {
+    if (a.isNull() || b.isNull()) return DValue(false);
     assert(a.isBool() && b.isBool());
     return DValue(a.getBool() || b.getBool());
 }
 
 DValue operator ! (const DValue& a) {
+    if (a.isNull()) return DValue(false);
     assert(a.isBool());
     return DValue(!a.getBool());
 }
 
 DValue operator + (const DValue& a, const DValue& b) {
+    if (a.isNull() || b.isNull()) return DValue(false);
     assert(a.isNum() && b.isNum());
     if (a.isInt() && b.isInt()) return DValue(a.getInt() + b.getInt());
     else return DValue(a.getReal() + b.getReal());
 }
 
 DValue operator - (const DValue& a, const DValue& b) {
+    if (a.isNull() || b.isNull()) return DValue(false);
     assert(a.isNum() && b.isNum());
     if (a.isInt() && b.isInt()) return DValue(a.getInt() - b.getInt());
     else return DValue(a.getReal() - b.getReal());
 }
 
 DValue operator * (const DValue& a, const DValue& b) {
+    if (a.isNull() || b.isNull()) return DValue(false);
     assert(a.isNum() && b.isNum());
     if (a.isInt() && b.isInt()) return DValue(a.getInt() * b.getInt());
     else return DValue(a.getReal() * b.getReal());
 }
 
 DValue operator / (const DValue& a, const DValue& b) {
+    if (a.isNull() || b.isNull()) return DValue(false);
     assert(a.isNum() && b.isNum());
     if (a.isInt() && b.isInt()) return DValue(a.getInt() / b.getInt());
     else return DValue(a.getReal() / b.getReal());
 }
 
 DValue operator % (const DValue& a, const DValue& b) {
+    if (a.isNull() || b.isNull()) return DValue(false);
     assert(a.isInt() && b.isInt());
     return DValue(a.getInt() % b.getInt());
 }

@@ -96,10 +96,12 @@ bool Evaluator::visitBinExpr(BinExpr *that) {
 }
 
 bool Evaluator::visitNullExpr(NullExpr *that) {
-    // TODO: get null column value and visiting Column
-    char* null;
-    Column col;
-    bool res = (null[col.cid / 8] & (1 << (col.cid % 8)));
+    // get null column value and visiting Column
+    string name = that->name->tb + "." + that->name->col;
+    if (that->name->tb == "") name = tb + name;
+    auto iter = rec.find(name);
+    if (iter == rec.end()) return false;
+    bool res = iter->second.isNull();
     values.push_back(DValue(res != (that->op == BoolExpr::OP_IS_NOT_NULL)));
 
     return true;
