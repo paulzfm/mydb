@@ -293,13 +293,31 @@ bool QueryManager::aggregate(const Selectors& selectors,
         vector<vector<vector<DValue>>>& input,
         vector<vector<DValue>>& output) {
 
+    bool agg = false, nagg = false;
+
     for (const Selector* sel : *selectors.selectors) {
-        if (sel->col->tb != groupby.tb || sel->col->col != groupby.col) {
+        if (sel->col->tb == groupby.tb && sel->col->col == groupby.col) {
             if (sel->func == Selector::FUNC_NULL) {
-                cmsg << "[ERROR] mixed aggregate and non-aggregate columns." << endl;
+                cmsg << "[ERROR] cannot apply aggregate function on GROUP BY column." << endl;
                 return false;
             }
         }
+        if (sel->func == Selector::FUNC_NULL) nagg = true;
+        else agg = true;
+    }
+    if (agg && nagg) {
+        cmsg << "[ERROR] mixed aggregate and non-aggregate columns." << endl;
+        return false;
+    }
+
+    if (!agg) {
+        if (!groupby.empty) {
+            cmsg << "[WARNING] ignore GROUP BY clause without aggregate function." << endl;
+        }
+        for (const auto& x : input)
+            for (const auto& y : x)
+                output.push_back(y);
+        return true;
     }
 
     for (int gid = 0; gid < input.size(); ++gid) {
@@ -345,7 +363,7 @@ bool QueryManager::print(const Selectors& selectors,
     cmsg << "|";
     for (const Selector* sel : *selectors.selectors)
         cmsg << sel->col->tb << '.' << sel->col->col << "\t|";
-    cmsg << "|" << endl;
+    cmsg << endl;
 
     for (const auto& rec : results) {
         cmsg << "|";
@@ -353,7 +371,7 @@ bool QueryManager::print(const Selectors& selectors,
             val.print();
             cmsg << "\t|";
         }
-        cmsg << "|" << endl;
+        cmsg << endl;
     }
 }
 

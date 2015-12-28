@@ -8,9 +8,16 @@ vector<DValue>& Evaluator::getValues() {
 }
 
 bool Evaluator::visitCol(Col *that) {
-    // TODO
-    DValue val;
-    values.push_back(val);
+    Container rm = qm->getContainer(that->tb);
+    if (rm == NullContainer) {
+        values.push_back(DValue());
+
+    } else {
+        int id = rm.first->getColumnByName(that->col);
+        int cid = rm.first->getColumn(id).cid;
+        DValue val = rm.first->getColumnValue(rec, cid);
+        values.push_back(val);
+    }
 
     return true;
 }
@@ -19,16 +26,22 @@ bool Evaluator::visitValue(Value *that) {
     switch (that->kind) {
         case Value::VALUE_INT:
             values.push_back(DValue((int64_t)atoll(that->val.c_str())));
+            break;
         case Value::VALUE_REAL:
             values.push_back(DValue(atof(that->val.c_str())));
+            break;
         case Value::VALUE_STRING:
             values.push_back(DValue(that->val.c_str()));
+            break;
         case Value::VALUE_NULL:
             values.push_back(DValue());
+            break;
         case Value::VALUE_TRUE:
             values.push_back(DValue(true));
+            break;
         case Value::VALUE_FALSE:
             values.push_back(DValue(false));
+            break;
     }
 
     return true;
@@ -93,11 +106,11 @@ bool Evaluator::visitNullExpr(NullExpr *that) {
 }
 
 bool Evaluator::visitCompareExpr(CompareExpr *that) {
-    // TODO
-    DValue val;
     that->right->accept(this);
+    that->left->accept(this);
 
-    DValue res;
+    DValue val = values.back(), res;
+    values.pop_back();
     switch (that->op) {
         case BoolExpr::OP_EQ:
             res = (val == values.back());
@@ -125,15 +138,15 @@ bool Evaluator::visitCompareExpr(CompareExpr *that) {
 }
 
 bool Evaluator::visitInExpr(InExpr *that) {
-    // TODO
-    DValue val;
+    that->left->accept(this);
     bool res = false;
     for (Value* e : *that->right) {
-        if ((DValue(e) == val).getBool()) {
+        if ((DValue(e) == values.back()).getBool()) {
             res = true;
             break;
         }
     }
+    values.pop_back();
     values.push_back(DValue(res != (that->op == BoolExpr::OP_NOT_IN)));
 
     return true;
@@ -142,8 +155,9 @@ bool Evaluator::visitInExpr(InExpr *that) {
 bool Evaluator::visitBetweenExpr(BetweenExpr *that) {
     int low = atoll(that->rightL->val.c_str()),
         high = atoll(that->rightR->val.c_str());
-    // TODO: get column value
-    DValue val;
+    that->left->accept(this);
+    DValue val = values.back();
+    values.pop_back();
     assert(val.isNum());
     bool res;
     if (val.isInt())
