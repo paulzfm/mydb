@@ -55,6 +55,10 @@ DValue& DValue::operator = (const DValue& a) {
     type = a.type;
     len = a.len;
     if (data) delete [] data;
+    if (a.data == NULL) {
+        data = NULL;
+        return *this;
+    }
     int l = len + (type.ident == DType::STRING ? 1 : 0);
     data = new char[l];
     memcpy(data, a.data, l);

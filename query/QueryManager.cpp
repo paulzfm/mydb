@@ -268,10 +268,15 @@ bool QueryManager::join(const vector<string>& tables,
             int sz = rec.size();
             for (int i = 0; i < rs[level].size(); ++i) {
                 const Record& r = rs[level][i];
+                DValue null = table->getColumnValue(r.data, 0);
                 for (int idx = 1; idx < table->columns.size(); ++idx) {
                     Column& col = table->getColumn(idx);
                     string name = tbName + "." + col.name;
-                    rec[name] = table->getColumnValue(r.data, col.cid);
+                    if ((null.data[idx / 8] & (1 << (idx % 8))) > 0) {
+                        rec[name] = DValue();
+                    } else {
+                        rec[name] = table->getColumnValue(r.data, col.cid);
+                    }
                 }
                 /*} else {
                     int i = -1;
