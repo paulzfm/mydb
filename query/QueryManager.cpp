@@ -122,10 +122,10 @@ void set(char* rec, char* null, short cid, Value* val, int size) {
             }
             break;
         case Value::VALUE_STRING:
-            strncpy(rec, val->val.c_str(), size - 1);
+            strncpy(rec, val->val.c_str(), size);
             break;
         case Value::VALUE_NULL:
-            null[cid / 8] &= ~(1 << (cid % 8));
+            null[cid / 8] |= (1 << (cid % 8));
             break;
     }
 }
@@ -412,7 +412,7 @@ bool QueryManager::aggregate(const Selectors& selectors,
                     }
                 }
                 if (sel->func == Selector::FUNC_AVG)
-                    val = val / DValue((int64_t)input[gid].size());
+                    val = val / DValue((double)input[gid].size());
                 rec[name] = val;
 
             } else {
@@ -473,6 +473,7 @@ bool QueryManager::print(const Selectors& selectors,
         }
     }
     cmsg << tableToString(heads, data) << endl;
+    cmsg << data.size() << " records found in total." << endl;
     return true;
 }
 
@@ -489,7 +490,7 @@ bool QueryManager::Select(const vector<string>& tables, Selectors* selectors,
     }
 
     // check
-    if (groupBy->tb == "") {
+    if (!groupBy->empty && groupBy->tb == "") {
         if (tables.size() > 1) {
             cmsg << "[ERROR] missing table name in GROUP BY clause." << endl;
             return setError(msg);

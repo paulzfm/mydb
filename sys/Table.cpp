@@ -179,6 +179,27 @@ void Table::desc() const {
 }
 
 bool Table::checkConstraints(const char* rec) {
+    for (const auto& con : constraints) {
+        switch (con.type) {
+            case Constraint::NOT_NULL: {
+                DValue null = getColumnValue(rec, 0);
+                int mask = 1 << (con.cid % 8);
+                if ((null.data[con.cid / 8] & mask) > 0) {
+                    Column& col = columns[getColumnById(con.cid)];
+                    cmsg << "[ERROR] Column " << col.name << " is NOT NULL." << endl;
+                    return false;
+                }
+            }
+            case Constraint::UNIQUE: {
+            }
+            case Constraint::PRIMARY_KEY: {
+            }
+            case Constraint::FOREIGN_KEY: {
+            }
+            case Constraint::CHECK: {
+            }
+        }
+    }
     return true;
 }
 

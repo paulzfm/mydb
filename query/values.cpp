@@ -22,7 +22,7 @@ DValue::DValue(const rapidjson::Value& a) : type(0) {
     if (a.IsString()) type = DType(DType::STRING, a.GetStringLength());
 }
 
-DValue::DValue(bool val) : type(DType::BYTE) {
+DValue::DValue(bool val) : type(DType::BOOL) {
     data = new char[1];
     len = 1;
     *data = val ? 1 : 0;
