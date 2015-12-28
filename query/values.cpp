@@ -14,12 +14,24 @@ DValue::DValue(const DValue& a) : type(a.type), len(a.len) {
 }
 
 DValue::DValue(const rapidjson::Value& a) : type(0) {
-    // TODO
     if (a.IsInt()) {
         type = DType(DType::INT);
+        int64_t val = a.GetInt64();
+        len = 8;
+        memcpy(data, &val, 8);
     }
-    if (a.IsDouble()) type = DType(DType::DOUBLE);
-    if (a.IsString()) type = DType(DType::STRING, a.GetStringLength());
+    if (a.IsDouble()) {
+        type = DType(DType::DOUBLE);
+        double val = a.GetDouble();
+        len = 8;
+        memcpy(data, &val, 8);
+    }
+    if (a.IsString()) {
+        type = DType(DType::STRING, a.GetStringLength());
+        string str = a.GetString();
+        len = a.GetStringLength();
+        memcpy(data, str.c_str(), len);
+    }
 }
 
 DValue::DValue(bool val) : type(DType::BOOL) {

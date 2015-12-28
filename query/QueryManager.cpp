@@ -154,9 +154,8 @@ bool QueryManager::Insert(const string& table, unordered_map<string, Value*>& da
         }
 	}
     
-    // check NN, CHK constraints
+    // check constraints
     if ( ! rm.first->checkConstraints(buf, rm.second) ) return setError(msg);
-    // TODO: check UQ and FK
 
     for (auto& p : data) {
         cmsg << "[WARNING] Column " << p.first << " not found, ignored" << endl;
@@ -215,9 +214,8 @@ bool QueryManager::Update(const string& table,
     }
 
     for (auto& rec : results) {
-        // check NN, CHK constraints
+        // check constraints
         if ( ! rm.first->checkConstraints(rec.data, rm.second) ) return setError(msg);
-        // TODO: check PK, UQ and FK
     }
 
 	for (auto& rec : results)

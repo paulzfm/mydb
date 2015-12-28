@@ -205,6 +205,7 @@ bool Table::checkConstraints(const char* rec, RecordManager* rm) {
                 }
                 break;
             }
+            // TODO
             case Constraint::FOREIGN_KEY: {
                 break;
             }
