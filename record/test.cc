@@ -13,6 +13,7 @@ void printRecord(const Record& rec)
     printf("  rid: %d\n", rec.rid);
     int *ptr = (int*)rec.data;
     printf("  data: [%d %d %d %d]\n", ptr[0], ptr[1], ptr[2], ptr[3]);
+    printf("  page: %d, offset: %d\n", rec.page, rec.offset);
     printf("}\n");
 }
 
@@ -56,6 +57,24 @@ void test()
     for (const auto& rec : records) {
         printRecord(rec);
     }
+
+    // query record whose data % 2 == 0
+    auto filter = [](const Record& rec) {
+        int *ptr = (int*)rec.data;
+        return ptr[0] % 2 != 0;
+    };
+    records.clear();
+    rman.query(filter, records);
+    printf("%lu records found.\n", records.size());
+    for (const auto& rec : records) {
+        printRecord(rec);
+    }
+
+    // load the first found
+    printf("load 1st found record\n");
+    Record rec;
+    rman.load(records[0].page, records[0].offset, rec);
+    printRecord(rec);
 }
 
 void test_read()
@@ -74,8 +93,8 @@ void test_read()
 
 int main()
 {
-    // test();
-    test_read();
+    test();
+    // test_read();
 
     return 0;
 }

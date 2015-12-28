@@ -149,7 +149,8 @@ bool RecordManager::load(int page, int offset, Record& rec)
 
     // read data
     int *start = b + offset * RM_WORD_SIZE;
-    rec = Record(*start, start + 1, length, page, offset);
+    rec.set(*start, start + 1, length, page, offset);
+    // rec = Record(*start, start + 1, length, page, offset);
     bpm->access(index);
     return true;
 }

@@ -19,6 +19,8 @@ struct Record
     int page;   // useful when calling query
     int offset; // useful when calling query
 
+    Record() {}
+
     Record(int rid, int *buf, int length) : rid(rid), len(length)
     {
         data = new char[len];
@@ -37,6 +39,19 @@ struct Record
     {
         data = new char[len];
         memcpy(data, rec.data, len);
+    }
+
+    void set(int rid, int *buf, int length, int pid, int offset)
+    {
+        this->rid = rid;
+        this->len = length;
+        this->page = pid;
+        this->offset = offset;
+        if (data) {
+            delete[] data;
+        }
+        data = new char[length];
+        memcpy(data, buf, length);
     }
 
     ~Record()
