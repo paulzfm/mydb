@@ -318,6 +318,7 @@ bool QueryManager::join(const vector<string>& tables,
 
 bool QueryManager::group(const GroupBy& groupby,
         const Selectors& selectors,
+        const vector<string>& tables,
         vector<unordered_map<string, DValue>>& input,
         vector<vector<unordered_map<string, DValue>>>& output) {
 
@@ -328,7 +329,9 @@ bool QueryManager::group(const GroupBy& groupby,
     } else {
         for (const Selector* sel : *selectors.selectors) {
             ++sz;
-            if (sel->col->tb != groupby.tb || sel->col->col != groupby.col) continue;
+            string cname = sel->col->tb + "." + sel->col->col;
+            if (sel->col->tb == "") cname = tables[0] + cname;
+            if (cname != name) continue;
             idx = sz;
             break;
         }
@@ -343,6 +346,7 @@ bool QueryManager::group(const GroupBy& groupby,
     for (auto& rec : input) {
         if (V.find(rec[name]) == V.end()) {
             V[rec[name]] = cnt++;
+            output.resize(cnt);
         }
         output[V[rec[name]]].push_back(rec);
     }
@@ -359,13 +363,14 @@ bool QueryManager::aggregate(const Selectors& selectors,
     if (!selectors.all) {
         for (const Selector* sel : *selectors.selectors) {
             if (sel->col->tb == groupby.tb && sel->col->col == groupby.col) {
-                if (sel->func == Selector::FUNC_NULL) {
+                if (sel->func != Selector::FUNC_NULL) {
                     cmsg << "[ERROR] cannot apply aggregate function on GROUP BY column." << endl;
                     return false;
                 }
+            } else {
+                if (sel->func == Selector::FUNC_NULL) nagg = true;
+                else agg = true;
             }
-            if (sel->func == Selector::FUNC_NULL) nagg = true;
-            else agg = true;
         }
     }
     if (agg && nagg) {
@@ -461,7 +466,7 @@ bool QueryManager::print(const Selectors& selectors,
             for (const Selector* sel : *selectors.selectors) {
                 string name;
                 if (sel->col->tb == "") name = tables[0] + "." + sel->col->col;
-                else heads.push_back(sel->col->tb + "." + sel->col->col);
+                else name = sel->col->tb + "." + sel->col->col;
                 row.push_back(rec.find(name)->second.printToString());
             }
             data.push_back(row);
@@ -471,8 +476,8 @@ bool QueryManager::print(const Selectors& selectors,
     return true;
 }
 
-bool QueryManager::Select(const vector<string>& tables, const Selectors* selectors,
-        BoolExpr* expr, const GroupBy* groupBy, string& msg) {
+bool QueryManager::Select(const vector<string>& tables, Selectors* selectors,
+        BoolExpr* expr, GroupBy* groupBy, string& msg) {
     cmsg.str("");
     unordered_map<string, Container> rms;
 
@@ -482,6 +487,17 @@ bool QueryManager::Select(const vector<string>& tables, const Selectors* selecto
         if (rm == NullContainer) return setError(msg);
         rms[table] = rm;
     }
+
+    // check
+    if (groupBy->tb == "") {
+        if (tables.size() > 1) {
+            cmsg << "[ERROR] missing table name in GROUP BY clause." << endl;
+            return setError(msg);
+        } else {
+            groupBy->tb = tables[0];
+        }
+    }
+
     // TODO: check column names
     /*
     ColumnChecker cc(tables, rms);
@@ -508,7 +524,7 @@ bool QueryManager::Select(const vector<string>& tables, const Selectors* selecto
     // groupby
     vector<vector<unordered_map<string, DValue>>> gres;
     if (!groupBy->empty) {
-        if (!group(*groupBy, *selectors, jres, gres)) return setError(msg);
+        if (!group(*groupBy, *selectors, tables, jres, gres)) return setError(msg);
     } else {
         gres.push_back(std::move(jres));
     }

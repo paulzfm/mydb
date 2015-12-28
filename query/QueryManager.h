@@ -35,6 +35,7 @@ private:
 
     bool group(const GroupBy& groupby,
         const Selectors& selectors,
+        const vector<string>& tables,
         vector<unordered_map<string, DValue>>& input,
         vector<vector<unordered_map<string, DValue>>>& output);
 
@@ -65,8 +66,8 @@ public:
 	bool Update(const string& table, unordered_map<string, Expr*>& data, BoolExpr* where, string& msg);
 
 	// tables, [<tableName, attrName>], condition expr, group by
-	bool Select(const vector<string>& tables, const Selectors* selectors,
-        BoolExpr* where, const GroupBy* groupBy, string& msg);
+	bool Select(const vector<string>& tables, Selectors* selectors,
+        BoolExpr* where, GroupBy* groupBy, string& msg);
 
 	// tableName
 	// * caller should build up all Columns with constraints
