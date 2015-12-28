@@ -183,6 +183,57 @@ bool Table::checkConstraints(const char* rec) {
 }
 
 bool Table::setColumnValue(char* rec, short cid, const DValue& val) const {
+    int id = getColumnById(cid);
+    const Column& col = columns[id];
+    switch (col.type) {
+        case DType::BYTE: {
+            if (!val.isInt()) return false;
+            char v = val.getInt();
+            memcpy(rec + col.offset, &v, col.size);
+            return true;
+        }
+        case DType::SHORT: {
+            if (!val.isInt()) return false;
+            short v = val.getInt();;
+            memcpy(rec + col.offset, &v, col.size);
+            return true;
+        }
+        case DType::INT: {
+            if (!val.isInt()) return false;
+            int v = val.getInt();
+            memcpy(rec + col.offset, &v, col.size);
+            return true;
+        }
+        case DType::LONG: {
+            if (!val.isInt()) return false;
+            int64_t v = val.getInt();
+            memcpy(rec + col.offset, &v, col.size);
+            return true;
+        }
+        case DType::FLOAT: {
+            if (!val.isReal()) return false;
+            float v = val.getReal();
+            memcpy(rec + col.offset, &v, col.size);
+            return true;
+        }
+        case DType::DOUBLE: {
+            if (!val.isReal()) return false;
+            double v = val.getReal();
+            memcpy(rec + col.offset, &v, col.size);
+            return true;
+        }
+        case DType::CHAR: {
+            if (!val.isInt()) return false;
+            char v = val.getInt();
+            memcpy(rec + col.offset, &v, col.size);
+            return true;
+        }
+        case DType::STRING: {
+            if (!val.isString()) return false;
+            memcpy(rec + col.offset, val.data, val.len);
+            return true;
+        }
+    }
 }
 
 DValue Table::getColumnValue(const char* rec, short cid) const {

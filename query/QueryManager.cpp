@@ -219,6 +219,7 @@ bool QueryManager::Update(const string& table,
                 values[prefix + col.name] = val;
             }
             Evaluator eval(values, table);
+            p.second->accept(&eval);
             rm.first->setColumnValue(rec.data, cid, eval.getValues().back());
         }
     }
