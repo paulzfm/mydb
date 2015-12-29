@@ -287,3 +287,13 @@ bool ExecuteVisitor::visitSelectStmt(SelectStmt *that)
 
     return qm->Select(that->tbs, that->sel, that->where->where, that->gb, msg);
 }
+
+bool ExecuteVisitor::visitCreateIdxStmt(CreateIdxStmt *that)
+{
+    return qm->CreateIndex(that->tb, that->col, msg);
+}
+
+bool ExecuteVisitor::visitDropIdxStmt(DropIdxStmt *that)
+{
+    return qm->DropIndex(that->tb, that->col, msg);
+}

@@ -25,6 +25,8 @@ public:
     bool visitDeleteStmt(DeleteStmt *that);
     bool visitUpdateStmt(UpdateStmt *that);
     bool visitSelectStmt(SelectStmt *that);
+    bool visitCreateIdxStmt(CreateIdxStmt *that);
+    bool visitDropIdxStmt(DropIdxStmt *that);
 
     std::string msg; // to save return message
     std::string msgs; // all messages
