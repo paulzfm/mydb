@@ -3,12 +3,46 @@
 
 #include <math.h>
 
+void loadIndex(string prefix,
+        std::unordered_map
+        <
+            string,
+            std::multimap<DValue, std::pair<int, int>, DValueLT>
+        >& indexes) {
+    FILE *of = fopen((prefix + ".idx").c_str(), "rb");
+    if (of == NULL) return;
+    int n, m, len;
+    char buf[255];
+    fread(&n, 4, 1, of);
+    for (; n--;) {
+        fread(&len, 4, 1, of);
+        fread(buf, 1, len, of);
+        buf[len] = 0;
+        auto &i = indexes[string(buf)];
+        fread(&m, 4, 1, of);
+        for (;m--;) {
+            DValue val;
+            fread(&val.type.ident, 4, 1, of);
+            fread(&val.len, 2, 1, of);
+            val.data = new char[val.len + 1];
+            fread(val.data, 1, val.len, of);
+
+            int page, offset;
+            fread(&page, 4, 1, of);
+            fread(&offset, 4, 1, of);
+            i.insert(make_pair(val, make_pair(page, offset)));
+        }
+    }
+}
+
+
 RecordManager::RecordManager(const std::string& path)
 {
     // create fs manager
     fm = new FileManager();
     bpm = new BufPageManager(fm);
     fm->openFile((path + ".dat").c_str(), fid);
+    prefix = path;
 
     // load meta data from first page
     int index;
@@ -34,6 +68,9 @@ RecordManager::RecordManager(const std::string& path, int length)
     bpm = new BufPageManager(fm);
     fm->createFile((path + ".dat").c_str());
     fm->openFile((path + ".dat").c_str(), fid);
+    prefix = path;
+
+    loadIndex(prefix + ".idx", indexes);
 
     // initialize first page
     int index;
@@ -55,6 +92,30 @@ RecordManager::~RecordManager()
     fm->closeFile(fid);
     delete fm;
     delete bpm;
+
+    // save index
+    FILE *of = fopen((prefix + ".idx").c_str(), "wb");
+    int n = indexes.size();
+    fwrite(&n, 4, 1, of);
+    for (const auto& p : indexes) {
+        int len = p.first.length();
+        fwrite(&len, 4, 1, of);
+        fwrite(p.first.c_str(), 1, len, of);
+        const auto& i = p.second;
+        n = i.size();
+        fwrite(&n, 4, 1, of);
+        for (const auto& kv : i) {
+            DValue key = kv.first;
+            pair<int, int> val = kv.second;
+            fwrite(&key.type.ident, 4, 1, of);
+            fwrite(&key.len, 2, 1, of);
+            fwrite(&key.data, 1, key.len, of);
+            
+            fwrite(&val.first, 4, 1, of);
+            fwrite(&val.second, 4, 1, of);
+        }
+    }
+    fclose(of);
 }
 
 std::pair<int, int> RecordManager::insert(char *data)

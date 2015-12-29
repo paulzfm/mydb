@@ -141,6 +141,7 @@ public:
     const static int INDEX_NOT_FOUND = 2;
 
 private:
+    string prefix;
     FileManager *fm;
     BufPageManager *bpm;
     int fid; // file id

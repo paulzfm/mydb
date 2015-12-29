@@ -165,7 +165,6 @@ bool QueryManager::Insert(const string& table, unordered_map<string, Value*>& da
     }
 
 	pair<int, int> pos = rm.second->insert(buf);
-    cout << pos.first << ' ' << pos.second << endl;
     vector<string> indexes;
     rm.second->getIndexes(indexes);
     for (auto& index : indexes) {
