@@ -1,5 +1,6 @@
 #include "Database.h"
 #include "unistd.h"
+#include "../util/print.h"
 
 Database NullDatabase = Database();
 
@@ -81,10 +82,21 @@ bool Database::close() const {
 }
 
 void Database::showTables() const {
-	std::cout << "-- LIST OF TABLES" << endl;
-	for (const auto& table : tables) {
-		std::cout << ">> " << table.name << endl;
-	}
+    if (tables.size() == 0) {
+        cmsg << "No tables in database '" << name << "'.\n";
+    } else {
+        std::vector<std::string> heads;
+        heads.push_back("Tables in " + name);
+        std::vector< std::vector<std::string> > rows;
+        for (auto& tb : tables) {
+            std::vector<std::string> row;
+            row.push_back(tb.name);
+            rows.push_back(row);
+        }
+
+        cmsg << tableToString(heads, rows);
+        cmsg << tables.size() << " rows in set.\n";
+    }
 }
 
 void Database::descTable(const std::string& name) const {
