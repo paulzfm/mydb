@@ -216,7 +216,8 @@ void Table::desc() const {
         rows.push_back(row);
     }
 
-    cmsg << tableToString(heads, rows);
+    cmsg << tableToString(heads, rows)
+         << columns.size() - 1 << " rows in set.\n";
 }
 
 bool Table::checkConstraints(const char* rec, RecordManager* rm) {
