@@ -1,5 +1,6 @@
 #include "Table.h"
 #include "../query/utils.h"
+#include "../util/print.h"
 
 Table NullTable = Table();
 
@@ -147,35 +148,76 @@ bool Table::close(std::ofstream& fout) const {
 }
 
 void Table::desc() const {
-	cmsg << "------ Columns of Table " << name << " ------" << endl;
-	for (auto& col : columns) {
-		cmsg << "| " << col.name << " of type " << col.type << "\t";
-		for (auto& cons : constraints) {
-			if (cons.cid != col.cid) continue;
-			switch (cons.type) {
-				case 0:
-					cmsg << " Not Null\t";
-					break;
-				case 1:
-					cmsg << " Unique\t";
-					break;
-				case 2:
-					cmsg << " Primary Key\t";
-					break;
-				case 3:
-					cmsg << " Foreign Key\t";
-					break;
-				case 4:
-					cmsg << " Check\t";
-					break;
-				case 5:
-					cmsg << " Default\t";
-					break;
-			}
-		}
-		cmsg << endl;
-	}
-	cmsg << endl;
+    std::vector<std::string> heads;
+    heads.push_back("Field");
+    heads.push_back("Type");
+    heads.push_back("Null");
+    heads.push_back("Key");
+    heads.push_back("Default");
+    heads.push_back("Extra");
+
+    std::vector< std::vector<std::string> > rows;
+    bool ignore = true;
+    for (auto& col : columns) {
+        if (ignore) {
+            ignore = false;
+            continue;
+        }
+
+        std::vector<std::string> row;
+        row.push_back(col.name);
+        row.push_back(DType::toString(col.type, col.size));
+
+        bool attr[7];
+        for (int i = 0; i < 7; i++) {
+            attr[i] = false;
+        }
+        for (auto& cons : constraints) {
+            if (cons.cid != col.cid) continue;
+			attr[cons.type] = true;
+        }
+
+        // Null
+        if (attr[Constraint::NOT_NULL]) {
+            row.push_back("NO");
+        } else {
+            row.push_back("YES");
+        }
+
+        // Key
+        if (attr[Constraint::PRIMARY_KEY] && attr[Constraint::FOREIGN_KEY]) {
+            row.push_back("PRI FOR");
+        } else if (attr[Constraint::PRIMARY_KEY]) {
+            row.push_back("PRI");
+        } else if (attr[Constraint::FOREIGN_KEY]) {
+            row.push_back("FOR");
+        } else {
+            row.push_back("");
+        }
+
+        // Default
+        if (attr[Constraint::DEFAULT]) {
+            row.push_back("YES");
+        } else {
+            row.push_back("NULL");
+        }
+
+        // Extra: UNIQUE and AUTO_INCREMENT
+        if (attr[Constraint::UNIQUE] && attr[Constraint::AUTO_INCREMENT]) {
+            row.push_back("UNIQUE AUTO_INCREMENT");
+        } else if (attr[Constraint::UNIQUE]) {
+            row.push_back("UNIQUE");
+        } else if (attr[Constraint::FOREIGN_KEY]) {
+            row.push_back("AUTO_INCREMENT");
+        } else {
+            row.push_back("");
+        }
+
+        rows.push_back(row);
+    }
+
+    cmsg << tableToString(heads, rows)
+         << columns.size() - 1 << " rows in set.\n";
 }
 
 bool Table::checkConstraints(const char* rec, RecordManager* rm) {
