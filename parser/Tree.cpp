@@ -672,6 +672,11 @@ bool DropIdxStmt::accept(Visitor *v)
     return v->visitDropIdxStmt(this);
 }
 
+bool CValue::accept(Visitor *v)
+{
+    return v->visitCValue(this);
+}
+
 void Col::fillTable(std::string &tbName)
 {
     if (tb == "") {
