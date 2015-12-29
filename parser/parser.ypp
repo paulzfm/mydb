@@ -50,7 +50,6 @@ class Driver;
 %token DESC FOREIGN REFERENCES INDEX DEFAULT
 %token TRUE FALSE
 %token END 0 "end of file"
-%token <cvalue> CONST_VALUE
 %token <value> VALUE
 %token <ident> IDENT
 
@@ -256,13 +255,17 @@ value       :   VALUE
                 }
             ;
 
-cvalue      :   CONST_VALUE
-                {
-                    $$ = $1;
-                }
-            |   VALUE
+cvalue      :   VALUE
                 {
                     $$ = new CValue($1);
+                }
+            |   PLUS VALUE
+                {
+                    $$ = new CValue($2);
+                }
+            |   MINUS VALUE
+                {
+                    $$ = new CValue($2, true);
                 }
             ;
 

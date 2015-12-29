@@ -112,9 +112,16 @@ public:
 class CValue : public Tree
 {
 public:
-    CValue(int kind, const char *val)
+    CValue(Value *v, bool)
     {
-        value = new Value(kind, val);
+        if (v->kind == Value::VALUE_INT || v->kind == Value::VALUE_REAL) { // neg
+            char buf[2048];
+            *buf = '-';
+            strcat(buf + 1, v->val.c_str());
+            value = new Value(v->kind, buf);
+        } else {
+            value = v;
+        }
     }
 
     CValue(Value *v)
