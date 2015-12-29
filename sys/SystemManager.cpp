@@ -1,4 +1,6 @@
 #include "SystemManager.h"
+#include "../util/print.h"
+
 #include <unistd.h>
 #include <sys/stat.h>
 #include <cstdlib>
@@ -80,10 +82,21 @@ Database& SystemManager::useDatabase(const std::string& name) {
 }
 
 void SystemManager::showDatabases() const {
-	cout << "-- LIST OF DATABASES, TOTAL " << dbs.size() << " --" << endl;
-	for (auto& db : dbs) {
-		std::cout << ">> " << db.name << endl;
-	}
+    if (dbs.size() == 0) {
+        cmsg << "No databases in set.\n";
+    } else {
+        std::vector<std::string> heads;
+        heads.push_back("Database");
+        std::vector< std::vector<std::string> > rows;
+        for (auto& db : dbs) {
+            std::vector<std::string> row;
+            row.push_back(db.name);
+            rows.push_back(row);
+        }
+
+        cmsg << tableToString(heads, rows);
+        cmsg << dbs.size() << " rows in set.\n";
+    }
 }
 
 Database& SystemManager::createDatabase(const std::string& name) {
