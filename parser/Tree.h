@@ -24,10 +24,14 @@ public:
 class Expr : public Tree
 {
 public:
+    Expr(int op) : op(op) {}
+
     virtual void printTo(PrintWriter& pw) = 0;
     virtual bool accept(Visitor *v) = 0;
     virtual void fillTable(std::string &tbName) = 0;
     virtual rapidjson::Value toJSONValue(rapidjson::Document::AllocatorType& allocator) = 0;
+
+    int op;
 
     const static int OP_POS = 0;
     const static int OP_NEG = 1;
@@ -36,15 +40,17 @@ public:
     const static int OP_MUL = 4;
     const static int OP_DIV = 5;
     const static int OP_MOD = 6;
+    const static int OP_COL = 7;
+    const static int OP_VAL = 8;
 };
 
 class Col : public Expr
 {
 public:
     Col(const char *colName)
-        : tb(""), col(std::string(colName)) {}
+        : Expr(OP_COL), tb(""), col(std::string(colName)) {}
     Col(const char *tbName, const char *colName)
-        : tb(std::string(tbName)), col(std::string(colName)) {}
+        : Expr(OP_COL), tb(std::string(tbName)), col(std::string(colName)) {}
 
     void printTo(PrintWriter& pw);
     virtual bool accept(Visitor *v);
@@ -83,8 +89,8 @@ public:
 class Value : public Expr
 {
 public:
-    Value(int kind) : kind(kind) {}
-    Value(int kind, const char *val) : kind(kind), val(std::string(val)) {}
+    Value(int kind) : Expr(OP_VAL), kind(kind) {}
+    Value(int kind, const char *val) : Expr(OP_VAL), kind(kind), val(std::string(val)) {}
 
     void printTo(PrintWriter& pw);
     virtual bool accept(Visitor *v);
@@ -103,10 +109,29 @@ public:
     static const int VALUE_FALSE = 5;
 };
 
+class CValue : public Tree
+{
+public:
+    CValue(int kind, const char *val)
+    {
+        value = new Value(kind, val);
+    }
+
+    CValue(Value *v)
+    {
+        value = v;
+    }
+
+    void printTo(PrintWriter& pw) {}
+    virtual bool accept(Visitor *v);
+
+    Value *value;
+};
+
 class UnonExpr : public Expr
 {
 public:
-    UnonExpr(Tree *expr, int op) : expr((Expr*)expr), op(op) {}
+    UnonExpr(Tree *expr, int op) : Expr(op), expr((Expr*)expr) {}
 
     void printTo(PrintWriter& pw);
     virtual bool accept(Visitor *v);
@@ -114,13 +139,12 @@ public:
     virtual rapidjson::Value toJSONValue(rapidjson::Document::AllocatorType& allocator);
 
     Expr *expr;
-    int op;
 };
 
 class BinExpr : public Expr
 {
 public:
-    BinExpr(Tree *left, Tree *right, int op) : left((Expr*)left), right((Expr*)right), op(op) {}
+    BinExpr(Tree *left, Tree *right, int op) : Expr(op), left((Expr*)left), right((Expr*)right) {}
 
     void printTo(PrintWriter& pw);
     virtual bool accept(Visitor *v);
@@ -129,7 +153,6 @@ public:
 
     Expr *left;
     Expr *right;
-    int op;
 };
 
 class TopLevel : public Tree
@@ -276,8 +299,14 @@ public:
 class InExpr : public BoolExpr
 {
 public:
-    InExpr(Tree *left, std::vector<Tree*> *right, int op)
-        : BoolExpr(op), left((Col*)left), right((std::vector<Value*>*)right) {}
+    InExpr(Tree *left, std::vector<Tree*> *set, int op)
+        : BoolExpr(op), left((Col*)left)
+    {
+        right = new std::vector<Value*>;
+        for (auto& val : *set) {
+            right->push_back(((CValue*)val)->value);
+        }
+    }
 
     void printTo(PrintWriter& pw);
     virtual bool accept(Visitor *v);
@@ -291,8 +320,8 @@ public:
 class BetweenExpr : public BoolExpr
 {
 public:
-    BetweenExpr(Tree *left, Value *rightL, Value *rightR, int op)
-        : BoolExpr(op), left((Col*)left), rightL(rightL), rightR(rightR) {}
+    BetweenExpr(Tree *left, CValue *rightL, CValue *rightR, int op)
+        : BoolExpr(op), left((Col*)left), rightL(rightL->value), rightR(rightR->value) {}
 
     void printTo(PrintWriter& pw);
     virtual bool accept(Visitor *v);
@@ -502,7 +531,11 @@ public:
     {
         values = new std::vector< std::vector<Value*>* >;
         for (auto& set : *sets) {
-            values->push_back((std::vector<Value*>*)set);
+            std::vector<Value*> *tmp = new std::vector<Value*>;
+            for (auto& cvalue : *(std::vector<CValue*>*)set) {
+                tmp->push_back(cvalue->value);
+            }
+            values->push_back(tmp);
         }
     }
 
@@ -728,6 +761,7 @@ public:
     virtual bool visitSelectStmt(SelectStmt *that) { return visitTree(that); }
     virtual bool visitCreateIdxStmt(CreateIdxStmt *that) { return visitTree(that); }
     virtual bool visitDropIdxStmt(DropIdxStmt *that) { return visitTree(that); }
+    virtual bool visitCValue(CValue *that) { return visitTree(that); }
 };
 
 #endif // PARSER_TREE_H_
