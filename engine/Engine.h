@@ -55,4 +55,12 @@ public:
     std::string str;
 };
 
+class ServerEngine : public Engine
+{
+public:
+    ServerEngine(): Engine() {}
+
+    virtual void run() {}
+};
+
 #endif // ENGINE_ENGINE_H_
