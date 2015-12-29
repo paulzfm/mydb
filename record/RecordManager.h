@@ -134,7 +134,11 @@ public:
     bool dropIndex(const string& col);
     void addIndex(const string& col, const DValue& val, pair<int, int> pos);
     void removeIndex(const string& col, const DValue& val, pair<int, int> pos);
-    bool queryIndex(const string& col, const DValue& val);
+    int queryIndex(const string& col, const DValue& val);
+
+    const static int NO_INDEX = 0;
+    const static int INDEX_FOUND = 1;
+    const static int INDEX_NOT_FOUND = 2;
 
 private:
     FileManager *fm;

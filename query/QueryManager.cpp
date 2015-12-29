@@ -142,6 +142,7 @@ bool QueryManager::Insert(const string& table, unordered_map<string, Value*>& da
     }
 
 	// fill data
+    auto backup = data;
 	for (auto& col : rm.first->columns) {
 		auto iter = data.find(col.name);
 		if (iter != data.end()) {
@@ -164,12 +165,13 @@ bool QueryManager::Insert(const string& table, unordered_map<string, Value*>& da
     }
 
 	pair<int, int> pos = rm.second->insert(buf);
+    cout << pos.first << ' ' << pos.second << endl;
     vector<string> indexes;
     rm.second->getIndexes(indexes);
     for (auto& index : indexes) {
         Column& col = rm.first->getColumn(rm.first->getColumnByName(index));
         DValue val;
-        if (data.find(index) != data.end()) val = v2dv(data[index]);
+        if (backup.find(index) != backup.end()) val = v2dv(backup[index]);
         rm.second->addIndex(index, val, pos);
     }
 
@@ -619,14 +621,20 @@ bool QueryManager::CreateTable(const string& name, vector<Column>& cols,
         if (cid == -1) return setError(msg);
 		cids[i++] = cid;
     }
-	for (auto& con : cons) {
-        con.cid = cids[con.cid];
-		table.addConstraint(con);
-    }
 
-    string path = sysmgr->dbs[sysmgr->dbid].name + '/' + name + ".dat";
+    string path = sysmgr->dbs[sysmgr->dbid].name + '/' + name;
     RecordManager *rm = new RecordManager(path, table.getWidth());
     delete rm;
+
+	for (auto& con : cons) {
+        con.cid = cids[con.cid];
+        if (con.type == Constraint::PRIMARY_KEY) {
+            Column& col = table.getColumn(table.getColumnById(con.cid));
+            string tmp;
+            this->CreateIndex(name, col.name, tmp);
+        }
+		table.addConstraint(con);
+    }
 
     msg = cmsg.str();
     return true;
@@ -635,6 +643,12 @@ bool QueryManager::CreateTable(const string& name, vector<Column>& cols,
 bool QueryManager::DropTable(const string& name, string& msg) {
     cmsg.str("");
 	sysmgr->dropTable(name);
+    string path = sysmgr->dbs[sysmgr->dbid].name + '/' + name;
+    string cmd = "rm -rf ";
+    cmd += path + ".dat";
+    system(cmd.c_str());
+    cmd = "rm -rf ";
+    cmd += path + ".idx";
     msg = cmsg.str();
     return true;
 }

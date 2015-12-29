@@ -263,9 +263,9 @@ void RecordManager::removeIndex(const string& col, const DValue& val, pair<int, 
     }
 }
 
-bool RecordManager::queryIndex(const string& col, const DValue& val) {
-    if (indexes.find(col) == indexes.end()) return false; // no index
+int RecordManager::queryIndex(const string& col, const DValue& val) {
+    if (indexes.find(col) == indexes.end()) return NO_INDEX; // no index
     auto& index = indexes[col];
-    if (index.find(val) != index.end()) return true; // value found
-    return false;
+    if (index.find(val) != index.end()) return INDEX_FOUND; // value found
+    return INDEX_NOT_FOUND;
 }
