@@ -239,12 +239,12 @@ bool ExecuteVisitor::visitUpdateStmt(UpdateStmt *that)
 
 bool ExecuteVisitor::visitSelectStmt(SelectStmt *that)
 {
-    PrintWriter pw;
-    that->printTo(pw);
-
     if (that->where->empty) {
         that->where->where = new BoolValue(true);
     }
+
+    PrintWriter pw;
+    that->printTo(pw);
 
     return qm->Select(that->tbs, that->sel, that->where->where, that->gb, msg);
 }

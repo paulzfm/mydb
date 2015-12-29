@@ -237,7 +237,7 @@ class BoolValue : public BoolExpr
 public:
     BoolValue(bool val = true) : BoolExpr(OP_NONE), val(val) {}
 
-    void printTo(PrintWriter& pw) {}
+    void printTo(PrintWriter& pw);
     virtual bool accept(Visitor *v);
     virtual void fillTable(std::string &tbName) {}
     virtual rapidjson::Value toJSONValue(rapidjson::Document::AllocatorType& allocator);
@@ -622,6 +622,7 @@ public:
 
     void printTo(PrintWriter& pw) {}
     virtual bool accept(Visitor *v) { return false; }
+    void fillTable(std::string &tbName);
 
     std::string tb;
     std::string col;
@@ -631,8 +632,8 @@ public:
 class SelectStmt : public Stmt
 {
 public:
-    SelectStmt(std::vector<const char*> *tbNames, Tree *selectors, Tree *whereClause, Tree *gb)
-        : sel((Selectors*)selectors), where((Where*)whereClause), gb((GroupBy*)gb)
+    SelectStmt(std::vector<const char*> *tbNames, Tree *selectors, Tree *whereClause, Tree *group)
+        : sel((Selectors*)selectors), where((Where*)whereClause), gb((GroupBy*)group)
     {
         for (auto& tb : *tbNames) {
             tbs.push_back(std::string(tb));
@@ -647,6 +648,10 @@ public:
 
             if (!where->empty) {
                 where->where->fillTable(tbs[0]);
+            }
+
+            if (!gb->empty) {
+                gb->fillTable(tbs[0]);
             }
         }
     }
