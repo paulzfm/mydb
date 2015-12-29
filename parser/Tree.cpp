@@ -184,6 +184,11 @@ void Field::printTo(PrintWriter &pw)
     pw.println("");
 }
 
+void BoolValue::printTo(PrintWriter &pw)
+{
+    pw.println(val ? "true" : "false");
+}
+
 void NullExpr::printTo(PrintWriter &pw)
 {
     switch (op) {
@@ -478,7 +483,7 @@ void SelectStmt::printTo(PrintWriter &pw)
     pw.incIndent();
     sel->printTo(pw);
     pw.decIndent();
-    if (!where->empty) {
+    if (where) {
         pw.println("where");
         pw.incIndent();
         where->where->printTo(pw);
@@ -710,6 +715,13 @@ void ComplexExpr::fillTable(std::string &tbName)
 {
     left->fillTable(tbName);
     right->fillTable(tbName);
+}
+
+void GroupBy::fillTable(std::string &tbName)
+{
+    if (tb == "") {
+        tb = tbName;
+    }
 }
 
 rapidjson::Value Col::toJSONValue(rapidjson::Document::AllocatorType& allocator)
