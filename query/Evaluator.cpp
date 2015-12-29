@@ -1,4 +1,5 @@
 #include "Evaluator.h"
+#include <regex>
 
 Evaluator::Evaluator(const unordered_map<string, DValue>& rec, string tb)
         : rec(rec), tb(tb) {
@@ -118,6 +119,32 @@ bool Evaluator::visitCompareExpr(CompareExpr *that) {
             break;
         case BoolExpr::OP_LT:
             res = (val < values.back());
+            break;
+        case BoolExpr::OP_LIKE:
+        case BoolExpr::OP_NOT_LIKE:
+            if (!values.back().isString() || !val.isString()) {
+                cmsg << "[ERROR] operand of LIKE must be string." << endl;
+                return false;
+            }
+            string pstr = values.back().getString();
+            // convert LIKE pattern into regex pattern
+            // [! to [^
+            while (pstr.find("[!") != string::npos) {
+                int pos = pstr.find("[!");
+                pstr.replace(pos, 2, "[^");
+            }
+            while (pstr.find("%") != string::npos) {
+                int pos = pstr.find("%");
+                pstr.replace(pos, 1, ".*");
+            }
+            while (pstr.find("_") != string::npos) {
+                int pos = pstr.find("_");
+                pstr.replace(pos, 1, ".");
+            }
+
+            std::regex pattern(pstr.c_str());
+            res = DValue(std::regex_match(val.getString(), pattern));
+            if (that->op == BoolExpr::OP_NOT_LIKE) res = ! res;
             break;
     }
     values.pop_back();
