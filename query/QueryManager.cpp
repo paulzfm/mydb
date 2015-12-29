@@ -646,7 +646,7 @@ bool QueryManager::CreateIndex(const string& table, const string& column, string
     if (rm == NullContainer) return setError(msg);
 
     Column& col = rm.first->getColumn(rm.first->getColumnByName(column));
-    if (col.type = DType::CHAR || col.type == DType::STRING) {
+    if (col.type == DType::CHAR || col.type == DType::STRING) {
         cmsg << "[ERROR] index on non-number column is not supported." << endl;
         return setError(msg);
     }
