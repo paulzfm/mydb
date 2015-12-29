@@ -236,12 +236,16 @@ void RecordManager::getIndexes(vector<string>& vec) const {
         vec.push_back(index.first);
 }
 
-void RecordManager::createIndex(const string& col) {
+bool RecordManager::createIndex(const string& col) {
+    if (indexes.find(col) != indexes.end()) return false;
     indexes[col];
+    return true;
 }
 
-void RecordManager::dropIndex(const string& col) {
+bool RecordManager::dropIndex(const string& col) {
+    if (indexes.find(col) == indexes.end()) return false;
     indexes.erase(col);
+    return true;
 }
 
 void RecordManager::addIndex(const string& col, const DValue& val, pair<int, int> pos) {
@@ -257,4 +261,11 @@ void RecordManager::removeIndex(const string& col, const DValue& val, pair<int, 
             return;
         }
     }
+}
+
+bool RecordManager::queryIndex(const string& col, const DValue& val) {
+    if (indexes.find(col) == indexes.end()) return false; // no index
+    auto& index = indexes[col];
+    if (index.find(val) != index.end()) return true; // value found
+    return false;
 }

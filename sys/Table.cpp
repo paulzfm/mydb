@@ -198,7 +198,7 @@ bool Table::checkConstraints(const char* rec, RecordManager* rm) {
                     Column& col = columns[getColumnById(con.cid)];
                     auto filter = getFilter(this, getBoolExpr(name, col.name, val));
                     Record r;
-                    if (rm->queryOne(filter, r)) {
+                    if (rm->queryIndex(col.name, val) || rm->queryOne(filter, r)) { // query in index first
                         cmsg << "[ERROR] value in column " << col.name << " is not UNIQUE." << endl;
                         return false;
                     }
