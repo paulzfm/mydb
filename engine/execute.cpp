@@ -138,21 +138,60 @@ bool ExecuteVisitor::visitCreateTBStmt(CreateTBStmt *that)
         return false;
     }
 
-    rapidjson::Value data;
     std::vector<Constraint> cons;
+    // 1 primary key
     if (that->pkeys->size() == 1) {
         std::string key = (*that->pkeys)[0]->key;
+        rapidjson::Value data; // empty
         cons.push_back(Constraint(that->indexOf(key), key,
             Constraint::PRIMARY_KEY, data));
     }
+
+    // 2 foreign key
     for (auto& key : *that->fkeys) {
+        rapidjson::Document doc;
+        doc.SetObject();
+
+        // to save referenced column { "tb": table, "col": column }
+        rapidjson::Value data(rapidjson::kObjectType);
+        data.AddMember("tb", rapidjson::StringRef(key->rtb.c_str()), doc.GetAllocator());
+        data.AddMember("col", rapidjson::StringRef(key->rkey.c_str()), doc.GetAllocator());
+
         cons.push_back(Constraint(that->indexOf(key->key), key->key,
             Constraint::FOREIGN_KEY, data));
     }
+
+    // 3 check
+    int sz = that->checks->size();
+    if (sz == 0) {
+        // ignore
+    } else {
+        BoolExpr *root = (*that->checks)[0]->check;
+        if (sz > 1) { // join them together with AND
+            for (int i = 1; i < sz; i++) {
+                root = new ComplexExpr(root, (*that->checks)[i]->check, BoolExpr::OP_AND);
+            }
+        }
+
+        rapidjson::Document doc;
+        doc.SetObject();
+        rapidjson::Value data = root->toJSONValue(doc.GetAllocator());
+        cons.push_back(Constraint(-1, "", Constraint::CHECK, data));
+    }
+
+    // 4 attrs
     cid = 0;
     for (auto& field : *that->fields) {
         for (auto& attr : *field->attrs) {
-            cons.push_back(Constraint(cid, field->name, attr->kind, data));
+            if (attr->kind == Attr::ATTR_DEFAULT) {
+                rapidjson::Document doc;
+                doc.SetObject();
+                rapidjson::Value data = attr->def->toJSONValue(doc.GetAllocator());
+                cons.push_back(Constraint(cid, field->name, attr->kind, data));
+            } else {
+                rapidjson::Value data; // empty
+                cons.push_back(Constraint(cid, field->name, attr->kind, data));
+            }
         }
         cid++;
     }
