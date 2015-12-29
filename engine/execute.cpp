@@ -142,7 +142,7 @@ bool ExecuteVisitor::visitCreateTBStmt(CreateTBStmt *that)
     // 1 primary key
     if (that->pkeys->size() == 1) {
         std::string key = (*that->pkeys)[0]->key;
-        rapidjson::Value data; // empty
+        rapidjson::Value data(1); // 1
         cons.push_back(Constraint(that->indexOf(key), key,
             Constraint::PRIMARY_KEY, data));
     }
