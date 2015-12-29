@@ -3,11 +3,15 @@
 
 #include "../lib/fs/fileio/FileManager.h"
 #include "../lib/fs/bufmanager/BufPageManager.h"
+#include "../util/common.h"
+#include "../query/values.h"
 
 #include <string.h>
 #include <string>
 #include <vector>
 #include <functional>
+#include <map>
+#include <unordered_map>
 
 // Record (a row in table)
 struct Record
@@ -93,7 +97,7 @@ public:
 
     // insert a record
     //   returns false if the table if full
-    bool insert(char *data);
+    std::pair<int, int> insert(char *data);
 
     // remove a record
     //   returns false if no such record
@@ -124,10 +128,20 @@ public:
     // record length in bytes
     int width() const;
 
+    // indexes
+    void getIndexes(vector<string>& vec) const;
+    void createIndex(const string& col);
+    void dropIndex(const string& col);
+    void addIndex(const string& col, const DValue& val, pair<int, int> pos);
+    void removeIndex(const string& col, const DValue& val, pair<int, int> pos);
+
 private:
     FileManager *fm;
     BufPageManager *bpm;
     int fid; // file id
+
+    // <col name, map< value, <page, offset> >
+    std::unordered_map<string, std::multimap<DValue, std::pair<int, int>, DValueLT>> indexes;
 
     int length; // record length in types
     int words;  // record length in words

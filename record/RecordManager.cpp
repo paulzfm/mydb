@@ -8,7 +8,7 @@ RecordManager::RecordManager(const std::string& path)
     // create fs manager
     fm = new FileManager();
     bpm = new BufPageManager(fm);
-    fm->openFile(path.c_str(), fid);
+    fm->openFile((path + ".dat").c_str(), fid);
 
     // load meta data from first page
     int index;
@@ -32,8 +32,8 @@ RecordManager::RecordManager(const std::string& path, int length)
     // create fs manager
     fm = new FileManager();
     bpm = new BufPageManager(fm);
-    fm->createFile(path.c_str());
-    fm->openFile(path.c_str(), fid);
+    fm->createFile((path + ".dat").c_str());
+    fm->openFile((path + ".dat").c_str(), fid);
 
     // initialize first page
     int index;
@@ -57,7 +57,7 @@ RecordManager::~RecordManager()
     delete bpm;
 }
 
-bool RecordManager::insert(char *data)
+std::pair<int, int> RecordManager::insert(char *data)
 {
     // find empty page
     int index0;
@@ -100,7 +100,7 @@ bool RecordManager::insert(char *data)
     b0[2] = rid;
     bpm->markDirty(index0);
 
-    return true;
+    return make_pair(pageId, offset);
 }
 
 bool RecordManager::remove(int page, int offset)
@@ -229,4 +229,32 @@ int RecordManager::count() const
 int RecordManager::width() const
 {
     return length;
+}
+
+void RecordManager::getIndexes(vector<string>& vec) const {
+    for (const auto& index : indexes)
+        vec.push_back(index.first);
+}
+
+void RecordManager::createIndex(const string& col) {
+    indexes[col];
+}
+
+void RecordManager::dropIndex(const string& col) {
+    indexes.erase(col);
+}
+
+void RecordManager::addIndex(const string& col, const DValue& val, pair<int, int> pos) {
+    auto& index = indexes[col];
+    index.insert(make_pair(val, pos));
+}
+
+void RecordManager::removeIndex(const string& col, const DValue& val, pair<int, int> pos) {
+    auto& index = indexes[col];
+    for (auto iter = index.find(val); iter != index.end() && (iter->first == val).getBool(); ++iter) {
+        if (iter->second == pos) {
+            index.erase(iter);
+            return;
+        }
+    }
 }

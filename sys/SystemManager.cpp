@@ -115,7 +115,6 @@ void SystemManager::dropDatabase(const std::string& name) {
 
 	dbs.erase(dbs.begin() + dbid);
 
-	// TODO: error handling
 	char cmd[256];
 	sprintf(cmd, "rm -rf %s", name.c_str());
 	system(cmd);
