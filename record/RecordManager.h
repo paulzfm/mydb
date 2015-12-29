@@ -130,10 +130,11 @@ public:
 
     // indexes
     void getIndexes(vector<string>& vec) const;
-    void createIndex(const string& col);
-    void dropIndex(const string& col);
+    bool createIndex(const string& col);
+    bool dropIndex(const string& col);
     void addIndex(const string& col, const DValue& val, pair<int, int> pos);
     void removeIndex(const string& col, const DValue& val, pair<int, int> pos);
+    bool queryIndex(const string& col, const DValue& val);
 
 private:
     FileManager *fm;

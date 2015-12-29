@@ -651,7 +651,10 @@ bool QueryManager::CreateIndex(const string& table, const string& column, string
         return setError(msg);
     }
 
-    rm.second->createIndex(column);
+    if (!rm.second->createIndex(column)) {
+        cmsg << "[ERROR] index of column " << column << " in table " << table << " already exists." << endl;
+        return setError(msg);
+    }
     vector<Record> records;
     rm.second->loadAll(records);
     for (const Record& rec : records) {
@@ -669,7 +672,10 @@ bool QueryManager::DropIndex(const string& table, const string& column, string& 
     Container rm = getContainer(table);
     if (rm == NullContainer) return setError(msg);
     
-    rm.second->dropIndex(column);
+    if (!rm.second->dropIndex(column)) {
+        cmsg << "[ERROR] index of column " << column << " in table " << table << " not found." << endl;
+        return setError(msg);
+    }
 
     msg = cmsg.str();
     return true;
