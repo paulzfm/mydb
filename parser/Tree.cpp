@@ -849,3 +849,53 @@ rapidjson::Value ComplexExpr::toJSONValue(rapidjson::Document::AllocatorType& al
     object.AddMember("ComplexExpr", members, allocator);
     return object;
 }
+
+Tree* toTreeNode(const rapidjson::Value& val)
+{
+    assert(val.IsObject());
+    std::string type = val.MemberBegin()->name.GetString();
+
+    if (type == "Col") {
+        return new Col(val["Col"]["tb"].GetString(), val["Col"]["col"].GetString());
+    }
+    if (type == "Value") {
+        return new Value(val["Value"]["kind"].GetInt(), val["Value"]["val"].GetString());
+    }
+    if (type == "UnonExpr") {
+        return new UnonExpr(toTreeNode(val["UnonExpr"]["expr"]), val["UnonExpr"]["op"].GetInt());
+    }
+    if (type == "BinExpr") {
+        return new BinExpr(toTreeNode(val["BinExpr"]["left"]),
+            toTreeNode(val["BinExpr"]["right"]), val["BinExpr"]["op"].GetInt());
+    }
+    if (type == "BoolValue") {
+        return new BoolValue(val["BoolValue"]["val"].GetBool());
+    }
+    if (type == "NullExpr") {
+        return new NullExpr(toTreeNode(val["NullExpr"]["name"]), val["NullExpr"]["op"].GetInt());
+    }
+    if (type == "CompareExpr") {
+        return new CompareExpr(toTreeNode(val["CompareExpr"]["left"]),
+            toTreeNode(val["CompareExpr"]["right"]), val["CompareExpr"]["op"].GetInt());
+    }
+    if (type == "InExpr") {
+        assert(val["InExpr"]["right"].IsArray());
+        std::vector<Tree*> *set = new std::vector<Tree*>;
+        for (rapidjson::SizeType i = 0; i < val["InExpr"]["right"].Size(); i++) {
+            set->push_back(new CValue(toTreeNode(val["InExpr"]["right"][i])));
+        }
+        return new InExpr(toTreeNode(val["InExpr"]["left"]), set, val["InExpr"]["op"].GetInt());
+    }
+    if (type == "BetweenExpr") {
+        return new BetweenExpr(toTreeNode(val["BetweenExpr"]["left"]),
+            toTreeNode(val["BetweenExpr"]["rightL"]), toTreeNode(val["BetweenExpr"]["rightR"]),
+            val["BetweenExpr"]["op"].GetInt());
+    }
+    if (type == "ComplexExpr") {
+        return new ComplexExpr(toTreeNode(val["ComplexExpr"]["left"]),
+            toTreeNode(val["ComplexExpr"]["right"]), val["ComplexExpr"]["op"].GetInt());
+    }
+
+    assert(false);
+    return nullptr;
+}

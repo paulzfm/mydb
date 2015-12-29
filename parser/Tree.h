@@ -129,6 +129,11 @@ public:
         value = v;
     }
 
+    CValue(Tree *v)
+    {
+        value = (Value*)v;
+    }
+
     void printTo(PrintWriter& pw) {}
     virtual bool accept(Visitor *v);
 
@@ -329,6 +334,8 @@ class BetweenExpr : public BoolExpr
 public:
     BetweenExpr(Tree *left, CValue *rightL, CValue *rightR, int op)
         : BoolExpr(op), left((Col*)left), rightL(rightL->value), rightR(rightR->value) {}
+    BetweenExpr(Tree *left, Tree *rightL, Tree *rightR, int op)
+        : BoolExpr(op), left((Col*)left), rightL((Value*)rightL), rightR((Value*)rightR) {}
 
     void printTo(PrintWriter& pw);
     virtual bool accept(Visitor *v);
@@ -730,6 +737,8 @@ public:
     std::string tb;
     std::string col;
 };
+
+Tree* toTreeNode(const rapidjson::Value& val);
 
 
 // Visitor
