@@ -49,6 +49,22 @@ public:
 
     // length of current type in bytes
     int bytes;
+
+    static std::string toString(int type, int size)
+    {
+        switch (type) {
+            case BOOL:      return "bool"; break;
+            case BYTE:      return "byte"; break;
+            case SHORT:     return "shore"; break;
+            case INT:       return "int"; break;
+            case LONG:      return "long"; break;
+            case FLOAT:     return "float"; break;
+            case DOUBLE:    return "double"; break;
+            case CHAR:      return "char"; break;
+            case STRING:    return "varchar(" + std::to_string(size) + ")"; break;
+            default:        return "" ; // error
+        }
+    }
 };
 
 class Byte : public DType
