@@ -142,15 +142,15 @@ bool ExecuteVisitor::visitCreateTBStmt(CreateTBStmt *that)
     // 1 primary key
     if (that->pkeys->size() == 1) {
         std::string key = (*that->pkeys)[0]->key;
-        rapidjson::Value data(1); // 1
+        rapidjson::Value data; // empty
         cons.push_back(Constraint(that->indexOf(key), key,
             Constraint::PRIMARY_KEY, data));
     }
 
     // 2 foreign key
     for (auto& key : *that->fkeys) {
-        rapidjson::Document doc;
-        doc.SetObject();
+        //rapidjson::Document doc;
+        //doc.SetObject();
 
         // to save referenced column { "tb": table, "col": column }
         rapidjson::Value data(rapidjson::kObjectType);
@@ -173,8 +173,8 @@ bool ExecuteVisitor::visitCreateTBStmt(CreateTBStmt *that)
             }
         }
 
-        rapidjson::Document doc;
-        doc.SetObject();
+        //rapidjson::Document doc;
+        //doc.SetObject();
         rapidjson::Value data = root->toJSONValue(doc.GetAllocator());
         cons.push_back(Constraint(-1, "", Constraint::CHECK, data));
     }
@@ -184,12 +184,12 @@ bool ExecuteVisitor::visitCreateTBStmt(CreateTBStmt *that)
     for (auto& field : *that->fields) {
         for (auto& attr : *field->attrs) {
             if (attr->kind == Attr::ATTR_DEFAULT) {
-                rapidjson::Document doc;
-                doc.SetObject();
+                //rapidjson::Document doc;
+                //doc.SetObject();
                 rapidjson::Value data = attr->def->toJSONValue(doc.GetAllocator());
                 cons.push_back(Constraint(cid, field->name, attr->kind, data));
             } else {
-                rapidjson::Value data; // empty
+                rapidjson::Value data(1); // 1
                 cons.push_back(Constraint(cid, field->name, attr->kind, data));
             }
         }

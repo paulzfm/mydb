@@ -255,7 +255,7 @@ void RecordManager::query(const std::function<bool(const Record&)>& filter, std:
     }
 }
 
-bool RecordManager::queryOne(const std::function<bool(const Record&)>& filter, Record& record)
+bool RecordManager::queryOne(const std::function<bool(const Record&)>& filter, Record& record, int irid)
 {
     for (int page = 1; page <= pid; page++) {
         int index;
@@ -267,7 +267,7 @@ bool RecordManager::queryOne(const std::function<bool(const Record&)>& filter, R
             if ((offset - 1) % words == 0) {
                 int *start = b + offset * RM_WORD_SIZE;
                 Record rec(*start, start + 1, length, page, offset);
-                if (filter(rec)) {
+                if (rec.rid != irid && filter(rec)) {
                     record = rec;
                     return true;
                 }
@@ -324,9 +324,15 @@ void RecordManager::removeIndex(const string& col, const DValue& val, pair<int, 
     }
 }
 
-int RecordManager::queryIndex(const string& col, const DValue& val) {
+int RecordManager::queryIndex(const string& col, const DValue& val, int irid) {
     if (indexes.find(col) == indexes.end()) return NO_INDEX; // no index
     auto& index = indexes[col];
-    if (index.find(val) != index.end()) return INDEX_FOUND; // value found
+    auto iter = index.find(val);
+    while (iter != index.end() && (iter->first == val).getBool()) {
+        Record rec;
+        assert(load(iter->second.first, iter->second.second, rec));
+        if (rec.rid == irid) continue;
+        return INDEX_FOUND; // value found
+    }
     return INDEX_NOT_FOUND;
 }

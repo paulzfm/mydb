@@ -31,5 +31,6 @@ using std::endl;
 using rapidjson::Document;
 
 extern std::stringstream cmsg;
+extern Document doc;
 
 #endif

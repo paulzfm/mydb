@@ -122,6 +122,10 @@ bool Evaluator::visitCompareExpr(CompareExpr *that) {
             break;
         case BoolExpr::OP_LIKE:
         case BoolExpr::OP_NOT_LIKE:
+            if (val.isNull() || values.back().isNull()) {
+                res = DValue(false);
+                break;
+            }
             if (!values.back().isString() || !val.isString()) {
                 cmsg << "[ERROR] operand of LIKE must be string." << endl;
                 return false;

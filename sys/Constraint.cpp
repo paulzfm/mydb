@@ -2,12 +2,23 @@
 
 Constraint::Constraint() {}
 
+Constraint::Constraint(const Constraint& con)
+    : cid(con.cid), name(con.name), type(con.type), data(con.data, doc.GetAllocator()) {   
+}
+
 Constraint::Constraint(short _cid, const string& _name, char _type,
-		rapidjson::Value& _data) {
+		const rapidjson::Value& _data) : data(_data, doc.GetAllocator()) {
 	cid = _cid;
 	name = _name;
 	type = _type;
-	data = _data;
+}
+
+void Constraint::setData(const rapidjson::Value& data) {
+    this->data = rapidjson::Value(data, doc.GetAllocator());
+}
+
+rapidjson::Value Constraint::getData() const {
+    return rapidjson::Value(data, doc.GetAllocator());
 }
 
 rapidjson::Value Constraint::serialize(rapidjson::Document& doc) const {

@@ -7,6 +7,8 @@
 #include "../query/values.h"
 #include "../record/RecordManager.h"
 
+class QueryManager;
+
 class Table {
 	private:
 		int tid;
@@ -39,7 +41,7 @@ class Table {
 		void desc() const;
 
         // util functions
-		bool checkConstraints(const char* rec, RecordManager* rm);
+		bool checkConstraints(const char* rec, RecordManager* rm, QueryManager* qm, int irid = -1);
         bool setColumnValue(char* rec, short cid, const DValue& val) const;
         DValue getColumnValue(const char* rec, short cid) const;
 };

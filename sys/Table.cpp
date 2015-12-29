@@ -1,6 +1,7 @@
 #include "Table.h"
 #include "../query/utils.h"
 #include "../util/print.h"
+#include "../query/QueryManager.h"
 
 Table NullTable = Table();
 
@@ -113,14 +114,15 @@ bool Table::open(std::ifstream& fin) {
 }
 
 bool Table::close(std::ofstream& fout) const {
-	rapidjson::Document doc(rapidjson::kObjectType);
-	rapidjson::Document::AllocatorType& alloc = doc.GetAllocator();
+	//rapidjson::Document doc(rapidjson::kObjectType);
+    Document tdoc(rapidjson::kObjectType);
+	rapidjson::Document::AllocatorType& alloc = tdoc.GetAllocator();
 
 	// write metadatas
 	rapidjson::Value vName;
 	vName.SetString(name.c_str(), alloc);
-	doc.AddMember("name", vName, alloc);
-    doc.AddMember("width", width, alloc);
+	tdoc.AddMember("name", vName, alloc);
+    tdoc.AddMember("width", width, alloc);
 
 	// write columns
 	rapidjson::Value vCol(rapidjson::kArrayType);
@@ -128,7 +130,7 @@ bool Table::close(std::ofstream& fout) const {
 		rapidjson::Value val = col.serialize(doc);
 		vCol.PushBack(val, alloc);
 	}
-	doc.AddMember("columns", vCol, alloc);
+	tdoc.AddMember("columns", vCol, alloc);
 
 	// write constraints
 	rapidjson::Value vCon(rapidjson::kArrayType);
@@ -136,11 +138,11 @@ bool Table::close(std::ofstream& fout) const {
 		rapidjson::Value val = con.serialize(doc);
 		vCon.PushBack(val, alloc);
 	}
-	doc.AddMember("constraints", vCon, alloc);
+	tdoc.AddMember("constraints", vCon, alloc);
 
 	rapidjson::StringBuffer buf;
 	rapidjson::Writer<rapidjson::StringBuffer> writer(buf);
-	doc.Accept(writer);
+	tdoc.Accept(writer);
 	string str = buf.GetString();
 	fout << str << endl;
 
@@ -207,7 +209,7 @@ void Table::desc() const {
             row.push_back("UNIQUE AUTO_INCREMENT");
         } else if (attr[Constraint::UNIQUE]) {
             row.push_back("UNIQUE");
-        } else if (attr[Constraint::FOREIGN_KEY]) {
+        } else if (attr[Constraint::AUTO_INCREMENT]) {
             row.push_back("AUTO_INCREMENT");
         } else {
             row.push_back("");
@@ -220,13 +222,14 @@ void Table::desc() const {
          << columns.size() - 1 << " rows in set.\n";
 }
 
-bool Table::checkConstraints(const char* rec, RecordManager* rm) {
+bool Table::checkConstraints(const char* rec, RecordManager* rm, QueryManager* qm, int irid) {
     DValue null = getColumnValue(rec, 0);
     for (const auto& con : constraints) {
-        int mask = 1 << (con.cid % 8);
+        rapidjson::Value tval = con.getData();
         switch (con.type) {
             case Constraint::PRIMARY_KEY:
             case Constraint::NOT_NULL: {
+                int mask = 1 << (con.cid % 8);
                 if ((null.data[con.cid / 8] & mask) > 0) {
                     Column& col = columns[getColumnById(con.cid)];
                     cmsg << "[ERROR] Column " << col.name << " is NOT NULL." << endl;
@@ -235,25 +238,57 @@ bool Table::checkConstraints(const char* rec, RecordManager* rm) {
                 if (con.type == Constraint::NOT_NULL) break;
             }
             case Constraint::UNIQUE: {
+                int mask = 1 << (con.cid % 8);
                 if ((null.data[con.cid / 8] & mask) == 0) {
                     DValue val = getColumnValue(rec, con.cid);
                     Column& col = columns[getColumnById(con.cid)];
+                    int qr = rm->queryIndex(col.name, val, irid);
+                    if (qr == RecordManager::INDEX_NOT_FOUND) break;
                     auto filter = getFilter(this, getBoolExpr(name, col.name, val));
                     Record r;
-                    int qr = rm->queryIndex(col.name, val);
-                    if (qr == RecordManager::INDEX_NOT_FOUND) break;
-                    if (qr == RecordManager::INDEX_FOUND || rm->queryOne(filter, r)) { // query in index first
-                        cmsg << "[ERROR] value in column " << col.name << " is not UNIQUE." << endl;
+                    if (qr == RecordManager::INDEX_FOUND || rm->queryOne(filter, r, irid)) { // query in index first
+                        cmsg << "[ERROR] value in column '" << col.name << "' is not UNIQUE." << endl;
                         return false;
                     }
                 }
                 break;
             }
-            // TODO
             case Constraint::FOREIGN_KEY: {
+                assert(tval.IsObject() && qm != NULL);
+                string tbref = tval["tb"].GetString();
+                string colref = tval["col"].GetString();
+                Container ct = qm->getContainer(tbref);
+                if (ct == NullContainer) {
+                    cmsg << "[ERROR] table reference of FOREIGN KEY to '" << tbref << "' not found." << endl;
+                    return false;
+                }
+
+                DValue val = getColumnValue(rec, con.cid);
+                Column& col = ct.first->getColumn(ct.first->getColumnByName(colref));
+                int qr = ct.second->queryIndex(col.name, val);
+                if (qr == RecordManager::INDEX_FOUND) break;
+                auto filter = getFilter(ct.first, getBoolExpr(tbref, colref, val));
+                Record r;
+                if (qr == RecordManager::INDEX_NOT_FOUND || !ct.second->queryOne(filter, r)) { // query in index first
+                    cmsg << "[ERROR] invalid reference in FOREIGN KEY to '" << tbref << '.' << colref << "'" << endl;
+                    return false;
+                }
                 break;
             }
             case Constraint::CHECK: {
+                BoolExpr *expr = (BoolExpr*) toTreeNode(tval);
+                unordered_map<string, DValue> values;
+                string prefix = name + ".";
+                for (const auto& col : columns) {
+                    DValue val = getColumnValue(rec, col.cid);
+                    values[prefix + col.name] = val;
+                }
+                Evaluator eval(values, name);
+                expr->accept(&eval);
+                if (!eval.getValues().back().getBool()) {
+                    cmsg << "[ERROR] record not satisfy CHECK constraint." << endl;
+                    return false;
+                }
                 break;
             }
         }
@@ -309,7 +344,7 @@ bool Table::setColumnValue(char* rec, short cid, const DValue& val) const {
         }
         case DType::STRING: {
             if (!val.isString()) return false;
-            memcpy(rec + col.offset, val.data, val.len);
+            memcpy(rec + col.offset, val.data, val.len + 1);
             return true;
         }
     }

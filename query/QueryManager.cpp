@@ -130,14 +130,21 @@ bool QueryManager::Insert(const string& table, unordered_map<string, Value*>& da
 
     // fill default values
     for (auto& con : rm.first->constraints) {
+        rapidjson::Value tval = con.getData();
         if (con.type == Constraint::DEFAULT) {
-            rm.first->setColumnValue(buf, con.cid, DValue(con.data));
             null[con.cid / 8] &= ~(1 << (con.cid % 8));
+            unordered_map<string, DValue> values;
+            Column& col = rm.first->getColumn(rm.first->getColumnById(con.cid));
+
+            Value* val = (Value*)toTreeNode(tval);
+            set(buf + col.offset, null, col.cid, val, col.size);
         }
         // auto increment
         if (con.type == Constraint::AUTO_INCREMENT) {
-            rm.first->setColumnValue(buf, con.cid, DValue((int64_t)con.data.GetInt()));
-            con.data.SetInt(con.data.GetInt() + 1);
+            null[con.cid / 8] &= ~(1 << (con.cid % 8));
+            rm.first->setColumnValue(buf, con.cid, DValue((int64_t)tval.GetInt()));
+            tval.SetInt(tval.GetInt() + 1);
+            con.setData(tval);
         }
     }
 
@@ -158,7 +165,7 @@ bool QueryManager::Insert(const string& table, unordered_map<string, Value*>& da
 	}
     
     // check constraints
-    if ( ! rm.first->checkConstraints(buf, rm.second) ) return setError(msg);
+    if ( ! rm.first->checkConstraints(buf, rm.second, this) ) return setError(msg);
 
     for (auto& p : data) {
         cmsg << "[WARNING] Column " << p.first << " not found, ignored" << endl;
@@ -232,9 +239,9 @@ bool QueryManager::Update(const string& table,
         }
     }
 
-    for (auto& rec : results) {
+    for (const auto& rec : results) {
         // check constraints
-        if ( ! rm.first->checkConstraints(rec.data, rm.second) ) return setError(msg);
+        if ( ! rm.first->checkConstraints(rec.data, rm.second, this, rec.rid) ) return setError(msg);
     }
 
     vector<string> indexes;
@@ -267,7 +274,7 @@ bool QueryManager::join(const vector<string>& tables,
     if (tables.size() == 1) prefix = tables[0] + ".";
     recur_func = [&] (int level, unordered_map<string, DValue>& rec) {
         if (level == tables.size()) {
-            if (filter(rec)) {
+            //if (filter(rec)) {
                 unordered_map<string, DValue> v;
                 // generate queried results
                 if (selectors.all) {
@@ -290,7 +297,7 @@ bool QueryManager::join(const vector<string>& tables,
                     v[name] = rec[name];
                 }
                 results.push_back(v);
-            }
+            //}
             return true;
 
         } else {
@@ -309,17 +316,10 @@ bool QueryManager::join(const vector<string>& tables,
                         rec[name] = table->getColumnValue(r.data, col.cid);
                     }
                 }
-                /*} else {
-                    int i = -1;
-                    for (const Selector* sel : *selectors.selectors) {
-                        ++i;
-                        if (sel->col->tb != tbName) continue;
-                        int idx = table->getColumnByName(sel->col->col);
-                        Column& col = table->getColumn(idx);
-                        rec[i] = table->getColumnValue(r.data, col.cid);
-                    }
-                }*/
-                if (!recur_func(level + 1, rec)) return false;
+
+                if (filter(rec)) {
+                    if (!recur_func(level + 1, rec)) return false;
+                }
 
                 // backtrace
                 for (int idx = 1; idx < table->columns.size(); ++idx) {

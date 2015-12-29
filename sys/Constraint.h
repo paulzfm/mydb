@@ -4,6 +4,7 @@
 #include "../util/common.h"
 
 class Constraint {
+private:
 public:
     const static int NOT_NULL = 0; // data is empty
     const static int UNIQUE = 1; // data is empty
@@ -26,8 +27,12 @@ public:
 	rapidjson::Value data; // see the comments after each type
 
 	Constraint();
+    Constraint(const Constraint& con);
 	Constraint(short cid, const string& name, char type,
-		rapidjson::Value& data);
+		const rapidjson::Value& data);
+
+    void setData(const rapidjson::Value& data);
+    rapidjson::Value getData() const;
 
 	rapidjson::Value serialize(rapidjson::Document& doc) const;
 	void unserialize(rapidjson::Value value);

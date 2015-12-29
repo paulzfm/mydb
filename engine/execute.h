@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 
+#include "../util/common.h"
 #include "../parser/Tree.h"
 #include "../query/QueryManager.h"
 

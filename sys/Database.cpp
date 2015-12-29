@@ -1,6 +1,5 @@
 #include "Database.h"
 #include "unistd.h"
-#include "../util/print.h"
 
 Database NullDatabase = Database();
 
@@ -34,14 +33,14 @@ bool Database::open(const string& name) {
 		string str;
 		std::getline(fin, str);
 
-		rapidjson::Document doc;
-		doc.Parse(str.c_str());
+		rapidjson::Document d;
+		d.Parse(str.c_str());
 
-		assert(doc.HasMember("name") && doc["name"].IsString());
-		this->name = doc["name"].GetString();
+		assert(d.HasMember("name") && d["name"].IsString());
+		this->name = d["name"].GetString();
 
-		assert(doc.HasMember("table_num") && doc["table_num"].IsInt());
-		int nTb = doc["table_num"].GetInt();
+		assert(d.HasMember("table_num") && d["table_num"].IsInt());
+		int nTb = d["table_num"].GetInt();
 		for (int i = 0; i < nTb; ++i) {
 			Table table;
 			table.open(fin);
@@ -82,21 +81,10 @@ bool Database::close() const {
 }
 
 void Database::showTables() const {
-    if (tables.size() == 0) {
-        cmsg << "No tables in database '" << name << "'.\n";
-    } else {
-        std::vector<std::string> heads;
-        heads.push_back("Tables in " + name);
-        std::vector< std::vector<std::string> > rows;
-        for (auto& tb : tables) {
-            std::vector<std::string> row;
-            row.push_back(tb.name);
-            rows.push_back(row);
-        }
-
-        cmsg << tableToString(heads, rows);
-        cmsg << tables.size() << " rows in set.\n";
-    }
+	std::cout << "-- LIST OF TABLES" << endl;
+	for (const auto& table : tables) {
+		std::cout << ">> " << table.name << endl;
+	}
 }
 
 void Database::descTable(const std::string& name) const {

@@ -117,7 +117,7 @@ public:
     // query records satisfing the filter
     //    filter :: const Record & -> bool
     void query(const std::function<bool(const Record&)>& filter, std::vector<Record>& records);
-    bool queryOne(const std::function<bool(const Record&)>& filter, Record& record);
+    bool queryOne(const std::function<bool(const Record&)>& filter, Record& record, int ignore_rid = -1);
 
     // the id of the last record
     int last() const;
@@ -134,7 +134,7 @@ public:
     bool dropIndex(const string& col);
     void addIndex(const string& col, const DValue& val, pair<int, int> pos);
     void removeIndex(const string& col, const DValue& val, pair<int, int> pos);
-    int queryIndex(const string& col, const DValue& val);
+    int queryIndex(const string& col, const DValue& val, int ignore_rid = -1);
 
     const static int NO_INDEX = 0;
     const static int INDEX_FOUND = 1;
