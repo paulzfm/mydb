@@ -83,6 +83,9 @@ public:
 	bool ShowTables(string& msg);
 	bool DescTable(const string& name, string& msg);
 	bool DropTable(const string& name, string& msg);
+
+    bool CreateIndex(const string& table, const string& col, string& msg);
+    bool DropIndex(const string& table, const string& col, string& msg);
 };
 
 extern Container NullContainer;

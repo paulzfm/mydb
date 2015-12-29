@@ -268,3 +268,21 @@ bool DValueLT::operator() (const DValue& lhs, const DValue& rhs) const {
     }
     return false;
 }
+
+DValue v2dv(Value* that) {
+    switch (that->kind) {
+        case Value::VALUE_INT:
+            return DValue((int64_t)atoll(that->val.c_str()));
+        case Value::VALUE_REAL:
+            return DValue(atof(that->val.c_str()));
+        case Value::VALUE_STRING:
+            return DValue(that->val);
+        case Value::VALUE_NULL:
+            return DValue();
+        case Value::VALUE_TRUE:
+            return DValue(true);
+        case Value::VALUE_FALSE:
+            return DValue(false);
+    }
+    return DValue();
+}

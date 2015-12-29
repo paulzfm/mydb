@@ -21,7 +21,7 @@ Container QueryManager::getContainer(const string& name) {
     Table* table = &db.getTable(tid);
 
 	if (tables.find(idx) == tables.end()) {
-		string path = db.name + '/' + name + ".dat";
+		string path = db.name + '/' + name;
 		RecordManager* rm = new RecordManager(path);
 		tables[idx] = rm;
         return make_pair(table, rm);
@@ -163,7 +163,15 @@ bool QueryManager::Insert(const string& table, unordered_map<string, Value*>& da
         cmsg << "[WARNING] Column " << p.first << " not found, ignored" << endl;
     }
 
-	rm.second->insert(buf);
+	pair<int, int> pos = rm.second->insert(buf);
+    vector<string> indexes;
+    rm.second->getIndexes(indexes);
+    for (auto& index : indexes) {
+        Column& col = rm.first->getColumn(rm.first->getColumnByName(index));
+        DValue val;
+        if (data.find(index) != data.end()) val = v2dv(data[index]);
+        rm.second->addIndex(index, val, pos);
+    }
 
 	delete [] buf;
     msg = cmsg.str();
@@ -180,8 +188,16 @@ bool QueryManager::Delete(const string& table, BoolExpr* where, string& msg) {
 	vector<Record> results;
 	rm.second->query(filter, results);
 
-	for (auto& rec : results)
+    vector<string> indexes;
+    rm.second->getIndexes(indexes);
+	for (const auto& rec : results) {
 		rm.second->remove(rec.page, rec.offset);
+        for (auto& index : indexes) {
+            Column& col = rm.first->getColumn(rm.first->getColumnByName(index));
+            DValue val = rm.first->getColumnValue(rec.data, col.cid);
+            rm.second->removeIndex(index, val, make_pair(rec.page, rec.offset));
+        }
+    }
     msg = cmsg.str();
     return true;
 }
@@ -220,8 +236,20 @@ bool QueryManager::Update(const string& table,
         if ( ! rm.first->checkConstraints(rec.data, rm.second) ) return setError(msg);
     }
 
-	for (auto& rec : results)
+    vector<string> indexes;
+    rm.second->getIndexes(indexes);
+	for (auto& rec : results) {
+        Record prec;
+        rm.second->load(rec.page, rec.offset, prec);
+        for (auto& index : indexes) {
+            Column& col = rm.first->getColumn(rm.first->getColumnByName(index));
+            DValue val = rm.first->getColumnValue(prec.data, col.cid);
+            rm.second->removeIndex(index, val, make_pair(rec.page, rec.offset));
+            val = rm.first->getColumnValue(rec.data, col.cid);
+            rm.second->addIndex(index, val, make_pair(rec.page, rec.offset));
+        }
 		rm.second->replace(rec.page, rec.offset, rec.data);
+    }
 
     msg = cmsg.str();
     return true;
@@ -607,6 +635,42 @@ bool QueryManager::CreateTable(const string& name, vector<Column>& cols,
 bool QueryManager::DropTable(const string& name, string& msg) {
     cmsg.str("");
 	sysmgr->dropTable(name);
+    msg = cmsg.str();
+    return true;
+}
+
+bool QueryManager::CreateIndex(const string& table, const string& column, string& msg) {
+    cmsg.str("");
+
+    Container rm = getContainer(table);
+    if (rm == NullContainer) return setError(msg);
+
+    Column& col = rm.first->getColumn(rm.first->getColumnByName(column));
+    if (col.type = DType::CHAR || col.type == DType::STRING) {
+        cmsg << "[ERROR] index on non-number column is not supported." << endl;
+        return setError(msg);
+    }
+
+    rm.second->createIndex(column);
+    vector<Record> records;
+    rm.second->loadAll(records);
+    for (const Record& rec : records) {
+        DValue val = rm.first->getColumnValue(rec.data, col.cid);
+        rm.second->addIndex(column, val, make_pair(rec.page, rec.offset));
+    }
+
+    msg = cmsg.str();
+    return true;
+}
+
+bool QueryManager::DropIndex(const string& table, const string& column, string& msg) {
+    cmsg.str("");
+
+    Container rm = getContainer(table);
+    if (rm == NullContainer) return setError(msg);
+    
+    rm.second->dropIndex(column);
+
     msg = cmsg.str();
     return true;
 }

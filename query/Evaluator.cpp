@@ -25,27 +25,7 @@ bool Evaluator::visitCol(Col *that) {
 }
 
 bool Evaluator::visitValue(Value *that) {
-    switch (that->kind) {
-        case Value::VALUE_INT:
-            values.push_back(DValue((int64_t)atoll(that->val.c_str())));
-            break;
-        case Value::VALUE_REAL:
-            values.push_back(DValue(atof(that->val.c_str())));
-            break;
-        case Value::VALUE_STRING:
-            values.push_back(DValue(that->val));
-            break;
-        case Value::VALUE_NULL:
-            values.push_back(DValue());
-            break;
-        case Value::VALUE_TRUE:
-            values.push_back(DValue(true));
-            break;
-        case Value::VALUE_FALSE:
-            values.push_back(DValue(false));
-            break;
-    }
-
+    values.push_back(v2dv(that));
     return true;
 }
 

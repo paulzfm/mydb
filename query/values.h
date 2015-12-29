@@ -3,6 +3,7 @@
 
 #include "../util/common.h"
 #include "../record/types.h"
+#include "../parser/Tree.h"
 
 class DValue {
 public:
@@ -37,6 +38,8 @@ public:
 
     string printToString() const;
 };
+
+DValue v2dv(Value* that);
 
 DValue operator == (const DValue& a, const DValue& b);
 DValue operator != (const DValue& a, const DValue& b);
