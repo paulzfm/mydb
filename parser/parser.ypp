@@ -255,7 +255,7 @@ value       :   VALUE
                 }
             ;
 
-cvalue      :   VALUE
+cvalue      :   value
                 {
                     $$ = new CValue($1);
                 }
