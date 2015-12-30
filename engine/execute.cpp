@@ -77,8 +77,8 @@ bool ExecuteVisitor::visitField(Field *that)
 
 bool ExecuteVisitor::visitCreateTBStmt(CreateTBStmt *that)
 {
-    PrintWriter pw;
-    that->printTo(pw);
+    // PrintWriter pw;
+    // that->printTo(pw);
 
     // visit fields
     for (auto& field : *that->fields) {
@@ -196,13 +196,13 @@ bool ExecuteVisitor::visitCreateTBStmt(CreateTBStmt *that)
         cid++;
     }
 
-    for (const auto& col : cols) {
-        std::cout << "cid=" << col.cid << ",name=" << col.name << ",type=" << int(col.type)
-            << ",size=" << col.size << ",offset=" << col.offset << "\n";
-    }
-    for (const auto& con : cons) {
-        std::cout << "cid=" << con.cid << ",name=" << con.name << ",type=" << int(con.type) << "\n";
-    }
+    // for (const auto& col : cols) {
+    //     std::cout << "cid=" << col.cid << ",name=" << col.name << ",type=" << int(col.type)
+    //         << ",size=" << col.size << ",offset=" << col.offset << "\n";
+    // }
+    // for (const auto& con : cons) {
+    //     std::cout << "cid=" << con.cid << ",name=" << con.name << ",type=" << int(con.type) << "\n";
+    // }
 
     return qm->CreateTable(that->tb, cols, cons, msg);
 }
@@ -219,8 +219,8 @@ bool ExecuteVisitor::visitShowTBStmt(ShowTBStmt *that)
 
 bool ExecuteVisitor::visitInsertStmt(InsertStmt *that)
 {
-    PrintWriter pw;
-    that->printTo(pw);
+    // PrintWriter pw;
+    // that->printTo(pw);
 
     if (that->cols->cols->size() > 0) {
         for (int i = 0; i < that->cols->cols->size() - 1; i++) {
@@ -257,16 +257,16 @@ bool ExecuteVisitor::visitInsertStmt(InsertStmt *that)
 
 bool ExecuteVisitor::visitDeleteStmt(DeleteStmt *that)
 {
-    PrintWriter pw;
-    that->printTo(pw);
+    // PrintWriter pw;
+    // that->printTo(pw);
 
     return qm->Delete(that->tb, that->where, msg);
 }
 
 bool ExecuteVisitor::visitUpdateStmt(UpdateStmt *that)
 {
-    PrintWriter pw;
-    that->printTo(pw);
+    // PrintWriter pw;
+    // that->printTo(pw);
 
     std::unordered_map<std::string, Expr*> data;
     for (auto& eq : *that->eqs) {
@@ -282,8 +282,8 @@ bool ExecuteVisitor::visitSelectStmt(SelectStmt *that)
         that->where->where = new BoolValue(true);
     }
 
-    PrintWriter pw;
-    that->printTo(pw);
+    // PrintWriter pw;
+    // that->printTo(pw);
 
     return qm->Select(that->tbs, that->sel, that->where->where, that->gb, msg);
 }
