@@ -2,8 +2,8 @@ SOURCES 	= 	$(wildcard *.cpp engine/*.cpp parser/*.cpp query/*.cpp record/*.cpp 
 OBJECTS 	= 	$(SOURCES:%.cpp=%.o)
 LEX			=	flex
 YACC		=	bison
-CXXFLAGS  	= 	-std=c++11 -g
-LDFLAGS  	=	-lpthread
+CXXFLAGS  	= 	-std=c++11 -O2 -march=native
+LDFLAGS  	=	-lpthread -O2 -march=native
 TARGET  	= 	mydb
 
 all: parser/lexer.cc parser/parser.cc $(TARGET)
