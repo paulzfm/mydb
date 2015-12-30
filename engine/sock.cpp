@@ -41,6 +41,9 @@ void *serve(void* args)
             } else {
                 std::string input(cmd);
                 std::string result = se.execute(input);
+                if (result == "") {
+                    result = "OK.\n";
+                }
                 send(sock, result.c_str(), result.length(), 0);
             }
         }
@@ -158,6 +161,9 @@ void sendCMD(int sock)
             }
         }
 
+        if (buf == "") {
+            buf = ";";
+        }
         send(sock, buf.c_str(), buf.length(), 0);
 
         memset(data, 0x00, sizeof(data));
