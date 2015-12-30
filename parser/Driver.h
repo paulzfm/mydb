@@ -2,6 +2,7 @@
 #define PARSER_DRIVER_H_
 
 #include <string>
+#include <sstream>
 
 #include "parser.hh"
 #include "Tree.h"
@@ -39,6 +40,11 @@ public:
 
     // record the ast
     Tree *ast;
+
+    bool hasErr;
+
+    // record syntax error
+    std::stringstream err;
 };
 
 #endif // PARSER_DRIVER_H_

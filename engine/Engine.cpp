@@ -11,12 +11,14 @@ std::string Engine::execute(std::string& input)
         return visitor.msgs;
     }
 
-    return "";
+    return "[PARSER] " + driver.err.str();
 }
 
 
 void InteractiveEngine::run()
 {
+    driver.file = "stdin";
+
     std::cout << "Welcome to mydb!\n";
     std::string buf, buf1;
     while (true) {

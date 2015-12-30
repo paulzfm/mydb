@@ -51,6 +51,7 @@ public:
     StringEngine(const std::string& input) : Engine(), str(input) {}
 
     virtual void run();
+    void setFile(const std::string& path) { driver.file = path; }
 
     std::string str;
 };

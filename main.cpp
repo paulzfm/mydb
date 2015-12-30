@@ -96,8 +96,10 @@ int main(int argc, char **argv)
     } else { // local
         if (fflag) { // from file
             std::string input;
-            if (readFile(std::string(file), input)) {
+            std::string path(file);
+            if (readFile(path, input)) {
                 StringEngine se(input);
+                se.setFile(path);
                 se.run();
                 return 0;
             }
