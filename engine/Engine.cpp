@@ -19,7 +19,10 @@ void InteractiveEngine::run()
 {
     driver.file = "stdin";
 
-    std::cout << "Welcome to mydb!\n";
+    std::cout << "Welcome to mydb!\n\n"
+        << "Powered by Wen He and Zhu Fengmin.\n\n"
+        << "Type SQL statements end with ';' or type 'exit' or 'quit' to quit.\n"
+        << "Run './mydb -h' to see more options.\n\n";
     std::string buf, buf1;
     while (true) {
         std::cout << "mydb> ";
