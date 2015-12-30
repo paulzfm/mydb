@@ -11,7 +11,7 @@
 #include <string.h>
 #include <arpa/inet.h>
 
-#define BUF_SIZE 2048
+#define BUF_SIZE 4096
 
 typedef struct {
     int sock;
@@ -21,7 +21,7 @@ void *serve(void* args)
 {
     serve_args* pargs = (serve_args*)args;
     int sock = pargs->sock;
-    printf("Service started for sock %d\n", sock);
+    printf("[SOCKET] Service started for sock %d\n.", sock);
 
     ServerEngine se;
 
@@ -30,13 +30,13 @@ void *serve(void* args)
         memset(cmd, 0x00, sizeof(cmd));
         int ret = recv(sock, cmd, sizeof(cmd), 0);
         if (ret == -1) {    // error
-            fprintf(stderr, "***Error: failed to receive command (errno: %d)\n", errno);
+            fprintf(stderr, "[SOCKET] error: failed to receive command (errno: %d)\n.", errno);
             break;
         } else if (ret == 0) {  // connection close
             break;
         } else {    // deal with commands
             if (strcmp(cmd, "quit") == 0) {
-                printf("Server stopped for sock %d\n", sock);
+                printf("[SOCKET] Server stopped for sock %d\n.", sock);
                 break;
             } else {
                 std::string input(cmd);
@@ -53,7 +53,7 @@ void runServer(int port)
     int sock = socket(AF_INET, SOCK_STREAM, 0);
 
     if (sock < 0) {
-        fprintf(stderr, "***Error: failed to initialize sock\n");
+        fprintf(stderr, "[SOCKET] error: failed to initialize sock.\n");
         return;
     }
 
@@ -64,23 +64,23 @@ void runServer(int port)
     addr.sin_port = port;
 
     if (bind(sock, (sockaddr*)&addr, sizeof(addr)) < 0) {
-        fprintf(stderr, "***Error: failed to bind (errno: %d)\n", errno);
+        fprintf(stderr, "[SOCKET] error: failed to bind (errno: %d).\n", errno);
         return;
     }
 
     // listen
     if (listen(sock, 2) < 0) {
-        fprintf(stderr, "***Error: failed to listen (errno: %d)\n", errno);
+        fprintf(stderr, "[SOCKET] error: failed to listen (errno: %d).\n", errno);
         return;
     }
 
-    printf("Server started at port %d\n", port);
+    printf("[SOCKET] Server started at port %d.\n", port);
 
     while (true) {
         int client_sock = accept(sock, (sockaddr*)0, (unsigned int*)sizeof(sockaddr_in));
 
         if (client_sock == -1) {
-            fprintf(stderr, "***Error: accept failed (errno: %d)\n", errno);
+            fprintf(stderr, "[SOCKET] error: accept failed (errno: %d).\n", errno);
             break;
         }
 
@@ -89,7 +89,7 @@ void runServer(int port)
         serve_args args;
         args.sock = client_sock;
         if (pthread_create(&pid, NULL, serve, (void *)&args) != 0) {
-            fprintf(stderr, "***Error: thread create failed\n");
+            fprintf(stderr, "[SOCKET] error: thread create failed.\n");
             break;
         }
     }
@@ -103,7 +103,7 @@ int connServer(const char *ip, int port)
     int sock = socket(AF_INET, SOCK_STREAM, 0);
 
     if (sock < 0) {
-        fprintf(stderr, "***Error: failed to initialize socket\n");
+        fprintf(stderr, "[SOCKET] error: failed to initialize socket.\n");
         return -1;
     }
 
@@ -113,19 +113,19 @@ int connServer(const char *ip, int port)
     data_addr.sin_port = port;
 
     if (inet_aton(ip, &data_addr.sin_addr) == 0) {
-        fprintf(stderr, "***Error: invalid ip addr\n");
+        fprintf(stderr, "[SOCKET] error: invalid ip addr.\n");
         return -1;
     }
 
-    printf("Connecting %s:%d\n", ip, port);
+    printf("[SOCKET] Connecting %s:%d...\n", ip, port);
 
     // connect
     if (connect(sock, (sockaddr*)&data_addr, sizeof(data_addr)) == -1) {
-        fprintf(stderr, "***Error: failed to connect server\n");
+        fprintf(stderr, "[SOCKET] error: failed to connect server.\n");
         return -1;
     }
 
-    printf("OK.\n");
+    printf("[SOCKET] OK.\n");
 
     return sock;
 }
