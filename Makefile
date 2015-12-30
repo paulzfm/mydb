@@ -3,7 +3,7 @@ OBJECTS 	= 	$(SOURCES:%.cpp=%.o)
 LEX			=	flex
 YACC		=	bison
 CXXFLAGS  	= 	-std=c++11 -O2 -march=native
-LDFLAGS  	=	-lpthread -O2 -march=native
+LDFLAGS  	=	-lpthread -pthread -O2 -march=native
 TARGET  	= 	mydb
 
 all: parser/lexer.cc parser/parser.cc $(TARGET)
