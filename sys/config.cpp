@@ -7,7 +7,7 @@ Configuration::Configuration() {
 	if (fin.is_open()) {
 		std::string strbuf;
 		getline(fin, strbuf);
-		std::cout << strbuf << std::endl;
+		// std::cout << strbuf << std::endl;
 		fin.close();
 
 		rapidjson::Document doc;
@@ -19,7 +19,7 @@ Configuration::Configuration() {
 			std::cerr << "[FATAL] `basepath` is required in config file but not found, exiting.." << std::endl;
 			exit(2);
 		}
-		
+
 	} else {
 		std::cerr << "[FATAL] config file " << CONFFILE << " not found, exiting..." << std::endl;
 		exit(1);
