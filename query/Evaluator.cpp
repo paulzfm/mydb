@@ -122,6 +122,10 @@ bool Evaluator::visitCompareExpr(CompareExpr *that) {
             break;
         case BoolExpr::OP_LIKE:
         case BoolExpr::OP_NOT_LIKE:
+            if (val.isMiss() || values.back().isMiss()) {
+                res = DValue(true);
+                break;
+            }
             if (val.isNull() || values.back().isNull()) {
                 res = DValue(false);
                 break;
@@ -175,9 +179,14 @@ bool Evaluator::visitInExpr(InExpr *that) {
 bool Evaluator::visitBetweenExpr(BetweenExpr *that) {
     int low = atoll(that->rightL->val.c_str()),
         high = atoll(that->rightR->val.c_str());
+
     that->left->accept(this);
     DValue val = values.back();
     values.pop_back();
+    if (val.isNull()) {
+        values.push_back(DValue(false));
+        return true;
+    }
     assert(val.isNum());
     bool res;
     if (val.isInt())

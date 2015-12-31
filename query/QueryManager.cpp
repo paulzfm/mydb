@@ -223,8 +223,9 @@ bool QueryManager::Update(const string& table,
 
 	// update
     for (auto& p : data) {
-        int cid = rm.first->getColumnByName(p.first);
-        if (cid == -1) return setError(msg);
+        int id = rm.first->getColumnByName(p.first);
+        if (id == -1) return setError(msg);
+        Column& col = rm.first->getColumn(id);
 
         for (auto& rec : results) {
             unordered_map<string, DValue> values;
@@ -235,7 +236,17 @@ bool QueryManager::Update(const string& table,
             }
             Evaluator eval(values, table);
             p.second->accept(&eval);
-            rm.first->setColumnValue(rec.data, cid, eval.getValues().back());
+            DValue res = eval.getValues().back();
+            int valType = -1;
+            if (res.isInt()) valType = Value::VALUE_INT;
+            if (res.isReal()) valType = Value::VALUE_REAL;
+            if (res.isBool()) valType = res.getBool() ? Value::VALUE_TRUE : Value::VALUE_FALSE;
+            if (res.isString()) valType = Value::VALUE_STRING;
+            if (!compatible(col.type, valType)) {
+                cmsg << "[ERROR] type of '" << col.name << "' is not compatible." << endl;
+                return setError(msg);
+            }
+            rm.first->setColumnValue(rec.data, col.cid, res);
         }
     }
 
@@ -658,7 +669,12 @@ bool QueryManager::CreateIndex(const string& table, const string& column, string
     Container rm = getContainer(table);
     if (rm == NullContainer) return setError(msg);
 
-    Column& col = rm.first->getColumn(rm.first->getColumnByName(column));
+    int id = rm.first->getColumnByName(column);
+    if (id < 0) {
+        cmsg << "[ERROR] column '" << column << "' not exists." << endl;
+        return setError(msg);
+    }
+    Column& col = rm.first->getColumn(id);
     if (col.type == DType::CHAR || col.type == DType::STRING) {
         cmsg << "[ERROR] index on non-number column is not supported." << endl;
         return setError(msg);
