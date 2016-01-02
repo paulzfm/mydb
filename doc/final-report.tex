@@ -51,6 +51,9 @@
 \tikzstyle{module} = [rectangle, minimum width=3cm, minimum height=1cm, text centered, draw=black, fill=orange!30]
 \tikzstyle{arrow} = [thick,<->,>=stealth]
 
+% syntax
+\usepackage{syntax}
+
 % start of document
 \title{\textbf{\texttt{mydb}数据库设计报告}}
 \author{\kai 朱俸民\quad 2012011894 
@@ -108,6 +111,8 @@
 \end{center}
 
 \section{模块设计}
+
+接下来我们详细介绍各模块的设计与实现方法。
 
 \subsection{记录管理模块}
 
@@ -182,9 +187,15 @@
 
 \subsubsection{\texttt{mydb}关键字}
 
+\input{sql-keywords}
+
 \subsubsection{\texttt{mydb}文法}
 
+\input{sql-syntax}
+
 \subsubsection{\texttt{mydb}运算符优先级}
+
+\input{sql-priority}
 
 \subsection{SQL执行模块}
 
@@ -263,11 +274,11 @@
 
 详见\texttt{README.md}，或前往Github：\url{https://github.com/paulzfm/mydb#mydb}。
 
-
+\renewcommand{\refname}{参考资料}
 
 \begin{thebibliography}{9}
 
-\bibitem{bib1} Bison 2.3. \url{https://engineering.purdue.edu/~milind/ece573/2015fall/project/bison.html#Calc_002b_002b-_002d_002d_002d-C_002b_002b-Calculator}.
+\bibitem{bib1} Bison. \url{https://engineering.purdue.edu/~milind/ece573/2015fall/project/bison.html}.
 
 \bibitem{bib2} SQL Tutorial. \url{http://www.w3schools.com/sql/default.asp}.
 

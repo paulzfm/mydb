@@ -1,33 +1,5 @@
-\documentclass{article}
-\usepackage{syntax}
-
 \renewcommand{\t}[1]{\texttt{\textbf{#1}}}
 
-\title{\texttt{mydb} SQL Support}
-
-\begin{document}
-
-\maketitle
-
-\section{Keywords}
-
-\begin{center}
-\begin{tabular}{llllll}
-    \t{DATABASE} &\t{DATABASES} &\t{TABLE} &\t{TABLES} &\t{SHOW} &\t{CREATE} \\
-    \t{DROP} &\t{USE} &\t{CHECK} &\t{PRIMARY} &\t{KEY} &\t{UNIQUE} \\
-    \t{NOT} &\t{NULL} &\t{AUTO_INCREMENT} &\t{INSERT} &\t{INTO} &\t{VALUES} \\
-    \t{DELETE} &\t{FROM} &\t{WHERE} &\t{UPDATE} &\t{SET} &\t{SELECT} \\
-    \t{GROUP} &\t{BY} &\t{IS} &\t{IN} &\t{BETWEEN} &\t{LIKE} \\
-    \t{AND} &\t{OR} &\t{SUM} &\t{AVG} &\t{MAX} &\t{MIN} \\
-    \t{INT} &\t{SMALLINT} &\t{BIGINT} &\t{FLOAT} & \t{REAL} &\t{DOUBLE} \\
-    \t{VARCHAR} &\t{STRING} &\t{CHAR} &\t{BOOLEAN} &\t{DATETIME} &\t{DESC}\\
-    \t{FOREIGN} &\t{REFERENCES} & \t{INDEX} \\
-\end{tabular}
-\end{center}
-
-These keywords are \textbf{NOT} case-sensitive.
-
-\section{Syntax}
 \setlength{\grammarindent}{10em}
 \begin{grammar}
 
@@ -35,13 +7,17 @@ These keywords are \textbf{NOT} case-sensitive.
 
 <ident> ::= \texttt{[A-Za-z_][A-Za-z0-9_]*}
 
-<integer> ::= \texttt{[0-9]+}
+<integer> ::= \texttt{(+|-)?[0-9]+}
 
-<real> ::= \texttt{[0-9]+.[0-9]+}
+<length> ::= \texttt{[0-9]+}
+
+<real> ::= \texttt{(+|-)?[0-9]+.[0-9]+}
 
 <string> ::= \texttt{'.*'}
 
-<value> ::= <integer> | <real> | <string> | \t{NULL}
+<bool> ::= \t{TRUE} | \t{FALSE}
+
+<value> ::= <integer> | <real> | <string> | <bool> | \t{NULL}
 
 <stmt> ::= <sysStmt> \t{;}
 \alt <dbStmt> \t{;}
@@ -72,18 +48,18 @@ These keywords are \textbf{NOT} case-sensitive.
 \alt \t{PRIMARY} \t{KEY} \t{(} <colName> \t{)}
 \alt \t{FOREIGN} \t{KEY} \t{(} <colName> \t{)} \t{REFERENCES} <tbName> \t{(} <colName> \t{)} \t{)}
 
-<type> ::= \t{INT} [\t{(} <integer> \t{)}]
+<type> ::= \t{INT} [\t{(} <length> \t{)}]
 \alt \t{SMALLINT}
 \alt \t{BIGINT}
 \alt \t{FLOAT} | \t{REAL}
 \alt \t{DOUBLE}
-\alt \t{VARCHAR} \t{(} <integer> \t{)}
+\alt \t{VARCHAR} \t{(} <length> \t{)}
 \alt \t{STRING}
 \alt \t{CHAR}
 \alt \t{BOOLEAN}
 \alt \t{DATETIME}
 
-<attr> ::= \t{NOT} \t{NULL} | \t{UNIQUE} | \t{AUTO_INCREMENT}
+<attr> ::= \t{NOT} \t{NULL} | \t{UNIQUE} | \t{AUTO_INCREMENT} | \t{DEFAULT} <value>
 
 <values> ::= <value> [\t{,} <value>]*
 
@@ -118,18 +94,3 @@ These keywords are \textbf{NOT} case-sensitive.
 \alt \t{DROP} \t{INDEX} <tbName> \t{(} <colName> \t{)}
 
 \end{grammar}
-
-\section{Priority}
-
-From lowest to highest:
-
-\begin{center}
-    \begin{tabular}{cl}
-        left & \t{or} \\
-        left & \t{and} \\
-        left & \t{+} \t{-} \\
-        left & \t{*} \t{/} \t{mod} \\
-    \end{tabular}
-\end{center}
-
-\end{document}
