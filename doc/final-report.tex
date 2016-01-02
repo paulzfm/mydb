@@ -56,7 +56,7 @@
 
 % start of document
 \title{\textbf{\texttt{mydb}数据库设计报告}}
-\author{\kai 朱俸民\quad 2012011894 
+\author{\kai 朱俸民\quad 2012011894
 \and \kai 温和\quad 2013011407}
 \date{\kai \today}
 
@@ -69,14 +69,14 @@
 \texttt{mydb}是一个简单的面向单用户、单线程的关系数据库管理系统，支持增、查、删、改四项基本数据库查询功能，通过SQL的一个子集实现数据库与用户的交互。除了支持基本的增、查、删、改功能外，\texttt{mydb}具有如下扩展功能：
 
 \begin{enumerate}
-    \item 索引：使用\texttt{std::set}，支持对任意列建立索引加速查询；
+    \item 索引：使用\texttt{std::multimap}实现，支持对任意列建立索引加速约束检查；
     \item 域完整性约束：支持\texttt{CHECK}语句的创建，并在更新数据库时进行约束检查；
     \item 外键约束：支持\texttt{FOREIGN KEY}的创建，并在更新数据库时进行约束检查；
     \item 模糊查询：支持使用\texttt{LIKE}语句进行模糊匹配；
     \item 支持多表连接查询，包括三个表以上的连接；
     \item 聚集查询：支持将\texttt{SUM}，\texttt{AVG}，\texttt{MAX}，\texttt{MIN}这四个函数应用于表中的某些列；
     \item 分组聚集查询：支持查询时的\texttt{GROUP BY}语句，可以处理聚集查询与分组聚集查询并存的查询；
-    \item 完整的建表属性限制：建表时除了允许\texttt{NOT NULL}，\texttt{PRIMARY KEY}，\texttt{FOREIGN KEY}与\texttt{CHECK}限制外，还可以设置\texttt{UNIQUE}，\texttt{AUTO\_INCREMENT}与\texttt{DEFAULT}限制；
+    \item 完整的建表属性约束：建表时除了允许\texttt{NOT NULL}，\texttt{PRIMARY KEY}，\texttt{FOREIGN KEY}与\texttt{CHECK}约束外，还可以设置\texttt{UNIQUE}，\texttt{AUTO\_INCREMENT}与\texttt{DEFAULT}约束；
     \item 在查询时，支持\texttt{BETWEEN}和\texttt{IN}操作符；
     \item 远程连接：允许远程开启\texttt{mydb}服务端后，本地用\texttt{mydb}客户端进行连接，通过SQL语句交互的方式进行数据库操作；
     \item 采用\texttt{MySQL}风格打印查询结果，易于用户查看。
@@ -92,17 +92,17 @@
         \node (engine) [module, below of=user] {用户交互模块};
         \node (parse) [module, below of=engine] {SQL解析模块};
         \node (exe) [module, below of=parse] {SQL执行模块};
-        \node (sys) [module, below of=exe] {系统管理模块};
-        \node (record) [module, below of=sys] {记录管理模块};
-        \node (table) [actor, left of=record, xshift=-2cm] {系统表};
-        \node (config) [actor, right of=record, xshift=2cm] {配置文件};
-        \node (fs) [actor, below of=record] {页式文件系统};
+        \node (sys) [module, below of=exe, xshift=2cm] {系统管理模块};
+        \node (record) [module, below of=exe, xshift=-2cm] {记录管理模块};
+        \node (table) [actor, below of=sys, xshift=-2cm] {系统表};
+        \node (config) [actor, below of=sys, xshift=2cm] {配置文件};
+        \node (fs) [actor, below of=record, xshift=-2cm] {页式文件系统};
  
         \draw [arrow] (user) -- (engine);
         \draw [arrow] (engine) -- (parse);
         \draw [arrow] (parse) -- (exe);
         \draw [arrow] (exe) -- (sys);
-        \draw [arrow] (sys) -- (record);
+        \draw [arrow] (exe) -- (record);
         \draw [arrow] (sys) -- (table);
         \draw [arrow] (sys) -- (config);
         \draw [arrow] (record) -- (fs);
@@ -170,9 +170,22 @@
 
 每条记录的数据部分最长支持65535字节。
 
+对于索引，我们将每个表的索引单独存放在相应文件中，存放格式为将multimap中的key-value对的二进制表示直接保存。
+
 \subsection{系统管理模块}
 
-!TODO
+我们将每个数据库中包含的所有结构信息存放在该数据库目录下的一个文件，\texttt{tablelist.dat}中，存储方式为序列化后得到的JSON字符串。
+
+\begin{itemize}
+\item 对于每个数据库，我们记录它的名字，有几个表，以及每个表的结构信息。
+\item 对于每个表，我们记录表名，每条记录的长度，以及表中的列与约束。
+\item 对于每个列，我们记录它的编号、列名、数据类型、列宽以及在记录中的偏移量。
+\item 对于每个约束，我们记录它对应的列编号（若跨多列则为任意非法值）、约束类型以及约束相关的数据。
+\end{itemize}
+
+在执行\texttt{USE}操作时，系统管理模块会将有关这个数据库的所有结构信息全部读取出来，以供查询执行模块使用。对数据库结构进行的所有更改，包括新建、删除数据库，都会在系统退出时记录到磁盘中。
+
+本模块同时提供对数据库结构更改的支持，如\texttt{CREATE / DROP}等。
 
 \subsection{SQL解析模块}
 
@@ -199,7 +212,78 @@
 
 \subsection{SQL执行模块}
 
-!TODO
+在本模块中，我们将在数据库上实际执行上一模块解析出的SQL命令。
+
+\begin{itemize}
+\item 对于\texttt{USE, CREATE, DROP}等这种对表结构进行操作的命令，送往系统管理模块执行。
+\item 对于\texttt{INSERT, UPDATE, DELETE, SELECT}等这种涉及记录的命令，将在本模块中通过调用系统管理模块和记录管理模块提供的功能来完成。
+\end{itemize}
+
+我们定义了一个\texttt{Evaluator}类，可以对包含列名的表达式求值。
+
+下面我们将详细列举各命令、功能的实现原理及方法。
+
+\subsubsection{INSERT}\label{sec:insert}
+
+我们支持两种格式的\texttt{INSERT}。对于不指定列名的格式，我们根据创建表时给出的列顺序将表数据填入这条记录的相应位置，否则按照给出的列名填入。在填入用户给定的数据前，我们需要初始化\texttt{NULL}列的内容，以及在记录中填入默认值和自增字段的值。在填入数据时，我们会对列数据格式作兼容性检查。在填入数据后，我们会检查该记录是否满足所有的约束。最后，若一切条件均满足，便调用记录管理模块将该条记录写入数据库，同时更新有关索引。
+
+\subsubsection{SELECT}\label{sec:select}
+
+由于\texttt{SELECT}语句格式比较复杂，我们还支持聚集函数、\texttt{GROUP BY}和多表连接，因此在我们的实现中分四个步骤进行。
+
+\begin{description}
+\item[Query] 在此阶段，我们会根据\texttt{WHERE}子句的语法树生成一个filter函数对象，并将filter函数传入记录管理模块，在相应表的记录中将所有可能符合条件的记录找出。此处的可能是指在多表连接查询中，忽略了其余表的条件时的情况。这一阶段也就是\texttt{WHERE}子句的处理过程。
+\item[Join] 在此阶段，我们会使用递归将上一阶段在所有表中查出的记录做笛卡尔积，同时再次应用filter函数找出所有符合条件的记录。
+\item[Group By] 在此阶段，我们会根据\texttt{GROUP BY}子句将上一阶段得到的结果分组。若\texttt{GROUP BY}为空，则分为1组。
+\item[Aggregate] 在此阶段，我们会对上一阶段中得到的所有组中的记录分别应用聚集函数，得到每组中的结果。若聚集函数为空，则返回所有结果。
+\end{description}
+
+经过以上四个步骤后，我们便得到了\texttt{SELECT}语句的结果，最后将其打印出来即可。
+
+\subsubsection{UPDATE}
+
+首先，我们会根据\texttt{WHERE}语句查出所有符合条件的需要更新的记录（查询的详细方法见\ref{sec:select}）。在查出需要更新的记录后，由原记录计算\texttt{SET}子句中表达式的值，然后的处理流程与\ref{sec:insert} \texttt{INSERT}完全类似。
+
+\subsubsection{DELETE}
+
+对于\texttt{DELETE}命令，同样根据\texttt{WHERE}语句查出符合条件的记录,然后就可以调用记录管理模块删除这些记录以及对应的索引了。
+
+\subsubsection{USE, CREATE / DROP DATABASE / TABLE}
+
+对于这几个命令，直接调用系统管理模块完成相应功能。
+
+注意对于\texttt{CREATE TABLE}命令，我们会增加一个隐藏的列NULL，以记录每列是否为空。
+
+\subsubsection{CREATE / DROP INDEX}
+
+对于建立、删除索引命令，由记录管理模块完成相应操作。
+
+建立索引时，在记录管理模块中新建一个multimap，并将所有记录的相应列值加入multimap中。
+
+删除索引时，直接删除multimap。
+
+\subsubsection{CHECK}
+
+对于CHECK约束，在建表时将BoolExpr序列化保存下来，每当插入或更新记录时，对该表达式求值并判断真值即可。
+
+\subsubsection{PRIMARY KEY, FOREIGN KEY, UNIQUE, NOT NULL}
+
+PRIMARY KEY相当于UNIQUE + NOT NULL。
+
+这四个约束在插入或更新记录时检查。
+
+\begin{itemize}
+\item 对于NOT NULL，直接检查NULL列中对应位即可。
+\item 对于PRIMARY KEY和FOREIGN KEY，使用索引在记录管理模块中寻找该列是否存在相应的值。
+\end{itemize}
+
+\subsubsection{WHERE子句的扩展运算}
+
+\begin{itemize}
+\item 对于BETWEEN运算，我们只支持数值类型BETWEEN，直接将其转化为>=和<=运算执行。
+\item 对于IN运算，我们直接循环每个值，判断是否相等。
+\item 对于LIKE运算，我们将查询字符串转换为正则表达式，然后调用正则表达式匹配。具体来说，将\texttt{\%}转换为\texttt{.*}，将\texttt{_}转换为\texttt{.}，将\texttt{[!set]}转换为\texttt{[\^set]}。
+\end{itemize}
 
 \subsection{用户交互模块}
 
@@ -212,13 +296,59 @@
 
 \section{测试结果}
 
-\subsection{基本查询功能}
+\subsection{数据库管理及查询功能}
 
-!TODO
+首先，我们打开\texttt{mydb}，新建一个数据库\texttt{test}并切换到它。
 
-\subsection{扩展查询功能}
+\begin{center}
+    \includegraphics[width=12cm]{fig/create-db}
+    \fcaption{新建数据库并切换}
+\end{center}
 
-!TODO
+然后，我们新建一个带有主键、自增字段、默认值字段的表，再新建一个有唯一字段、非空字段、域完整性约束和外键的表。建立表结构后，我们往表里添加一些合法记录。
+
+\begin{center}
+    \includegraphics[width=15cm]{fig/create-table}
+    \fcaption{建表并插入记录}
+\end{center}
+
+我们再尝试往表里添加非法记录。
+
+\begin{center}
+    \includegraphics[width=10cm]{fig/illegal-record}
+    \fcaption{插入非法记录时报错}
+\end{center}
+
+然后我们尝试使用各种查询语句。
+
+\begin{center}
+    \includegraphics[width=9cm]{fig/query1}
+    \fcaption{查询1}
+\end{center}
+
+\begin{center}
+    \includegraphics[width=9cm]{fig/query2}
+    \fcaption{查询2}
+\end{center}
+
+\begin{center}
+    \includegraphics[width=9cm]{fig/query2}
+    \fcaption{查询3}
+\end{center}
+
+再尝试更新和删除语句。
+
+\begin{center}
+    \includegraphics[width=10cm]{fig/update-delete}
+    \fcaption{更新和删除}
+\end{center}
+
+最后删除表和数据库。
+
+\begin{center}
+    \includegraphics[width=8cm]{fig/drop-db}
+    \fcaption{删除表及数据库}
+\end{center}
 
 \subsection{远程连接功能}
 
