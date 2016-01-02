@@ -75,6 +75,67 @@ void test()
     Record rec;
     rman.load(records[0].page, records[0].offset, rec);
     printRecord(rec);
+
+    // query record whose data % 2 != 0
+    auto filter1 = [](const Record& rec) {
+        int *ptr = (int*)rec.data;
+        return ptr[0] % 2 != 0;
+    };
+    records.clear();
+    rman.query(filter1, records);
+    printf("%lu records found.\n", records.size());
+    for (const auto& rec : records) {
+        printRecord(rec);
+    }
+
+    // query record whose data % 2 == 0
+    auto filter2 = [](const Record& rec) {
+        int *ptr = (int*)rec.data;
+        return ptr[0] == 0;
+    };
+    records.clear();
+    rman.query(filter2, records);
+    printf("%lu records found.\n", records.size());
+    for (const auto& rec : records) {
+        printRecord(rec);
+    }
+
+    // query record whose data % 2 == 0
+    auto filter3 = [](const Record& rec) {
+        int *ptr = (int*)rec.data;
+        return ptr[0] == 1;
+    };
+    records.clear();
+    rman.query(filter3, records);
+    printf("%lu records found.\n", records.size());
+    for (const auto& rec : records) {
+        printRecord(rec);
+    }
+
+    // query record whose data % 2 == 0
+    auto filter4 = [](const Record& rec) {
+        int *ptr = (int*)rec.data;
+        return ptr[0] == 2;
+    };
+    records.clear();
+    rman.query(filter4, records);
+    printf("%lu records found.\n", records.size());
+    for (const auto& rec : records) {
+        printRecord(rec);
+    }
+
+    // query record whose data % 2 == 0
+    auto filter5 = [](const Record& rec) {
+        int *ptr = (int*)rec.data;
+        return ptr[0] == 3;
+    };
+    records.clear();
+    rman.query(filter5, records);
+    printf("%lu records found.\n", records.size());
+    for (const auto& rec : records) {
+        printRecord(rec);
+    }
+
 }
 
 void test_read()

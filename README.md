@@ -1,13 +1,11 @@
 # mydb
 
-A naive one-user single-thread database as a final project.
-
-**Note that** this project is still implementing.
+A simple one-user single-thread database as a final project.
 
 ### Prerequisites
 
 - `flex` >= 2.5.31
-- `bison` >= 2.1
+- `bison` >= 3.0.4
 
 ### Install
 
@@ -17,10 +15,67 @@ On unix-like systems, type
 
 ### Usage
 
-    $ ./mydb <sql input file name>
+    ./mydb [-s port | -r addr -p port | -f file | -h]
 
-Till now, we only print out AST for debugging.
+Options:
+
+	-s    start as server
+	-r    connect remote server (ip)
+	-p    connect remote server (port)
+	-f    specify input SQL file
+    -h    see help
+
+To launch interactive terminal, run without any options.
+
+#### Interactive Environment
+
+Type
+
+    ./mydb
+
+You will see the following welcome information
+
+    Welcome to mydb!
+
+    Powered by Wen He and Zhu Fengmin.
+
+    Type SQL statements end with ';' or type 'exit' or 'quit' to quit.
+    Run './mydb -h' to see more options.
+
+    mydb>
+
+Type SQL statements to execute queries
+
+    mydb> show databases;
+
+Or type `exit` or `quit` to quit `mydb`
+
+    mydb> exit
+
+#### Specify an Input File
+
+Type
+
+    ./mydb -f <your_input_file_name>
+
+then you can see the results.
+
+#### Remote Connection
+
+First start a server
+
+    ./mydb -s <port>
+
+Then connect the server
+
+    ./mydb -r <ip> -p <port>
+
+And you can now using it in interactive environment.
 
 ### SQL Support
 
-See [SQL Support Document](https://github.com/paulzfm/mydb/blob/master/doc/sql.pdf) for more information.
+See [SQL Support Document](https://github.com/paulzfm/mydb/blob/master/doc/SQL%20Support%20Document.pdf) for more information.
+
+### Report
+
+See Final Report. Notice that it is written in Chinese.
