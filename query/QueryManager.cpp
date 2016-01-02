@@ -659,6 +659,7 @@ bool QueryManager::DropTable(const string& name, string& msg) {
     system(cmd.c_str());
     cmd = "rm -rf ";
     cmd += path + ".idx";
+    system(cmd.c_str())
     msg = cmsg.str();
     return true;
 }
