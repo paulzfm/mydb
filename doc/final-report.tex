@@ -1,0 +1,139 @@
+\documentclass[11pt, a4paper]{article}
+
+\usepackage{amsmath}
+\usepackage{amssymb}
+
+% fonts
+\usepackage{xeCJK}
+\setCJKmainfont[BoldFont=SimHei]{SimSun}
+\setCJKfamilyfont{hei}{SimHei}
+\setCJKfamilyfont{kai}{KaiTi}
+\setCJKfamilyfont{fang}{FangSong}
+\newcommand{\hei}{\CJKfamily{hei}}
+\newcommand{\kai}{\CJKfamily{kai}}
+\newcommand{\fang}{\CJKfamily{fang}}
+
+% style
+\usepackage[top=2.54cm, bottom=2.54cm, left=3.18cm, right=3.18cm]{geometry}
+\linespread{1.5}
+\usepackage{indentfirst}
+\parindent 2em
+\punctstyle{quanjiao}
+\renewcommand{\today}{\number\year 年 \number\month 月 \number\day 日}
+
+% figures and tables
+\usepackage{graphicx}
+\usepackage[font={bf, footnotesize}, textfont=md]{caption}
+\makeatletter
+    \newcommand\fcaption{\def\@captype{figure}\caption}
+    \newcommand\tcaption{\def\@captype{table}\caption}
+\makeatother
+\usepackage{booktabs}
+\renewcommand\figurename{图}
+\renewcommand\tablename{表}
+\newcommand{\fref}[1]{\textbf{图\ref{#1}}}
+\newcommand{\tref}[1]{\textbf{表\ref{#1}}}
+\newcommand{\tabincell}[2]{\begin{tabular}{@{}#1@{}}#2\end{tabular}} % multiply lines in one grid
+
+\usepackage{listings}
+\lstset{basicstyle=\ttfamily}
+
+\usepackage{xcolor}
+\renewcommand{\r}{\color{red}}
+
+\usepackage{url}
+
+% start of document
+\title{\textbf{\texttt{mydb}数据库设计报告}}
+\author{\kai 朱俸民 \and \kai 温和}
+\date{\kai \today}
+
+\begin{document}
+
+\maketitle
+
+\section{功能介绍}
+
+\texttt{mydb}是一个简单的面向单用户、单线程的关系数据库管理系统，支持增、查、删、改四项基本数据库查询功能，通过SQL的一个子集实现数据库与用户的交互。除了支持基本的增、查、删、改功能外，\texttt{mydb}具有如下扩展功能：
+
+\begin{enumerate}
+    \item 索引：使用\texttt{std::set}，支持对任意列建立索引加速查询；
+    \item 域完整性约束：支持\texttt{CHECK}语句的创建，并在更新数据库时进行约束检查；
+    \item 外键约束：支持\texttt{FOREIGN KEY}的创建，并在更新数据库时进行约束检查；
+    \item 模糊查询：支持使用\texttt{LIKE}语句进行模糊匹配；
+    \item 支持多表连接查询，包括三个表以上的连接；
+    \item 聚集查询：支持将\texttt{SUM}，\texttt{AVG}，\texttt{MAX}，\texttt{MIN}这四个函数应用于表中的某些列；
+    \item 分组聚集查询：支持查询时的\texttt{GROUP BY}语句，可以处理聚集查询与分组聚集查询并存的查询；
+    \item 完整的建表属性限制：建表时除了允许\texttt{NOT NULL}，\texttt{PRIMARY KEY}，\texttt{FOREIGN KEY}与\texttt{CHECK}限制外，还可以设置\texttt{UNIQUE}，\texttt{AUTO\_INCREMENT}与\texttt{DEFAULT}限制；
+    \item 在查询时，支持\texttt{BETWEEN}和\texttt{IN}操作符；
+    \item 远程连接：允许远程开启\texttt{mydb}服务端后，本地用\texttt{mydb}客户端进行连接，通过SQL语句交互的方式进行数据库操作；
+    \item 采用MySQL风格打印查询结果，易于用户查看。
+\end{enumerate}
+
+\section{系统架构}
+
+
+
+\section{模块设计}
+
+\subsection{记录管理模块}
+
+\subsection{系统管理模块}
+
+\subsection{SQL解析模块}
+
+\subsection{SQL执行模块}
+
+\subsection{用户交互模块}
+
+\section{测试结果}
+
+\subsection{基本查询功能}
+
+\subsection{扩展查询功能}
+
+\subsection{远程连接功能}
+
+\section{小组分工}
+
+请见\tref{jobs}.
+
+\begin{center}
+    \tcaption{小组分工}\label{jobs}
+    \begin{tabular}{ll}
+        \toprule
+        功能 & 负责人 \\
+        \midrule
+        记录管理 & 朱俸民 \\
+        系统管理 & 温和 \\
+        SQL解析与语义检查 & 朱俸民 \\
+        查询执行 & 温和 \\
+        交互终端与远程连接 & 朱俸民 \\
+        索引 & 温和 \\
+        \bottomrule
+    \end{tabular}
+\end{center}
+
+\section{SQL语法支持}
+
+详见\textit{SQL Support Document.pdf}，或前往Github：\url{}。
+
+\section{使用方法}
+
+详见\textit{README.md}，或前往Github：\url{https://github.com/paulzfm/mydb#mydb}。
+
+\begin{thebibliography}{9}
+
+\bibitem{bib1} Bison 2.3. \url{https://engineering.purdue.edu/~milind/ece573/2015fall/project/bison.html#Calc_002b_002b-_002d_002d_002d-C_002b_002b-Calculator}.
+
+\bibitem{bib2} SQL Tutorial. \url{http://www.w3schools.com/sql/default.asp}.
+
+\bibitem{bib3} 冯建华, 周立柱. 数据库系统设计与原理. 
+
+\bibitem{bib4} cppreference. \url{http://en.cppreference.com/}.
+
+\bibitem{bib5} RapidJSON. \url{http://rapidjson.org/index.html}.
+
+\end{thebibliography}
+
+\end{document}
