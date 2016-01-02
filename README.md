@@ -33,7 +33,7 @@ Type
 
     ./mydb
 
-You will see
+You will see the following welcome information
 
     Welcome to mydb!
 
@@ -48,13 +48,17 @@ Type SQL statements to execute queries
 
     mydb> show databases;
 
-Type 'exit' or 'quit' to quit
+Or type `exit` or `quit` to quit `mydb`
 
     mydb> exit
 
 #### Specify an Input File
 
-    ./mydb -f test.sql
+Type
+
+    ./mydb -f <your_input_file_name>
+
+then you can see the results.
 
 #### Remote Connection
 

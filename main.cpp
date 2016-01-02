@@ -43,14 +43,14 @@ int main(int argc, char **argv)
     while ((c = getopt(argc, argv, "s:f:r:p:h")) != -1) {
     switch (c) {
         case 'h':
-            fprintf(stderr, "Usage: %s [-s port | -r addr -p port | -f file]\n", argv[0]);
+            fprintf(stderr, "Usage: %s [-s port | -r addr -p port | -f file | -h]\n", argv[0]);
             fprintf(stderr, "Options:\n");
             fprintf(stderr, "\t-s    start as server\n");
             fprintf(stderr, "\t-r    connect remote server (ip)\n");
             fprintf(stderr, "\t-p    connect remote server (port)\n");
             fprintf(stderr, "\t-f    specify input SQL file\n");
-            fprintf(stderr, "To launch interactive terminal, run without option -f.\n");
-            break;
+            fprintf(stderr, "To launch interactive terminal, run without any options.\n");
+            exit(1);
         case 's':
             sflag = true;
             sport = optarg;
