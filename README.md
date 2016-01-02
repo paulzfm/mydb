@@ -1,6 +1,6 @@
 # mydb
 
-A naive one-user single-thread database as a final project.
+A simple one-user single-thread database as a final project.
 
 ### Prerequisites
 
@@ -18,6 +18,7 @@ On unix-like systems, type
     ./mydb [-s port | -r addr -p port | -f file | -h]
 
 Options:
+
 	-s    start as server
 	-r    connect remote server (ip)
 	-p    connect remote server (port)
