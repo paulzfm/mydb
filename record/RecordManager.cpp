@@ -33,6 +33,7 @@ void loadIndex(string prefix,
             i.insert(make_pair(val, make_pair(page, offset)));
         }
     }
+    fclose(of);
 }
 
 

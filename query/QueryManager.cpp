@@ -176,8 +176,8 @@ bool QueryManager::Insert(const string& table, unordered_map<string, Value*>& da
     rm.second->getIndexes(indexes);
     for (auto& index : indexes) {
         Column& col = rm.first->getColumn(rm.first->getColumnByName(index));
-        DValue val;
-        if (backup.find(index) != backup.end()) val = v2dv(backup[index]);
+        DValue val = rm.first->getColumnValue(buf, col.cid);
+        //if (backup.find(index) != backup.end()) val = v2dv(backup[index]);
         rm.second->addIndex(index, val, pos);
     }
 
@@ -636,6 +636,8 @@ bool QueryManager::CreateTable(const string& name, vector<Column>& cols,
     RecordManager *rm = new RecordManager(path, table.getWidth());
     delete rm;
 
+    string log = cmsg.str();
+    cmsg.str("");
 	for (auto& con : cons) {
         con.cid = cids[con.cid];
         if (con.type == Constraint::PRIMARY_KEY) {
@@ -646,7 +648,7 @@ bool QueryManager::CreateTable(const string& name, vector<Column>& cols,
 		table.addConstraint(con);
     }
 
-    msg = cmsg.str();
+    msg = log + cmsg.str();
     return true;
 }
 
@@ -659,7 +661,7 @@ bool QueryManager::DropTable(const string& name, string& msg) {
     system(cmd.c_str());
     cmd = "rm -rf ";
     cmd += path + ".idx";
-    system(cmd.c_str())
+    system(cmd.c_str());
     msg = cmsg.str();
     return true;
 }
