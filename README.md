@@ -78,4 +78,4 @@ See [SQL Support Document](https://github.com/paulzfm/mydb/blob/master/doc/SQL%2
 
 ### Report
 
-See Final Report. Notice that it is written in Chinese.
+See [Final Report](https://github.com/paulzfm/mydb/blob/master/doc/final-report.pdf). Notice that it is written in Chinese.
