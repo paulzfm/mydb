@@ -170,7 +170,7 @@
 
 每条记录的数据部分最长支持65535字节。
 
-对于索引，我们将每个表的索引单独存放在相应文件中，存放格式为将multimap中的key-value对的二进制表示直接保存。
+对于索引，我们将每个表的索引单独存放在相应文件中，存放格式为将\texttt{multimap}中的key-value对的二进制表示直接保存。
 
 \subsection{系统管理模块}
 
@@ -223,11 +223,11 @@
 
 下面我们将详细列举各命令、功能的实现原理及方法。
 
-\subsubsection{INSERT}\label{sec:insert}
+\subsubsection{\texttt{INSERT}}\label{sec:insert}
 
 我们支持两种格式的\texttt{INSERT}。对于不指定列名的格式，我们根据创建表时给出的列顺序将表数据填入这条记录的相应位置，否则按照给出的列名填入。在填入用户给定的数据前，我们需要初始化\texttt{NULL}列的内容，以及在记录中填入默认值和自增字段的值。在填入数据时，我们会对列数据格式作兼容性检查。在填入数据后，我们会检查该记录是否满足所有的约束。最后，若一切条件均满足，便调用记录管理模块将该条记录写入数据库，同时更新有关索引。
 
-\subsubsection{SELECT}\label{sec:select}
+\subsubsection{\texttt{SELECT}}\label{sec:select}
 
 由于\texttt{SELECT}语句格式比较复杂，我们还支持聚集函数、\texttt{GROUP BY}和多表连接，因此在我们的实现中分四个步骤进行。
 
@@ -240,49 +240,49 @@
 
 经过以上四个步骤后，我们便得到了\texttt{SELECT}语句的结果，最后将其打印出来即可。
 
-\subsubsection{UPDATE}
+\subsubsection{\texttt{UPDATE}}
 
 首先，我们会根据\texttt{WHERE}语句查出所有符合条件的需要更新的记录（查询的详细方法见\ref{sec:select}）。在查出需要更新的记录后，由原记录计算\texttt{SET}子句中表达式的值，然后的处理流程与\ref{sec:insert} \texttt{INSERT}完全类似。
 
-\subsubsection{DELETE}
+\subsubsection{\texttt{DELETE}}
 
 对于\texttt{DELETE}命令，同样根据\texttt{WHERE}语句查出符合条件的记录,然后就可以调用记录管理模块删除这些记录以及对应的索引了。
 
-\subsubsection{USE, CREATE / DROP DATABASE / TABLE}
+\subsubsection{\texttt{USE, CREATE / DROP DATABASE / TABLE}}
 
 对于这几个命令，直接调用系统管理模块完成相应功能。
 
 注意对于\texttt{CREATE TABLE}命令，我们会增加一个隐藏的列NULL，以记录每列是否为空。
 
-\subsubsection{CREATE / DROP INDEX}
+\subsubsection{\texttt{CREATE / DROP INDEX}}
 
 对于建立、删除索引命令，由记录管理模块完成相应操作。
 
-建立索引时，在记录管理模块中新建一个multimap，并将所有记录的相应列值加入multimap中。
+建立索引时，在记录管理模块中新建一个\texttt{multimap}，并将所有记录的相应列值加入\texttt{multimap}中。
 
-删除索引时，直接删除multimap。
+删除索引时，直接删除\texttt{multimap}。
 
-\subsubsection{CHECK}
+\subsubsection{\texttt{CHECK}}
 
-对于CHECK约束，在建表时将BoolExpr序列化保存下来，每当插入或更新记录时，对该表达式求值并判断真值即可。
+对于\texttt{CHECK}约束，在建表时将\texttt{BoolExpr}序列化保存下来，每当插入或更新记录时，对该表达式求值并判断真值即可。
 
-\subsubsection{PRIMARY KEY, FOREIGN KEY, UNIQUE, NOT NULL}
+\subsubsection{\texttt{PRIMARY KEY, FOREIGN KEY, UNIQUE, NOT NULL}}
 
-PRIMARY KEY相当于UNIQUE + NOT NULL。
+\texttt{PRIMARY KEY}相当于\texttt{UNIQUE} + \texttt{NOT NULL}。
 
 这四个约束在插入或更新记录时检查。
 
 \begin{itemize}
-\item 对于NOT NULL，直接检查NULL列中对应位即可。
-\item 对于PRIMARY KEY和FOREIGN KEY，使用索引在记录管理模块中寻找该列是否存在相应的值。
+\item 对于\texttt{NOT NULL}，直接检查\texttt{NULL}列中对应位即可。
+\item 对于\texttt{PRIMARY KEY}和\texttt{FOREIGN KEY}，使用索引在记录管理模块中寻找该列是否存在相应的值。
 \end{itemize}
 
-\subsubsection{WHERE子句的扩展运算}
+\subsubsection{\texttt{WHERE}子句的扩展运算}
 
 \begin{itemize}
-\item 对于BETWEEN运算，我们只支持数值类型BETWEEN，直接将其转化为>=和<=运算执行。
-\item 对于IN运算，我们直接循环每个值，判断是否相等。
-\item 对于LIKE运算，我们将查询字符串转换为正则表达式，然后调用正则表达式匹配。具体来说，将\texttt{\%}转换为\texttt{.*}，将\texttt{_}转换为\texttt{.}，将\texttt{[!set]}转换为\texttt{[\^set]}。
+\item 对于\texttt{BETWEEN}运算，我们只支持数值类型\texttt{BETWEEN}，直接将其转化为\texttt{>=}和\texttt{<=}运算执行。
+\item 对于\texttt{IN}运算，我们直接循环每个值，判断是否相等。
+\item 对于\texttt{LIKE}运算，我们将查询字符串转换为正则表达式，然后调用正则表达式匹配。具体来说，将\texttt{\%}转换为\texttt{.*}，将\texttt{\_}转换为\texttt{.}，将\texttt{[!set]}中的\texttt{!}转换为\texttt{\^}。
 \end{itemize}
 
 \subsection{用户交互模块}
@@ -294,7 +294,11 @@ PRIMARY KEY相当于UNIQUE + NOT NULL。
     \fcaption{交互式终端允许多行输入}\label{inter:multi}
 \end{center}
 
+此外，我们还利用Linux的\texttt{socket} API实现了远程数据库连接。具体来说，就是通过\texttt{socket} 把客户端的SQL语句发送给服务端，服务端接收到命令后调用SQL解析模块，操作完成后，将返回的结果字符串通过\texttt{socket}回送给客户端，客户端将其显示出来。
+
 \section{测试结果}
+
+接下来我们对\texttt{mydb}实现的功能一一进行测试。
 
 \subsection{数据库管理及查询功能}
 
@@ -380,6 +384,14 @@ PRIMARY KEY相当于UNIQUE + NOT NULL。
     \fcaption{断开连接}
 \end{center}
 
+\section{项目链接}
+
+\url{https://github.com/paulzfm/mydb}
+
+\section{使用方法}
+
+详见\texttt{README.md}，或前往Github：\url{https://github.com/paulzfm/mydb#mydb}。
+
 \section{小组分工}
 
 请见\tref{jobs}。
@@ -399,10 +411,6 @@ PRIMARY KEY相当于UNIQUE + NOT NULL。
         \bottomrule
     \end{tabular}
 \end{center}
-
-\section{使用方法}
-
-详见\texttt{README.md}，或前往Github：\url{https://github.com/paulzfm/mydb#mydb}。
 
 \renewcommand{\refname}{参考资料}
 
